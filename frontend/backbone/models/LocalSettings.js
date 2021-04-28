@@ -1,8 +1,7 @@
-/* eslint-disable class-methods-use-this */
-import { Model } from 'backbone';
-import isUrl from 'is-url';
-import process from 'process';
+import { remote } from 'electron';
 import LocalStorageSync from '../utils/lib/backboneLocalStorage';
+import { Model } from 'backbone';
+import is from 'is_js';
 import { feeLevels } from '../utils/fees';
 import { getTranslationLangByCode } from '../data/languages';
 import app from '../app';
@@ -41,22 +40,17 @@ export default class extends Model {
       // pass
     }
 
-    const language = (langDataObj && langDataObj.code) || 'en_US';
-
-    let verifiedModsProvider = `${location.origin}/info/api/moderator/verified`;
-    if (import.meta.env.VITE_APP) {
-      verifiedModsProvider = `https://${import.meta.env.VITE_TESTNET === 'true' ? 'console.' : ''}mobazha.info/api/moderator/verified`;
-    }
+    const language = langDataObj && langDataObj.code || 'en_US';
 
     return {
-      windowControlStyle: process.platform === 'darwin' ? 'mac' : 'win',
+      windowControlStyle: remote.process.platform === 'darwin' ? 'mac' : 'win',
       showAdvancedVisualEffects: true,
       saveTransactionMetadata: true,
       defaultTransactionFee: 'NORMAL',
       language,
       listingsGridViewType: 'grid',
       bitcoinUnit: 'BTC',
-      verifiedModsProvider,
+      verifiedModsProvider: 'https://market.mobazha.com/api/verified_moderators',
       verifiedModsProviderTor: 'http://my7nrnmkscxr32zo.onion/verified_moderators',
       dontShowTorExternalLinkWarning: false,
     };
@@ -73,6 +67,7 @@ export default class extends Model {
   get bitcoinUnits() {
     return ['BTC', 'MBTC', 'UBTC', 'SATOSHI'];
   }
+
 
   standardizedTranslatedLang() {
     return standardizedTranslatedLang(this.get('language'));
@@ -101,12 +96,14 @@ export default class extends Model {
       addError(`bitcoinUnit needs to be one of ${this.bitcoinUnits}.`);
     }
 
-    if (!isUrl(attrs.verifiedModsProvider)) {
-      addError('verifiedModsProvider', app.polyglot.t('localSettingsModelErrors.verifiedModsProvider'));
+    if (is.not.url(attrs.verifiedModsProvider)) {
+      addError('verifiedModsProvider',
+        app.polyglot.t('localSettingsModelErrors.verifiedModsProvider'));
     }
 
     if (typeof attrs.dontShowTorExternalLinkWarning !== 'boolean') {
-      addError('dontShowTorExternalLinkWarning', 'dontShowTorExternalLinkWarning must be provided as a boolean.');
+      addError('dontShowTorExternalLinkWarning',
+        'dontShowTorExternalLinkWarning must be provided as a boolean.');
     }
 
     if (Object.keys(errObj).length && errObj) return errObj;
