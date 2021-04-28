@@ -1,36 +1,43 @@
+console.log('test order processing error');
+console.log('test non-standard divis in a listing. test failed: #1853');
+console.log('ltc unconfirmed balance shows in confirmed');
+console.log('recheck card error scenario in listing card');
+
+import { remote, ipcRenderer } from 'electron';
 import $ from 'jquery';
 import Backbone from 'backbone';
-import './lib/select2.js';
-import 'trumbowyg';
-import moment from 'moment';
-
-import { ipc } from '../src/utils/ipcRenderer.js';
+import Polyglot from './utils/Polyglot';
 import './lib/whenAll.jquery';
+import moment from 'moment';
+import bigNumber from 'bignumber.js';
 import app from './app';
 import { serverVersionRequired } from '../package.json';
 import { getCurrencyByCode } from './data/currencies';
 import { init as initWalletCurs } from './data/walletCurrencies';
+import ServerConfigs from './collections/ServerConfigs';
 import ServerConfig from './models/ServerConfig';
 import serverConnect, {
   events as serverConnectEvents,
   getSocket,
   getCurrentConnection,
 } from './utils/serverConnect';
-import { myGet, myPost } from '../src/api/api';
-
+import LocalSettings from './models/LocalSettings';
 import ObRouter from './router';
+import { getChatContainer, getBody } from './utils/selectors';
 import { addFeedback } from './utils/feedback';
 import { addMetrics, showMetricsModal, isNewerVersion } from './utils/metrics';
 import { showUpdateStatus, updateReady } from './utils/autoUpdate';
 import { handleLinks } from './utils/dom';
-import { persist as persistOutdatedListingHashes } from './utils/outdatedListingHashes';
-import { printLog } from './utils/log.js';
+import { persist as persistOutdatedListingHashes } from './utils/outdatedListingHashes.js';
+import Chat from './views/chat/Chat.js';
+import ChatHeads from './collections/ChatHeads';
+import PageNav from './views/PageNav.js';
 import LoadingModal from './views/modals/Loading';
 import StartupConnectMessaging from './views/StartupConnectMessaging';
 import { openSimpleMessage } from './views/modals/SimpleMessage';
 import Dialog from './views/modals/Dialog';
 import StatusBar from './views/StatusBar';
-
+import { getTranslationLangByCode } from './data/languages';
 import Profile from './models/profile/Profile';
 import Settings from './models/settings/Settings';
 import WalletBalances from './collections/wallet/Balances';
@@ -47,20 +54,35 @@ import defaultSearchProviders from './data/defaultSearchProviders';
 import VerifiedMods from './collections/VerifiedMods';
 import VerifiedModsError from './views/modals/VerifiedModsFetchError';
 
-import * as casdoor from '../src/utils/casdoor';
-
 fixLinuxZoomIssue();
 handleServerShutdownRequests();
 
-$(document).ready(() => {
-  $.noConflict();
-  
-  if ($.trumbowyg) {
-    $.trumbowyg.svgPath = '../node_modules/trumbowyg/dist/ui/icons.svg';
+// Will allow us to handle numbers with greater than 20 decimals places. Probably
+// unlikely this will be needed, but just in case.
+bigNumber.config({ DECIMAL_PLACES: 50 });
+
+app.localSettings = new LocalSettings({ id: 1 });
+app.localSettings.fetch().fail(() => app.localSettings.save());
+
+// initialize language functionality
+function getValidLanguage(lang) {
+  if (getTranslationLangByCode(lang)) {
+    return lang;
   }
-});
+
+  return 'en_US';
+}
+
+const initialLang = getValidLanguage(app.localSettings.get('language'));
+app.localSettings.set('language', initialLang);
+moment.locale(initialLang);
+app.polyglot = new Polyglot();
+app.polyglot.extend(require(`./languages/${initialLang}.json`));
 
 app.localSettings.on('change:language', (localSettings, lang) => {
+  app.polyglot.extend(
+    require(`./languages/${lang}.json`)); // eslint-disable-line global-require
+
   moment.locale(lang);
 
   const restartLangChangeDialog = new Dialog({
@@ -74,33 +96,36 @@ app.localSettings.on('change:language', (localSettings, lang) => {
       fragment: 'restartNow',
     }],
   }).on('click-restartNow', () => location.reload())
-    .on('click-restartLater', () => restartLangChangeDialog.close())
-    .render()
-    .open();
+  .on('click-restartLater', () => restartLangChangeDialog.close())
+  .render()
+  .open();
 });
 
-// window.addEventListener('contextmenu', (e) => {
-//   e.preventDefault();
-//   ipc.send('contextmenu-click');
-// }, false);
+window.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  ipcRenderer.send('contextmenu-click');
+}, false);
 
-app.pageNav = window.vueApp.$refs.pageNav;
+// Instantiating our Server Configs collection now since the page nav
+// utilizes it. We'll fetch it later on.
+app.serverConfigs = new ServerConfigs();
 
-let externalRoute = ipc.sendSync('controller.system.getGlobal', 'externalRoute');
+app.pageNav = new PageNav({
+  serverConfigs: app.serverConfigs,
+});
+$('#pageNavContainer').append(app.pageNav.render().el);
+
+let externalRoute = remote.getGlobal('externalRoute');
 
 app.router = new ObRouter();
 
 // Clear the external route flag as soon as it's used so it's not re-used
 // on app refreshes.
-app.router.on('route', () => { externalRoute = null; });
+app.router.on('route', () => (externalRoute = null));
 
 // create our status bar view
 app.statusBar = new StatusBar();
 $('#statusBar').html(app.statusBar.render().el);
-
-app.searchProviders = new SearchProvidersCol();
-// add the default search providers
-app.searchProviders.add(defaultSearchProviders, { at: 0 });
 
 const startupConnectMessaging = new StartupConnectMessaging();
 
@@ -115,7 +140,7 @@ app.loadingModal = new LoadingModal({
 handleLinks(document);
 
 // add the feedback mechanism
-// addFeedback();
+addFeedback();
 
 app.verifiedMods = new VerifiedMods();
 
@@ -124,10 +149,10 @@ let configFetch;
 let walletCurDefFetch;
 
 function fetchStartupData1() {
-  configFetch = !configFetch || configFetch.state() === 'rejected'
-    ? myGet(app.getServerUrl('ob/config')) : configFetch;
-  walletCurDefFetch = !walletCurDefFetch || walletCurDefFetch.state() === 'rejected'
-    ? myGet(app.getServerUrl('wallet/currencies')) : walletCurDefFetch;
+  configFetch = !configFetch || configFetch.state() === 'rejected' ?
+    $.get(app.getServerUrl('ob/config')) : configFetch;
+  walletCurDefFetch = !walletCurDefFetch || walletCurDefFetch.state() === 'rejected' ?
+    $.get(app.getServerUrl('wallet/currencies')) : walletCurDefFetch;
 
   const fetches = [
     configFetch,
@@ -146,18 +171,18 @@ function fetchStartupData1() {
 
       if (!curConn || curConn.status !== 'connected') {
         // the connection management modal should be up with relevant info
-        console.error('The tier 1 startup data fetches failed. Looks like the connection to the '
-          + 'server was lost.');
+        console.error('The tier 1 startup data fetches failed. Looks like the connection to the ' +
+          'server was lost.');
         return;
       }
 
-      const failed = fetches.filter((xhr) => xhr.state() === 'rejected');
+      const failed = fetches.filter(xhr => xhr.state() === 'rejected');
 
       if (failed.length) {
         const firstFailedXhr = failed[0];
         let title = '';
-        const message = (firstFailedXhr.responseJSON && firstFailedXhr.responseJSON.reason)
-          || firstFailedXhr.status || '';
+        const message = firstFailedXhr.responseJSON && firstFailedXhr.responseJSON.reason ||
+          firstFailedXhr.status || '';
         const btnText = app.polyglot.t('startUp.dialogs.btnManageConnections');
         const btnFrag = 'manageConnections';
 
@@ -189,9 +214,11 @@ function fetchStartupData1() {
           // slight of hand to ensure the loading modal has a chance to at
           // least briefly show before another potential failure
           setTimeout(() => fetchStartupData1(), 300);
-        }).on('click-manageConnections', () => app.connectionManagmentModal.open())
-          .render()
-          .open();
+        }).on('click-manageConnections', () =>
+          app.connectionManagmentModal.open()
+        )
+        .render()
+        .open();
       }
     });
 
@@ -207,10 +234,10 @@ let profileFailed;
 let settingsFailed;
 
 function isOnboardingNeeded() {
-  profileFetch = !profileFetch || profileFailed
-    ? app.profile.fetch() : profileFetch;
-  settingsFetch = !settingsFetch || settingsFailed
-    ? app.settings.fetch() : settingsFetch;
+  profileFetch = !profileFetch || profileFailed ?
+    app.profile.fetch() : profileFetch;
+  settingsFetch = !settingsFetch || settingsFailed ?
+    app.settings.fetch() : settingsFetch;
 
   const fetches = [profileFetch, settingsFetch];
 
@@ -221,14 +248,14 @@ function isOnboardingNeeded() {
       if (state !== 'success') {
         const jqXhr = args[0];
 
-        if (jqXhr === profileFetch || jqXhr === profileFetch.xhr) {
+        if (jqXhr === profileFetch) {
           if (jqXhr.status === 404) {
             onboardProfile = true;
             profileFailed = false;
           } else {
             profileFailed = true;
           }
-        } else if (jqXhr === settingsFetch || jqXhr === settingsFetch.xhr) {
+        } else if (jqXhr === settingsFetch) {
           if (jqXhr.status === 404) {
             onboardSettings = true;
             settingsFailed = false;
@@ -243,13 +270,12 @@ function isOnboardingNeeded() {
     })
     .fail(() => {
       const jqXhr = fetches.find(
-        (fetch) => fetch.state() === 'rejected',
-      );
+        fetch => fetch.state() === 'rejected');
 
       if (profileFailed || settingsFailed) {
         const retryOnboardingModelsDialog = new Dialog({
           title: app.polyglot.t('startUp.dialogs.retryOnboardingFetch.title'),
-          message: (jqXhr.responseJSON && jqXhr.responseJSON.reason) || '',
+          message: jqXhr.responseJSON && jqXhr.responseJSON.reason || '',
           buttons: [
             {
               text: app.polyglot.t('startUp.dialogs.btnRetry'),
@@ -271,9 +297,10 @@ function isOnboardingNeeded() {
           setTimeout(() => {
             isOnboardingNeeded();
           }, 300);
-        }).on('click-manageConnections', () => app.connectionManagmentModal.open())
-          .render()
-          .open();
+        }).on('click-manageConnections', () =>
+          app.connectionManagmentModal.open())
+        .render()
+        .open();
       } else if (onboardProfile || onboardSettings) {
         onboardingNeededDeferred.resolve(true);
       }
@@ -308,7 +335,7 @@ function fetchVerifiedMods() {
     .fail((jqXhr) => {
       const state = {
         fetching: false,
-        reason: (jqXhr && jqXhr.responseJSON && jqXhr.responseJSON.reason) || jqXhr.status,
+        reason: jqXhr && jqXhr.responseJSON && jqXhr.responseJSON.reason || jqXhr.status,
       };
       if (verifiedModsErrorDialog) {
         verifiedModsErrorDialog
@@ -332,23 +359,23 @@ const fetchStartupData2Deferred = $.Deferred();
 let ownFollowingFetch;
 let exchangeRatesFetch;
 let walletBalancesFetch;
-// let searchProvidersFetch;
+let searchProvidersFetch;
 
 function fetchStartupData2() {
-  ownFollowingFetch = !ownFollowingFetch || ownFollowingFetch.state() === 'rejected'
-    ? app.ownFollowing.fetch() : ownFollowingFetch;
-  exchangeRatesFetch = !exchangeRatesFetch || exchangeRatesFetch.state() === 'rejected'
-    ? fetchExchangeRates() : exchangeRatesFetch;
-  walletBalancesFetch = !walletBalancesFetch || walletBalancesFetch.state() === 'rejected'
-    ? app.walletBalances.fetch() : walletBalancesFetch;
-  // searchProvidersFetch = !searchProvidersFetch || searchProvidersFetch.state() === 'rejected'
-  //   ? app.searchProviders.fetch() : searchProvidersFetch;
+  ownFollowingFetch = !ownFollowingFetch || ownFollowingFetch.state() === 'rejected' ?
+    app.ownFollowing.fetch() : ownFollowingFetch;
+  exchangeRatesFetch = !exchangeRatesFetch || exchangeRatesFetch.state() === 'rejected' ?
+    fetchExchangeRates() : exchangeRatesFetch;
+  walletBalancesFetch = !walletBalancesFetch || walletBalancesFetch.state() === 'rejected' ?
+    app.walletBalances.fetch() : walletBalancesFetch;
+  searchProvidersFetch = !searchProvidersFetch || searchProvidersFetch.state() === 'rejected' ?
+    app.searchProviders.fetch() : searchProvidersFetch;
 
   const fetches = [
     ownFollowingFetch,
     exchangeRatesFetch,
-    // walletBalancesFetch,
-    // searchProvidersFetch,
+    walletBalancesFetch,
+    searchProvidersFetch,
   ];
 
   $.whenAll(fetches.slice())
@@ -360,8 +387,8 @@ function fetchStartupData2() {
 
       if (!curConn || curConn.status !== 'connected') {
         // the connection management modal should be up with relevant info
-        console.error('The tier 2 startup data fetches failed. Looks like the connection to the '
-          + 'server was lost.');
+        console.error('The tier 2 startup data fetches failed. Looks like the connection to the ' +
+          'server was lost.');
         return;
       }
 
@@ -370,14 +397,13 @@ function fetchStartupData2() {
       // status message about it and the app will gracefully handle not having exchange
       // rates.
       const failed = fetches.filter(
-        (xhr) => xhr.state() === 'rejected' && xhr !== exchangeRatesFetch,
-      );
+        xhr => xhr.state() === 'rejected' && xhr !== exchangeRatesFetch);
 
       if (failed.length) {
         const firstFailedXhr = failed[0];
         let title = '';
-        const message = (firstFailedXhr.responseJSON && firstFailedXhr.responseJSON.reason)
-          || firstFailedXhr.status || '';
+        const message = firstFailedXhr.responseJSON && firstFailedXhr.responseJSON.reason ||
+          firstFailedXhr.status || '';
         let btnText = app.polyglot.t('startUp.dialogs.btnManageConnections');
         let btnFrag = 'manageConnections';
 
@@ -413,13 +439,14 @@ function fetchStartupData2() {
           // slight of hand to ensure the loading modal has a chance to at
           // least briefly show before another potential failure
           setTimeout(() => fetchStartupData2(), 300);
-        }).on('click-manageConnections', () => app.connectionManagmentModal.open())
-          .on('click-continue', () => {
-            retryFetchStartupData2Dialog.close();
-            fetchStartupData2Deferred.resolve();
-          })
-          .render()
-          .open();
+        }).on('click-manageConnections', () =>
+          app.connectionManagmentModal.open())
+        .on('click-continue', () => {
+          retryFetchStartupData2Dialog.close();
+          fetchStartupData2Deferred.resolve();
+        })
+        .render()
+        .open();
       } else {
         fetchStartupData2Deferred.resolve();
       }
@@ -454,10 +481,11 @@ function ensureValidSettingsCurrency() {
 
   const settingsCur = app.settings.get('localCurrency');
   const dialogTitle = app.polyglot.t('setValidCurDialog.title');
-  const settingsLink = '<button class="btnAsLink js-setCurSettings clrTEm">'
-      + `${app.polyglot.t('setValidCurDialog.settingsLink')}`
-      + '</button>';
-  const dialogBody = (currency) => (
+  const settingsLink =
+    '<button class="btnAsLink js-setCurSettings clrTEm">' +
+      `${app.polyglot.t('setValidCurDialog.settingsLink')}` +
+      '</button>';
+  const dialogBody = currency => (
     app.polyglot.t('setValidCurDialog.body', {
       currency,
       settingsLink,
@@ -467,21 +495,18 @@ function ensureValidSettingsCurrency() {
   if (!getCurrencyByCode(settingsCur)) {
     const setValidCurDialog = openSimpleMessage(
       dialogTitle,
-      dialogBody(settingsCur),
-
-      {
+      dialogBody(settingsCur), {
         dismissOnEscPress: false,
         showCloseButton: false,
-      },
+      }
     );
 
     let settingsModal;
 
     const bindSetCurSettingsHandler = () => {
       setValidCurDialog.$('.js-setCurSettings')
-        .on('click', () => {
-          settingsModal = launchSettingsModal({ initialTab: 'General' });
-        });
+        .on('click', () =>
+          (settingsModal = launchSettingsModal({ initialTab: 'General' })));
     };
 
     bindSetCurSettingsHandler();
@@ -506,8 +531,6 @@ function ensureValidSettingsCurrency() {
   return ensureValidSettingsCurDeferred.promise();
 }
 
-const isBundledApp = ipc.sendSync('controller.system.getGlobal', 'isBundledApp');
-
 // let's start our flow - do we need onboarding?,
 // fetching app-wide models...
 function start() {
@@ -519,67 +542,53 @@ function start() {
   fetchStartupData1().done((data) => {
     app.serverConfig = data.serverConfig || {};
     app.profile = new Profile({ peerID: data.serverConfig.peerID });
-    
+    app.router.onProfileSet();
     app.settings = new Settings();
     initWalletCurs(app.serverConfig.wallets, data.walletCurDef);
     app.walletCurDef = data.walletCurDef;
 
+    const curConn = getCurrentConnection();
+
+    if (curConn && curConn.status !== 'disconnected') {
+      app.pageNav.torIndicatorOn = app.serverConfig.tor && curConn.server.get('useTor');
+    }
+
     app.ownFollowing = new Followers([], {
       type: 'following',
-      peerID: app.profile.id,
+      peerId: app.profile.id,
     });
 
     app.walletBalances = new WalletBalances();
-    // app.searchProviders = new SearchProvidersCol();
+    app.searchProviders = new SearchProvidersCol();
 
     onboardIfNeeded().done(() => {
       fetchStartupData2().done(() => {
         ensureValidSettingsCurrency().done(() => {
-          app.initialized = true;
-          window.vueApp.initialized = true;
-          console.log('window.vueApp.initialized: ', window.vueApp.initialized);
-          const curConn = getCurrentConnection();
-          if (curConn && curConn.status !== 'disconnected') {
-            app.pageNav.torIndicatorOn = app.serverConfig.tor && curConn.server.get('useTor');
-          }
-
           app.pageNav.navigable = true;
           app.pageNav.setAppProfile();
           app.loadingModal.close();
 
-          // // add the default search providers
-          // app.searchProviders.add(defaultSearchProviders, { at: 0 });
+          // add the default search providers
+          app.searchProviders.add(defaultSearchProviders, { at: 1 });
 
           if (externalRoute) {
             // handle opening the app from an an external ob link
             location.hash = `#${externalRoute}`;
-
-            printLog({content: `root page with externalRoute: ${externalRoute}`})
-          } else if (location.pathname === '/' || !location.hash || location.hash === '#/home') {
-            if (!import.meta.env.VITE_APP) {
-              // If we're not in the app, we'll redirect to the search page.
-              location.hash = '#/search';
-              printLog({content: 'root page redirecting to search'})
-            } else {
-              // If for some reason the route to start on is empty, we'll change it to be
-              // the user's profile.
-              const href = location.href.replace(/(javascript:|#).*$/, '');
-              location.replace(`${href}#${app.profile.id}`);
-
-              printLog({content: `root page with home path: ${href}#${app.profile.id}`})
-            }
-          } else if (curConn.server
-            && curConn.server.id !== localStorage.serverIdAtLastStart) {
+          } else if (!location.hash) {
+            // If for some reason the route to start on is empty, we'll change it to be
+            // the user's profile.
+            const href = location.href.replace(/(javascript:|#).*$/, '');
+            location.replace(`${href}#${app.profile.id}`);
+          } else if (curConn.server &&
+            curConn.server.id !== localStorage.serverIdAtLastStart) {
             // When switching servers, we'll land on the user page of the new node
             location.hash = `#${app.profile.id}`;
-
-            printLog({content: `root page with profile id: ${href}#${app.profile.id}`})
           }
 
           localStorage.serverIdAtLastStart = curConn && curConn.server && curConn.server.id;
 
           // Metrics should only be run on bundled apps.
-          if (isBundledApp) {
+          if (remote.getGlobal('isBundledApp')) {
             const metricsOn = app.localSettings.get('shareMetrics');
 
             if (metricsOn === undefined || metricsOn && isNewerVersion()) {
@@ -597,6 +606,25 @@ function start() {
             Backbone.history.start();
           }
 
+          // load chat
+          const chatConvos = new ChatHeads();
+
+          chatConvos.once('request', (cl, xhr) => {
+            xhr.always(() => app.chat.attach(getChatContainer()));
+          });
+
+          app.chat = new Chat({
+            collection: chatConvos,
+            $scrollContainer: getChatContainer(),
+          });
+
+          chatConvos.fetch();
+          $('#chatCloseBtn').on('click', () => (app.chat.close()));
+
+          getChatContainer()
+              .on('mouseenter', () => getBody().addClass('chatHover'))
+              .on('mouseleave', () => getBody().removeClass('chatHover'));
+
           fetchVerifiedMods();
           setInterval(() => fetchVerifiedMods(), 1000 * 60 * 60);
 
@@ -606,21 +634,23 @@ function start() {
           if (serverSocket) {
             serverSocket.on('message', (e = {}) => {
               if (e.jsonData.walletUpdate) {
-                app.walletBalances.set(e.jsonData.walletUpdate, { remove: false, parse: true });
+                app.walletBalances.set(e.jsonData.walletUpdate, { parse: true });
               }
             });
           }
 
           // Make sure the client is running on a compatible version of the server.
-          if (import.meta.env.VITE_APP && app.settings.prettyServerVer !== serverVersionRequired) {
-            const cLink = `<a href="https://github.com/Mobazha/mobazha/releases">${app.polyglot.t('serverVersionWarning.clientLink')}</a>`;
-            const sLink = `<a href="https://github.com/Mobazha/mobazha/releases">${app.polyglot.t('serverVersionWarning.serverLink')}</a>`;
+          if (app.settings.prettyServerVer !== serverVersionRequired) {
+            const cLink = `<a href="https://github.com/OpenBazaar/openbazaar-desktop/releases">${app.polyglot.t('serverVersionWarning.clientLink')}</a>`;
+            const sLink = `<a href="https://github.com/OpenBazaar/openbazaar-go/releases">${app.polyglot.t('serverVersionWarning.serverLink')}</a>`;
             const message = app.polyglot.t('serverVersionWarning.message', {
               serverVersion: app.settings.prettyServerVer,
               expectedVersion: serverVersionRequired,
             });
             const body = `<p>${message}</p><p>${cLink}</p><p>${sLink}</p>`;
-            openSimpleMessage(app.polyglot.t('serverVersionWarning.title'), body).$el.css('z-index', '9999999');
+            openSimpleMessage(
+              app.polyglot.t('serverVersionWarning.title'), body
+            ).$el.css('z-index', '9999999');
           }
         });
       });
@@ -628,15 +658,16 @@ function start() {
   });
 }
 
-function connectToServer(server = app.serverConfigs.activeServer) {
+function connectToServer() {
+  const server = app.serverConfigs.activeServer;
   let connectAttempt = null;
 
   startupConnectMessaging
     .setState({
       msg: app.polyglot.t('startUp.connectMessaging.connectAttemptMsg', {
         serverName: server.get('name'),
-        cancelLink: '<a class="js-cancel">'
-          + `${app.polyglot.t('startUp.connectMessaging.cancelLink')}</a>`,
+        cancelLink: '<a class="js-cancel">' +
+          `${app.polyglot.t('startUp.connectMessaging.cancelLink')}</a>`,
       }),
     }).on('clickCancel', () => {
       connectAttempt.cancel();
@@ -644,7 +675,7 @@ function connectToServer(server = app.serverConfigs.activeServer) {
       app.loadingModal.close();
     });
 
-  connectAttempt = serverConnect(server)
+  connectAttempt = serverConnect(app.serverConfigs.activeServer)
     .done(() => start())
     .fail(() => {
       app.connectionManagmentModal.open();
@@ -671,6 +702,7 @@ serverConnectEvents.on('connected', () => {
   } else {
     connectedAtLeastOnce = true;
     app.connectionManagmentModal.close();
+    if (app.chat) app.chat.show();
   }
 });
 
@@ -682,8 +714,9 @@ serverConnectEvents.on('disconnected', () => {
     showCloseButton: false,
   });
 
-  if (window.vueApp && window.vueApp.$chat) {
-    window.vueApp.$chat.close();
+  if (app.chat) {
+    app.chat.close();
+    app.chat.hide();
   }
 
   app.pageNav.navigable = false;
@@ -692,28 +725,16 @@ serverConnectEvents.on('disconnected', () => {
 
 // If we have a connection, close the Connection Management modal on a
 // will-route event.
-const onWillRouteCloseConnModal = () => {
-  app.connectionManagmentModal.close();
-}
+const onWillRouteCloseConnModal =
+  () => app.connectionManagmentModal.close();
+serverConnectEvents.on('connected', () =>
+  app.router.on('will-route', onWillRouteCloseConnModal));
+serverConnectEvents.on('disconnected', () =>
+  app.router.off('will-route', onWillRouteCloseConnModal));
 
-serverConnectEvents.on('connected', () => {
-  window.vueApp.$router.beforeEach((to, from, next) => {
-    onWillRouteCloseConnModal();
-    next();
-  });
-});
-
-serverConnectEvents.on('disconnected', () => {
-  const router = window.vueApp.$router;
-  if (router) {
-    router.beforeHooks = router.beforeHooks.filter(hook => 
-      hook.toString().indexOf('onWillRouteCloseConnModal') === -1
-    );
-  }
-});
 
 const sendMainActiveServer = (activeServer) => {
-  ipc.send('controller.mainwindow.setActiveServer', {
+  ipcRenderer.send('active-server-set', {
     ...activeServer.toJSON(),
     httpUrl: activeServer.httpUrl,
     socketUrl: activeServer.socketUrl,
@@ -722,189 +743,75 @@ const sendMainActiveServer = (activeServer) => {
 };
 
 // Alert the main process if we are changing the active server.
-app.serverConfigs.on('activeServerChange', (activeServer) => sendMainActiveServer(activeServer));
+app.serverConfigs.on('activeServerChange', (activeServer) =>
+  sendMainActiveServer(activeServer));
 
-function doLogin() {
-  window.location.href = casdoor.getSigninUrl();
-}
+// Let's create our Connection Management modal so that it's
+// available to show when needed.
+app.connectionManagmentModal = new ConnectionManagement({
+  removeOnRoute: false,
+  dismissOnOverlayClick: false,
+  dismissOnEscPress: false,
+  showCloseButton: false,
+}).render();
 
-const handleLoginCallback = (loginPromise) => {
-  loginPromise.then((res) => {
-    if (res.status === 'ok') {
-      casdoor.setToken(res.data);
-      const params = new URLSearchParams(location.search);
-      const redirect = params.get('redirect_uri');
-      window.location.href = redirect ? decodeURIComponent(redirect) : '/#/search';
-    } else {
-      console.log(`Login failed: ${res.msg}`);
-      casdoor.logout();
-      window.location.href = '/#/search';
-    }
-  });
-};
+// get the saved server configurations
+app.serverConfigs.fetch().done(() => {
+  app.serverConfigs.migrate();
 
-if (location.pathname === '/callback') {
-  handleLoginCallback(casdoor.signin());
-} else if (location.pathname === '/telegramCallback') {
-  handleLoginCallback(casdoor.doTelegramLogin());
-} else {
-  const initApp = () => {
-    // Let's create our Connection Management modal so that it's
-    // available to show when needed.
-    app.connectionManagmentModal = new ConnectionManagement({
-      removeOnRoute: false,
-      dismissOnOverlayClick: false,
-      dismissOnEscPress: false,
-      showCloseButton: false,
-    }).render();
+  const isBundled = remote.getGlobal('isBundledApp');
+  if (!app.serverConfigs.length) {
+    // no saved server configurations
+    if (isBundled) {
+      // for a bundled app, we'll create a
+      // "default" one and try to connect
+      const serverConfig = new ServerConfig({
+        builtIn: true,
+        name: app.polyglot.t('connectionManagement.builtInServerName'),
+      });
 
-    // get the saved server configurations
-    app.serverConfigs.fetch().done(() => {
-      app.serverConfigs.migrate();
-
-      // Web version
-      if (!import.meta.env.VITE_APP) {
-        if (!casdoor.isLoggedIn()) {
-          const devMode = import.meta.env.DEV;
-          let serverIp, SSL, port;
-          
-          if (devMode) {
-            serverIp = 'localhost';
-            SSL = false;
-            port = 8080;
-          } else if (import.meta.env.VITE_PROD_TEST) {
-            serverIp = 'test-store.mobazha.org';
-            SSL = true;
-            port = 443;
-          } else {
-            serverIp = 'store.mobazha.org';
-            SSL = true;
-            port = 443;
-          }
-          
-          const serverConfig = new ServerConfig({
-            name: 'GatewayServer',
-            id: 'gateway',
-            serverIp: serverIp,
-            SSL: SSL,
-            port: port,
-            webVersion: true,
-            gateway: true,
-            authenticate: false,
+      serverConfig.save({}, {
+        success: md => {
+          setTimeout(() => {
+            app.serverConfigs.activeServer = app.serverConfigs.add(md);
+            connectToServer();
           });
-          serverConfig.save();
-          app.serverConfigs.reset();
-          app.serverConfigs.add(serverConfig);
-    
-          connectToServer(serverConfig);
-        } else {
-          // Use API to get the socket port.
-          myGet('/api/serverInfo').done((serverInfo) => {
-            const devMode = import.meta.env.DEV;
-            let serverIp, SSL, port;
-            
-            if (devMode) {
-              serverIp = 'localhost';
-              SSL = false;
-              port = 8080;
-            } else if (import.meta.env.VITE_PROD_TEST) {
-              serverIp = 'test-store.mobazha.org';
-              SSL = true;
-              port = 443;
-            } else {
-              serverIp = 'store.mobazha.org';
-              SSL = true;
-              port = 443;
-            }
-            
-            const serverConfig = new ServerConfig({
-              name: 'HostingServer',
-              id: 'backend',
-              serverIp: serverIp,
-              SSL: SSL,
-              port: port,
-              webVersion: true,
-              gateway: false,
-              authenticate: false,
-            });
-            serverConfig.save();
-            app.serverConfigs.reset();
-            app.serverConfigs.add(serverConfig);
-      
-            connectToServer(serverConfig);
-          }).fail(() => {
-            doLogin();
-          })
-        }
-      } else if (!app.serverConfigs.length) {
-        // no saved server configurations
-        if (isBundledApp) {
-          // for a bundled app, we'll create a
-          // "default" one and try to connect
-          const serverConfig = new ServerConfig({
-            builtIn: true,
-            name: app.polyglot.t('connectionManagement.builtInServerName'),
-          });
+        },
+      });
 
-          serverConfig.save({}, {
-            success: (md) => {
-              setTimeout(() => {
-                app.serverConfigs.activeServer = app.serverConfigs.add(md);
-                connectToServer();
-              });
-            },
-          });
-
-          if (serverConfig.validationError) {
-            console.error('There was an error creating the builtIn server config:');
-            console.dir(serverConfig.validationError);
-          }
-        } else {
-          app.connectionManagmentModal.open();
-          serverConnectEvents.once('connected', () => {
-            app.loadingModal.open();
-            start();
-          });
-        }
-      } else {
-        let { activeServer } = app.serverConfigs;
-
-        if (activeServer) {
-          sendMainActiveServer(activeServer);
-        } else {
-          app.serverConfigs.activeServer = app.serverConfigs.at(0);
-          activeServer = app.serverConfigs.at(0);
-        }
-
-        if (activeServer.get('builtIn') && !isBundledApp) {
-          // Your active server is the locally bundled server, but you're
-          // not running the bundled app. You have bad data!
-          activeServer.set('builtIn', false);
-        }
-
-        connectToServer();
+      if (serverConfig.validationError) {
+        console.error('There was an error creating the builtIn server config:');
+        console.dir(serverConfig.validationError);
       }
-    });
-  };
-
-  // 检查是否需要登录
-  if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
-    const currentPath = location.pathname + location.hash;
-    if (currentPath === '/' || currentPath === '/#/' || currentPath === '/#/search') {
-      initApp();
     } else {
-      // 其他页面需要登录
-      const redirect = encodeURIComponent(currentPath);
-      window.location.href = casdoor.getSigninUrl() + `&redirect_uri=${redirect}`;
+      app.connectionManagmentModal.open();
+      serverConnectEvents.once('connected', () => {
+        app.loadingModal.open();
+        start();
+      });
     }
   } else {
-    initApp();
+    let activeServer = app.serverConfigs.activeServer;
+
+    if (activeServer) {
+      sendMainActiveServer(activeServer);
+    } else {
+      activeServer = app.serverConfigs.activeServer = app.serverConfigs.at(0);
+    }
+
+    if (activeServer.get('builtIn') && !remote.getGlobal('isBundledApp')) {
+      // Your active server is the locally bundled server, but you're
+      // not running the bundled app. You have bad data!
+      activeServer.set('builtIn', false);
+    }
+
+    connectToServer();
   }
-}
+});
 
 // Clear localServer events on browser refresh.
 $(window).on('beforeunload', () => {
-  const localServer = ipc.sendSync('controller.system.getGlobal', 'localServer');
+  const localServer = remote.getGlobal('localServer');
 
   if (localServer) {
     // Since on a refresh any browser variables go away,
@@ -917,54 +824,26 @@ $(window).on('beforeunload', () => {
     // Let the main process know we've just blown away all the handlers,
     // since some of them may be main process callbacks that the main
     // process may want to revive.
-    ipc.send('renderer-cleared-local-server-events');
+    ipcRenderer.send('renderer-cleared-local-server-events');
   }
 });
 
 // Handle 'show debug log' requests from the main process.
-ipc.on('show-server-log', (event, serverLog) => {
-  app.serverLog = serverLog;
-  launchDebugLogModal();
-});
+ipcRenderer.on('show-server-log', () => launchDebugLogModal());
 
-const autoUpdateStatus = {
-  error: -1,
-  available: 1,
-  noAvailable: 2,
-  downloading: 3,
-  downloaded: 4,
-  checking: 5,
-}
-
-ipc.on('app.updater', (e, infoInput) => {
-  const info = JSON.parse(infoInput);
-  switch (info?.status) {
-    case autoUpdateStatus.checking:
-      showUpdateStatus(app.polyglot.t('update.checking'));
-      break;
-    case autoUpdateStatus.available:
-      showUpdateStatus(app.polyglot.t('update.available'));
-      break;
-    case autoUpdateStatus.noAvailable:
-      showUpdateStatus(app.polyglot.t('update.notAvailable'));
-      break;
-    case autoUpdateStatus.downloading:
-      showUpdateStatus(info.text);
-      break;
-    case autoUpdateStatus.downloaded:
-      updateReady(info);
-      break;
-    case autoUpdateStatus.error:
-      showUpdateStatus(app.polyglot.t('update.error', { error: infoInput }), 'warning');
-      break;
-    
-    default:
-      break;
-  }
-})
+// Handle update events from main.js
+ipcRenderer.on('updateChecking', () =>
+  showUpdateStatus(app.polyglot.t('update.checking')));
+ipcRenderer.on('updateAvailable', () =>
+  showUpdateStatus(app.polyglot.t('update.available')));
+ipcRenderer.on('updateNotAvailable', () =>
+  showUpdateStatus(app.polyglot.t('update.notAvailable')));
+ipcRenderer.on('updateError', (e, msg) =>
+  showUpdateStatus(app.polyglot.t('update.error', { error: msg }), 'warning'));
+ipcRenderer.on('updateReadyForInstall', (e, opts) => updateReady(opts));
 
 // Allow main.js to send messages to the console
-ipc.on('consoleMsg', (e, msg) => console.log(msg));
+ipcRenderer.on('consoleMsg', (e, msg) => console.log(msg));
 
 // manage publishing sockets
 let publishingStatusMsg;
@@ -993,8 +872,8 @@ function setPublishingStatus(msg) {
       // to update
       clearTimeout(retryPublishTimeout);
       retryPublishTimeout = setTimeout(() => {
-        myPost(app.getServerUrl('ob/publish'))
-          .fail((jqXhr) => {
+        $.post(app.getServerUrl('ob/publish'))
+          .fail(jqXhr => {
             setPublishingStatus({
               msg: app.polyglot.t('publish.statusPublishFailed', {
                 retryLink: `<a class="js-retry">${app.polyglot.t('publish.retryLink')}</a>`,
@@ -1005,7 +884,7 @@ function setPublishingStatus(msg) {
             const failReason = jqXhr.responseJSON && jqXhr.responseJSON.reason || '';
             openSimpleMessage(
               app.polyglot.t('publish.failedRetryTitle'),
-              failReason,
+              failReason
             );
           });
       }, 500);
@@ -1026,10 +905,6 @@ serverConnectEvents.on('connected', (connectedEvent) => {
           msg: app.polyglot.t('publish.statusPublishing'),
           type: 'message',
         });
-
-        // If a physical listing is added or removed, the profile stats(for example stats.physicalListingCount)
-        // would be changed. It would affect whether shippingOption in Setting can be deleted or not if the last.
-        app.profile.fetch();
       } else if (e.jsonData.status === 'error publishing') {
         setPublishingStatus({
           msg: app.polyglot.t('publish.statusPublishFailed', {
@@ -1052,14 +927,14 @@ serverConnectEvents.on('connected', (connectedEvent) => {
   });
 });
 
-ipc.on('close-attempt', (e) => {
+ipcRenderer.on('close-attempt', (e) => {
   persistOutdatedListingHashes();
 
   // If on the bundled app, do not let the app shutdown until server shuts down.
-  const localServer = ipc.sendSync('controller.system.getGlobal', 'localServer');
+  const localServer = remote.getGlobal('localServer');
 
   if (localServer && localServer.isRunning) {
-    localServer.once('exit', () => e.sender.send('controller.mainwindow.confirmClose'));
+    localServer.once('exit', () => e.sender.send('close-confirmed'));
     localServer.stop();
   }
 
@@ -1071,7 +946,7 @@ ipc.on('close-attempt', (e) => {
       {
         showCloseButton: false,
         dismissOnEscPress: false,
-      },
+      }
     ).$el.css('z-index', '9999999'); // always on tippity-top
   } else {
     e.sender.send('close-confirmed');
@@ -1081,11 +956,9 @@ ipc.on('close-attempt', (e) => {
 // initialize our listing delete handler
 listingDeleteHandler();
 
-if (isBundledApp) {
-  console.log(
-    `%c${app.polyglot.t('consoleWarning.heading')}`,
-    'color: red; font-weight: bold; font-size: 50px;',
-  );
+if (remote.getGlobal('isBundledApp')) {
+  console.log(`%c${app.polyglot.t('consoleWarning.heading')}`,
+    'color: red; font-weight: bold; font-size: 50px;');
   console.log(`%c${app.polyglot.t('consoleWarning.line1')}`, 'color: red;');
   console.log(`%c${app.polyglot.t('consoleWarning.line2')}`, 'color: blue;');
 }
