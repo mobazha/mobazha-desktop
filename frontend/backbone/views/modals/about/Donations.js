@@ -1,12 +1,12 @@
+import { clipboard } from 'electron';
 import qr from 'qr-encode';
-import { ipc } from '../../../../src/utils/ipcRenderer.js';
 import app from '../../../app';
 import { openSimpleMessage } from '../../modals/SimpleMessage';
 import {
   isSupportedWalletCur,
   getCurrencyByCode,
 } from '../../../data/walletCurrencies';
-import { launchWallet } from '../../../utils/modalManager';
+import { getWallet, launchWallet } from '../../../utils/modalManager';
 import loadTemplate from '../../../utils/loadTemplate';
 import baseVw from '../../baseVw';
 
@@ -29,9 +29,9 @@ export default class extends baseVw {
     });
     this.options = opts;
 
-    const btcAddress = '3DRgGSpscQvZBmgV33zEkeYF7L71eH4HrD';
+    const btcAddress = '1FdcS33YKQUGRv8MTdpMJPLbMWR5gog4pM';
     const btcQRAddress = getCurrencyByCode('BTC').qrCodeText(btcAddress);
-    const bchAddress = 'qp0xmudvwvswlcgh80pt98ysxph6r4wfggzeqh68hr';
+    const bchAddress = '1JXdaaxsbn5X4fRsrQkkQF9oReVohSi4iq';
     const bchQRAddress = getCurrencyByCode('BCH').qrCodeText(bchAddress);
 
     this.dCoins = {
@@ -67,7 +67,7 @@ export default class extends baseVw {
 
   copyDonationAddress() {
     const addr = this.dCoins[this.getState().showCoin].obDonationAddress;
-    ipc.send('controller.system.writeToClipboard', addr);
+    clipboard.writeText(addr);
     const copyNotif = this.getCachedEl('.js-copyNotification');
 
     copyNotif.addClass('active');
@@ -78,10 +78,14 @@ export default class extends baseVw {
   }
 
   openInWalletClick() {
-    let wallet = launchWallet({
-      initialActiveCoin: this.getState().showCoin,
-      initialSendModeOn: true,
-    });
+    let wallet = getWallet();
+
+    if (!wallet) {
+      wallet = launchWallet({
+        initialActiveCoin: this.getState().showCoin,
+        initialSendModeOn: true,
+      });
+    }
 
     const sendView = wallet.getSendMoneyVw();
 
@@ -113,3 +117,4 @@ export default class extends baseVw {
     return this;
   }
 }
+
