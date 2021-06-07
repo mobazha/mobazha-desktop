@@ -1,37 +1,4 @@
 {
-  "smartHome": {
-    "title": "Mobazha AI",
-    "subtitle": "Smart Shopping Assistant",
-    "newChat": "New Chat",
-    "welcome": {
-      "title": "What are you looking for?",
-      "subtitle": "Describe your needs, and I'll recommend the most suitable products and solutions for you",
-      "placeholder": "Tell me what you need, for example: \"I want to buy a cost-effective smartphone\"",
-      "continuePlaceholder": "Continue your question..."
-    },
-    "suggestions": {
-      "smartphone": "I want to buy a new smartphone",
-      "laptop": "Recommend a laptop",
-      "home": "What do I need to furnish my new home",
-      "fitness": "Fitness equipment recommendations"
-    },
-    "footer": {
-      "tagline": "Mobazha AI - Powered by advanced AI technology to provide personalized shopping recommendations"
-    },
-    "errors": {
-      "sendMessage": "Failed to send message"
-    },
-    "chatInput": {
-      "placeholder": "Type your message...",
-      "tips": "Press Enter to send, Shift+Enter to line break",
-      "characterCount": "Character count"
-    },
-    "messageList": {
-      "loading": "Loading...",
-      "empty": "No messages",
-      "retry": "Retry"
-    }
-  },
   "publish": {
     "failedRetryTitle": "There was an error retrying the publish.",
     "statusPublishing": "Publishing updates to network…",
@@ -68,7 +35,7 @@
   },
   "blockedWarning": {
     "heading": "You blocked this user",
-    "paragraph1": "This user is currently in your list of blocked users. You can't view their page or listings while they're blocked. Blocked users also cannot message you or place orders on your store.",
+    "paragraph1": "This user is currently in your list of blocked users. You can’t view their page or listings while they’re blocked. Blocked users also cannot message you or place orders on your store.",
     "paragraph2": "Would you like to unblock and view their page?",
     "btnCancel": "Cancel",
     "btnUnblock": "Yes, unblock"
@@ -127,7 +94,7 @@
   "formattedCurrency": {
     "unrecognizedCurrencyTip": "Unable to provide price information because it's priced in an unrecognized currency (%{cur})."
   },
-  "addressBarPlaceholder": "Type a @handle, Mobazha ID or search term",
+  "addressBarPlaceholder": "Type a @handle, OpenBazaar ID or search term",
   "testnet": "Test Mode",
   "testnetTooltip": "Test Mode uses testnet coins, which are intended for testing purposes only.",
   "tabMenuHeading": "MENU",
@@ -197,8 +164,7 @@
     "connectMessaging": {
       "cancelLink": "cancel",
       "connectAttemptMsg": "Connecting to %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -219,7 +185,6 @@
       "disputeClose": "The dispute with %{otherPartyName} has been closed.",
       "disputeAccepted": "The dispute with %{otherPartyName} has been finalized.",
       "follow": "%{name} has followed you.",
-      "unfollow": "%{name} has unfollowed you.",
       "moderatorAdd": "%{name} has added you as a moderator.",
       "moderatorRemove": "%{name} has removed you as a moderator.",
       "vendorDisputeTimeout": "%{timeRemaining} left to dispute order %{orderLink}.",
@@ -242,89 +207,38 @@
     "notConnectedMenuItem": "Not Connected",
     "torOnTooltip": "Tor active",
     "discoverCalloutTitle": "Discover",
-    "discoverCalloutBody": "Browse and shop hundreds of stores on Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
+    "discoverCalloutBody": "Browse and shop hundreds of stores on OpenBazaar",
     "myPage": "My Page",
     "customizePage": "Customize Page",
     "createListing": "Create Listing",
-    "tools": "Tools",
     "purchases": "Purchases",
     "sales": "Sales",
     "cases": "Cases",
     "settings": "Settings",
     "help": "Help",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Back",
       "forward": "Forward",
       "refresh": "Refresh",
-      "login": "Login",
       "discover": "Discover",
-      "paymentMethods": "Payment Methods",
       "wallet": "Wallet",
       "notifications": "Notifications",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Navigation",
       "close": "Close"
     },
     "serversMenu": {
       "newServer": "New Server",
       "manageServers": "Manage Servers"
-    },
-    "toolsMenu": {
-      "wooImporter": "WooCommerce Importer"
     }
   },
   "chat": {
-    "title": "Chat",
-    "userInfo": {
-      "idLabel": "ID:",
-      "locationPrefix": "📍",
-      "viewRating": "View user rating"
-    },
-    "loading": "Loading...",
-    "conversations": {
-      "searchPlaceholder": "Search by user ID or name...",
-      "noConversations": "No conversations",
-      "noMatchingConversations": "No matching conversations found",
-      "loading": "Loading conversations...",
-      "error": "Failed to load conversations",
-      "selectConversation": "Select a conversation to start chatting"
-    },
-    "messages": {
-      "inputPlaceholder": "Type a message...",
-      "sendButton": "Send",
-      "uploadingImage": "Uploading image...",
-      "cancelUpload": "Cancel",
-      "noMessages": "No messages yet",
-      "loadingMessages": "Loading messages...",
-      "downloadFile": "Download",
-      "sendImage": "Send Image",
-      "emoji": "Emoji",
-      "me": "Me"
-    },
-    "errors": {
-      "sendMessageFailed": "Failed to send message",
-      "imageUploadFailed": "Image upload failed",
-      "fileReadFailed": "Failed to read file",
-      "imageSizeExceeded": "Image size cannot exceed 5MB",
-      "invalidFileType": "Please select an image file"
-    },
-    "status": {
-      "read": "Read",
-      "unread": "Unread"
-    },
     "fetchingConversations": "Retrieving your chat conversations…",
     "errorFetching": "There was an error retrieving your chat conversations.",
     "errorFetchingWithMessage": "There was an error retrieving your chat conversations: %{msg}",
     "unreadMessages": "Unread messages %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Enter message…",
-      "loadMessagesError": "There was an error loading the messages. ",
+      "loadMessagesError": "There was an error loading the messages. %{retryLink}",
       "retryLink": "retry",
       "subMenu": {
         "viewPage": "View page",
@@ -380,7 +294,7 @@
     "modAddError": "There was an error adding this moderator.\n %{errMsg}",
     "modRemoveError": "There was an error removing this moderator.\n %{errMsg}",
     "storeWelcomeCalloutTitle": "Welcome to your store!",
-    "storeWelcomeCalloutBody": "Your Mobazha store is now live on the network. Get started by creating some listings or customizing your page.",
+    "storeWelcomeCalloutBody": "Your OpenBazaar store is now live on the network. Get started by creating some listings or customizing your page.",
     "storeWelcomeCalloutBtnClose": "Close",
     "store": {
       "retryStoreFetch": "Retry",
@@ -392,7 +306,7 @@
       "sortBy": "Sort By",
       "countListings": "%{display_count} listing |||| %{display_count} listings",
       "countListingsFound": "%{countListings} found",
-      "inactive": "Your store is currently inactive and hidden from the public.",
+      "inactive": "Your store is currently inactive and hidden from the public. %{link}",
       "inactiveLink": "Change",
       "listingDataChangedPopin": "Listing data has changed.",
       "shippingDataChangedPopin": "Your country and/or shipping address information has changed. This may affect which listings ship free to you.",
@@ -438,7 +352,7 @@
       "failTextListing": "There was an issue retrieving %{listing}. Please try again.",
       "failTextListingLink": "store",
       "failTextListingWithLink": "There was an issue retrieving %{listing}. Please try again or browse other listings in the %{link}.",
-      "socialHeading": "Mobazha News & Discussions:",
+      "socialHeading": "OpenBazaar News & Discussions:",
       "btnCancel": "Cancel",
       "btnTryAgain": "Try Again"
     }
@@ -515,9 +429,9 @@
     "noCoinSupport": "This moderator does not accept any of the coins your wallet supports."
   },
   "about": {
-    "linkText": "About Mobazha",
+    "linkText": "About OpenBazaar",
     "blurbs": {
-      "tradeFree": "Mobazha is made possible by an international community of developers and volunteers contributing their time to help make trade free."
+      "tradeFree": "OpenBazaar is made possible by an international community of developers and volunteers contributing their time to help make trade free."
     },
     "version": "version %{version}",
     "bothVersions": "client %{cVer}, server %{sVer}",
@@ -541,10 +455,10 @@
     },
     "licenseTab": {
       "linkText": "License",
-      "sectionHeader": "Mobazha MIT License",
-      "licensePreface": "Mobazha is open source software under the MIT license. This license is permissive and designed to allow people to fully reuse the code for other open source projects or for proprietary software. The full license text is below.",
+      "sectionHeader": "OpenBazaar MIT License",
+      "licensePreface": "OpenBazaar is open source software under the MIT license. This license is permissive and designed to allow people to fully reuse the code for other open source projects or for proprietary software. The full license text is below.",
       "header": "The MIT License (MIT)",
-      "copyright": "Copyright &copy; 2016 Mobazha Developers",
+      "copyright": "Copyright &copy; 2016 OpenBazaar Developers",
       "paragraphs": {
         "permission": "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:",
         "inclusion": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.",
@@ -553,20 +467,20 @@
     },
     "contributorsTab": {
       "linkText": "Contributors",
-      "sectionHeader": "Mobazha Contributors",
+      "sectionHeader": "OpenBazaar Contributors",
       "listPreface": "This is a partial list of people who have contributed to the project, either through code or other assistance."
     },
     "storyTab": {
       "linkText": "The Story",
-      "sectionHeader": "The Story of Mobazha",
+      "sectionHeader": "The Story of OpenBazaar",
       "paragraphs": {
         "taakisDarkMarket": "In April 2014 at a secretive Toronto hackathon a project called \"Dark Market\" was created. Amir Taaki lead a small team of developers to build a proof of concept for a decentralized marketplace. The software was completely peer to peer with no central organization controlling it. The Dark Market entry won the hackathon, but Amir and his team decided not to continue work on the project.",
-        "briansOpenBazaar": "Brian Hoffman talked to Amir about Dark Market and learned they weren't going to continue development. He liked the idea of a decentralized marketplace, but didn't like the sole focus on darknet markets, so he forked the project and renamed it Mobazha",
+        "briansOpenBazaar": "Brian Hoffman talked to Amir about Dark Market and learned they weren't going to continue development. He liked the idea of a decentralized marketplace, but didn't like the sole focus on darknet markets, so he forked the project and renamed it OpenBazaar",
         "alphaTeamalphaRelease": "The idea of a permissionless marketplace was powerful, and people around the world joined Brian to help build this open source software. In September this team released the first test version of the software.",
         "momentOfTruth": "Over the next few months the team continued improving the software and got an encouraging response from the Bitcoin community. They visited FOSSDEM (Free Open Source Software Developers European Meeting) in Brussels early in 2015, and presented the project to an enthusiastic crowd. Brian and a few core members of the team decided that it was time to turn the project from a part-time, volunteer effort into a serious, well-funded campaign to bring free trade to the world.",
         "foundedAndFunded": "They founded a company, OB1, with a $1 million venture capital investment from Union Square Ventures and Andreessen Horowitz, and immediately began hiring developers to build a better version of the software from the ground up.",
-        "marketOpening": "In April 2016 the first full release of the software was published, and tens of thousands of people around the world downloaded Mobazha and began buying and selling with each other directly, using Bitcoin.",
-        "toInfinityAndBeyond": "The initial team's work secured them a $3 million second round investment in the fall of 2016. Building on their ground-breaking work in version 1, an expanded OB1 set to work on Mobazha 2, with the aim of making trade free for even more people around the world.",
+        "marketOpening": "In April 2016 the first full release of the software was published, and tens of thousands of people around the world downloaded OpenBazaar and began buying and selling with each other directly, using Bitcoin.",
+        "toInfinityAndBeyond": "The initial team's work secured them a $3 million second round investment in the fall of 2016. Building on their ground-breaking work in version 1, an expanded OB1 set to work on OpenBazaar 2, with the aim of making trade free for even more people around the world.",
         "cashCTA": "Donate now",
         "or": "or",
         "codeCTA": "get involved."
@@ -589,7 +503,7 @@
       "helperLanguage": "Display interface elements in",
       "helperCountry": "The country you primarily reside in",
       "helperCurrency": "Display Prices in",
-      "helperTranslations": "Help translate Mobazha on %{helperTranslationsLink}",
+      "helperTranslations": "Help translate OpenBazaar on %{helperTranslationsLink}",
       "helperTranslationsLink": "Transifex",
       "sectionName": "General",
       "bitcoinUnit": "Bitcoin Unit",
@@ -631,7 +545,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Page",
+      "sectionPage": "Page",
       "sectionLinks": "Links",
       "sectionAbout": "About",
       "sectionTheme": "Theme",
@@ -706,7 +620,7 @@
         "purge": "Purge Shared Files",
         "purgeHelper": "Delete cached files you are sharing with others",
         "purgeBtn": "Purge Files",
-        "purgeToolTip": "Mobazha shares cached content you have viewed with other users. If you have viewed text or images you don't want to share, this button will delete them. This will not affect any files that belong to you.",
+        "purgeToolTip": "OpenBazaar shares cached content you have viewed with other users. If you have viewed text or images you don't want to share, this button will delete them. This will not affect any files that belong to you.",
         "purgeError": "There was an error, your cached files may not have been deleted.",
         "purgeComplete": "Your cached files have been deleted.",
         "blockData": "Block Data",
@@ -784,7 +698,7 @@
       "languages": "Languages",
       "languagesHelper": "Enter all of the languages you support (ie: you can communicate clearly in).",
       "acceptGuidelines": "I have read the recommended %{acceptGuidelinesLink}",
-      "acceptGuidelinesLink": "Mobazha Dispute Resolution Guidelines",
+      "acceptGuidelinesLink": "OpenBazaar Dispute Resolution Guidelines",
       "understandRequirements": "I understand I must offer my services to resolve disputes to anyone that requests them, unless they violate the terms described above.",
       "status": {
         "saving": "Saving moderation settings…",
@@ -833,68 +747,6 @@
         "done": "Store settings saved.",
         "fail": "Saving the store settings failed.",
         "error": "There was an error saving your store settings."
-      },
-      "shippingOption": {
-        "error": "Cannot delete the only shipping option.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Shipping Option #%{listPosition}",
-        "shippingDestinations": "Destinations",
-        "regionsPlaceholder": "Enter countries…",
-        "nameLabel": "Option Title",
-        "namePlaceholder": "e.g. USA Shipping, International, etc",
-        "typeLabel": "Type",
-        "shippingTypes": {
-          "FIXED_PRICE": "Fixed Price",
-          "LOCAL_PICKUP": "Local Pickup"
-        },
-        "btnAddShippingOption": "Add Shipping Option",
-        "btnDeleteShippingOption": "Delete",
-        "clearAll": "Clear All",
-        "services": {
-          "nameLabel": "Service",
-          "namePlaceholder": "e.g. Standard, Express, Overnight",
-          "estimatedDeliveryLabel": "Est. Delivery Time",
-          "estimatedDeliveryPlaceholder": "e.g. 5-7 days",
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Add Service",
-
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Add Service",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Delete"
-        }
       },
       "errors": {
         "modNotFoundTitle": "Moderator Not Found",
@@ -1061,14 +913,6 @@
   "cryptoTicker": {
     "currentPrice": "Current %{cur} price"
   },
-  "paymentMethods": {
-    "title": "Payment Methods",
-    "closeLink": "Close",
-    "cryptoSection": "Crypto Payment",
-    "tradPaymentSection": "Traditional Payment",
-    "saveSuccess": "Settings saved",
-    "errorSaving": "Error saving settings"
-  },
   "wallet": {
     "title": "Wallet",
     "closeLink": "Close wallet",
@@ -1080,12 +924,10 @@
       "transactionsHeader": "Transactions"
     },
     "coinNav": {
-      "unsupportedCurTip": "This is currently an unsupported currency.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "This is currently an unsupported currency."
     },
     "sendBtn": "Send",
     "receiveBtn": "Receive",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "To",
       "toPlaceholder": "Enter a %{cur} Address",
@@ -1099,27 +941,6 @@
     },
     "receiveMoney": {
       "title": "Scan or send coins to this address"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Are you sure?",
@@ -1170,18 +991,16 @@
     },
     "cryptoTeaser": {
       "coinCount": "%{count}+ coins",
-      "bodyLine": "Trade %{coinCount} on Mobazha for free",
+      "bodyLine": "Trade %{coinCount} on OpenBazaar for free",
       "btnCreateListing": "Create Listing",
       "linkViewCryptoListings": "View crypto listings"
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Physical Good",
     "DIGITAL_GOOD": "Digital Good",
     "SERVICE": "Service",
-    "CRYPTOCURRENCY": "Cryptocurrency",
-    "RWA_TOKEN": "RWA Token"
+    "CRYPTOCURRENCY": "Cryptocurrency"
   },
   "conditionTypes": {
     "NEW": "New",
@@ -1196,21 +1015,6 @@
     "fetchErrorWithMsg": "There was an error obtaining the inventory: %{msg}",
     "unknownInventory": "Unknown"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Edit",
     "delete": "Delete",
@@ -1221,14 +1025,11 @@
     "viewPhotos": "View %{count} Photo |||| View %{count} Photos",
     "type": "Type: %{type}",
     "condition": "Condition: %{condition}",
-    "weight": "Weight: %{weight} g",
     "inventory": "Inventory: %{inventory}",
     "tags": "Tags",
     "paymentsAccepted": "Payments Accepted",
     "noTags": "No tags entered",
     "buyNow": "BUY NOW",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "TRADE NOW",
     "description": "Description",
     "noDescription": "No description entered",
@@ -1301,7 +1102,6 @@
     "tipShowMatureContent": "Show Mature Content",
     "tipHideMatureContent": "Hide Mature Content",
     "blockedUser": "You blocked this user",
-    "rwaTokenBadge": "RWA Token",
     "cardError": "There was an error displaying the listing card. It's possible the listing data is malformed."
   },
   "listingDelete": {
@@ -1337,7 +1137,6 @@
     "sectionNames": {
       "general": "General",
       "photos": "Photos",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Attachments",
       "shipping": "Shipping",
       "tags": "Tags",
@@ -1347,7 +1146,6 @@
       "variants": "Variants",
       "variantsDetailed": "Variants (Add additional sizes, colors, materials, etc)",
       "inventory": "Inventory",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Return Policy",
       "termsAndConditions": "Terms and Conditions",
       "coupons": "Coupons",
@@ -1369,17 +1167,12 @@
     "helperSKUWithVariants": "When variants are present, Skus can be declared in the %{variantInventoryLink} section",
     "variantInventoryLink": "Variant Inventory",
     "helperCondition": "The overall condition of your listing",
-    "helperWeight": "Item weight",
     "helperNSFW": "Mark yes if the listing is NSFW",
     "helperTags": "Add many tags. Enter a tag name, press enter, repeat.",
     "helperCategories": "Category nesting is not supported (e.g. Shoes > Boots doesn't currently work). Enter a category name, press enter, repeat.",
     "helperReturnPolicy": "If left blank, the listing will display \"No return policy entered\"",
     "helperTerms": "If left blank, the listing will display \"No terms and conditions entered\"",
     "helperPrice": "Set your price in Dollars, Yuan, %{cur}, anything",
-    "minQuantity": "Minimum Purchase Quantity",
-    "maxQuantity": "Maximum Purchase Quantity",
-    "helperMinQuantity": "Minimum quantity a buyer can purchase in a single order",
-    "helperMaxQuantity": "Maximum quantity a buyer can purchase in a single order",
     "helperAcceptedCurrencies": "Accepting all coins will attract the largest audience",
     "createListingLabel": "Create Listing",
     "editListingLabel": "Edit Listing",
@@ -1388,7 +1181,6 @@
     "visibility": "Visibility",
     "price": "Price",
     "condition": "Condition",
-    "weight": "Weight",
     "sku": "SKU",
     "description": "Description",
     "uploading": "Uploading…",
@@ -1414,7 +1206,7 @@
     "cryptoCurrencyType": {
       "helperTypeCount": "1500+ cryptocurrencies",
       "helperType": "Trade %{count} for free",
-      "helperCoinType": "The currency you're offering for trade",
+      "helperCoinType": "The currency you’re offering for trade",
       "helperReceive": "The currency you'll receive for the trade",
       "helperQuantity": "Buyer(s) can purchase a fraction or full amount",
       "helperMarketValue": "Buyer(s) pay market value. The listing price will automatically reflect the market value.",
@@ -1427,22 +1219,33 @@
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Receive"
     },
-    "rwaTokenType": {
-      "helperReceive": "The currency you'll receive for the trade (RWA Token supports multiple payment currencies)",
-      "addCurrency": "Add Payment Currency",
-      "tokenType": "Token Type",
-      "lblReceive": "Receive",
-      "lblTokenType": "RWA Token Type",
-      "lblTokenAddress": "Token Contract Address",
-      "lblTokenId": "Token ID (Optional)",
-      "lblTokenSelection": "Select RWA Token",
-      "placeholderTokenAddress": "Enter RWA token contract address...",
-      "placeholderTokenId": "Enter token ID (required for NFT tokens)...",
-      "helperTokenAddress": "Smart contract address of the RWA token for verification and trading",
-      "helperTokenId": "If it's an NFT token, please enter the specific token ID",
-      "helperTokenSelection": "Search or enter address to find and confirm RWA token",
-      "lblBlockchain": "Blockchain",
-      "helperBlockchain": "Select the blockchain network where the RWA token is deployed"
+    "shippingOptions": {
+      "optionHeading": "Shipping Option #%{listPosition}",
+      "shippingDestinations": "Destinations",
+      "regionsPlaceholder": "Enter countries…",
+      "nameLabel": "Option Title",
+      "namePlaceholder": "e.g. USA Shipping, International, etc",
+      "typeLabel": "Type",
+      "shippingTypes": {
+        "FIXED_PRICE": "Fixed Price",
+        "LOCAL_PICKUP": "Local Pickup"
+      },
+      "btnAddShippingOption": "Add Shipping Option",
+      "btnDeleteShippingOption": "Delete",
+      "clearAll": "Clear All",
+      "services": {
+        "nameLabel": "Service",
+        "namePlaceholder": "e.g. Standard, Express, Overnight",
+        "estimatedDeliveryLabel": "Est. Delivery Time",
+        "estimatedDeliveryPlaceholder": "e.g. 5-7 days",
+        "priceLabel": "Price (first item)",
+        "additionalItemPriceLabel": "Price (additional item)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Add Service"
+      },
+      "toolTip": {
+        "delete": "Delete"
+      }
     },
     "coupons": {
       "titleLabel": "Title",
@@ -1464,12 +1267,17 @@
       "titleLabel": "Title",
       "titlePlaceholder": "e.g. Size, Color, Material, etc",
       "choicesLabel": "Choices",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "e.g. Small, Medium, Large, etc",
       "toolTip": {
         "delete": "Delete"
       }
+    },
+    "sendLocation": {
+      "shippingFromPostalCodeLabel": "Postal Code",
+      "shippingFromPostalCodePlaceholder": "Enter an origin postal code...",
+      "shippingFromCountryCodeLabel": "Country",
+      "shippingFromCountryCodePlaceholder": "Select an origin country...",
+      "shippingFromLabel": "Shipping Origin"
     },
     "inventoryManagement": {
       "doNotTrackSelectOption": "Do not track inventory",
@@ -1489,21 +1297,7 @@
       "surcharge": "Surcharge",
       "totalPrice": "Total Price",
       "sku": "SKU",
-      "quantity": "Quantity",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Quantity"
     },
     "confirmCloseDialog": {
       "title": "You have unsaved changes",
@@ -1519,7 +1313,7 @@
       "tooManyPhotosTitle": "Too many photos",
       "tooManyPhotosBody": "Some or all of your photos were prevented from being uploaded because you would have exceeded the maximum allowable amount.",
       "unableToLoadImages": "We were unable to load your image. |||| We were unable to load your images.",
-      "uploadVideoErrorTitle": "There was an error uploading your video."
+      "uploadImageErrorTitle": "There was an error uploading your image. |||| There was an error uploading your images."
     }
   },
   "search": {
@@ -1600,7 +1394,7 @@
     },
     "tosScreen": {
       "heading": "Terms of Service",
-      "tos": "Mobazha is a network for trading goods and services directly between people - using crypto currencies - without any central organization controlling the platform. This means you are responsible for your own activity on the network.\n\nMobazha users are not anonymous by default. Most communications between parties are encrypted, but IP addresses are public and can be associated with activity on the network. Malicious parties could use this information against you; protecting your privacy is your own responsibility.\n\nMobazha users must adhere to the laws in their own legal jurisdiction as well as their conscience. The Mobazha developers do not condone - and are not responsible for - any use of the platform for illegal activity.\n\nThe Mobazha community of developers has worked hard to deliver a free platform for trade to the world. But as with any software, bugs will be found. The developers are not responsible for any monetary loss associated with problems in the software.\n\nBy using Mobazha you're responsible for your own actions on the Mobazha network."
+      "tos": "OpenBazaar is a network for trading goods and services directly between people - using crypto currencies - without any central organization controlling the platform. This means you are responsible for your own activity on the network.\n\nOpenBazaar users are not anonymous by default. Most communications between parties are encrypted, but IP addresses are public and can be associated with activity on the network. Malicious parties could use this information against you; protecting your privacy is your own responsibility.\n\nOpenBazaar users must adhere to the laws in their own legal jurisdiction as well as their conscience. The OpenBazaar developers do not condone - and are not responsible for - any use of the platform for illegal activity.\n\nThe OpenBazaar community of developers has worked hard to deliver a free platform for trade to the world. But as with any software, bugs will be found. The developers are not responsible for any monetary loss associated with problems in the software.\n\nBy using OpenBazaar you're responsible for your own actions on the OpenBazaar network."
     }
   },
   "pageControls": {
@@ -1611,22 +1405,9 @@
     "previous": "Previous",
     "next": "Next"
   },
-  "receivingAccountSelector": {
-    "placeholder": "Please select a receiving account",
-    "infoText": "Select an account for receiving funds",
-    "receivingAccountInfo": "Please select a receiving account for this RWA token purchase. The account must be on the same blockchain as the token.",
-    "noAccountText": "No receiving account available for this blockchain. Please add a receiving account first.",
-    "addAccountText": "Add Receiving Account",
-    "noSelectionText": "Please select a receiving account",
-    "fetchError": "Failed to fetch receiving accounts, please try again later"
-  },
   "purchase": {
-    "rwaAmount": "RWA Token Amount",
-    "rwaQuantityRange": "Purchase quantity range: %{min} - %{max}",
-    "rwaReceivingAccount": "Receiving Account",
     "purchaseDataChangedPopin": "The data for this listing has changed.",
     "returnToListing": "Return To Listing",
-    "returnToCart": "Return To Cart",
     "optional": "optional",
     "shippingTitle": "Shipping",
     "cryptoCurrencyTitle": "Currency",
@@ -1635,7 +1416,7 @@
     "moderatorTitle": "Moderator",
     "moderatorNote": "*The moderator service fee is only applied if a dispute is opened.",
     "chooseModerator": "Choose This Moderator",
-    "moderatorsDisclaimer": "Your payment will be held securely in escrow. If any issues arise, you'll have the ability to open a dispute with your chosen moderator. *The moderator service fee only applies if a dispute is opened.",
+    "moderatorsDisclaimer": "Your payment will be held securely in escrow. If any issues arise, you’ll have the ability to open a dispute with your chosen moderator. *The moderator service fee only applies if a dispute is opened.",
     "newAddress": "New Address",
     "serviceDetails": "%{price} — %{delivery}",
     "localPickup": "Local Pickup",
@@ -1658,11 +1439,7 @@
     "removeCode": "remove",
     "memo": "Memo",
     "memoPlaceholder": "Provide additional details for the vendor here (optional).",
-    "paymentMethodTitle": "Payment Crypto",
     "pay": "PAY >",
-    "submitOrder": "Submit Order",
-    "submittingOrder": "Submitting Order",
-    "pleaseWait": "Please wait...",
     "payNote": "Clicking pay will advance you to the final step.",
     "scamWarning": "WARNING: Protect against scams",
     "pending": "Pending…",
@@ -1678,12 +1455,6 @@
     "cryptoAddressHelperWarning2": "This address cannot be changed.",
     "directPayment": "Direct Payment",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
-    "loginConfirm": {
-      "title": "Login Required",
-      "body": "You need to login first to purchase. Would you like to login now?", 
-      "btnLogin": "Login",
-      "btnCancel": "Cancel"
-    },
     "confirmPayment": {
       "title": "Everything look good?",
       "msg": "If yes, please proceed to the final step.",
@@ -1697,19 +1468,19 @@
       "to": "To: %{address}",
       "payFromWallet": "Pay from wallet",
       "note1": "If you need help getting started with Bitcoin, please read %{link}.",
-      "note1Link": "Need Bitcoin? on Mobazha.org",
-      "note2": "Your payment will be held securely in escrow. If any issues arise, you'll have the ability to open a dispute.",
+      "note1Link": "Need Bitcoin? on OpenBazaar.org",
+      "note2": "Your payment will be held securely in escrow. If any issues arise, you’ll have the ability to open a dispute.",
       "note3": "*The moderator service fee only applies if a dispute is opened.",
       "note4": "Once you have paid, it may take a bit for the interface to update.",
       "btnConfirmedPay": "Yes, Pay",
       "walletNote": "<b>External wallets</b> that don't support Segregated Witness may not be able to pay for transactions.",
       "walletLink": "You can send funds to your OB wallet instead.",
-      "feeNote": "<b>Remember to cover any fees</b> when you send funds to your Mobazha wallet."
+      "feeNote": "<b>Remember to cover any fees</b> when you send funds to your OpenBazaar wallet."
     },
     "completeSection": {
       "paymentSent": "Payment Sent!",
       "purchases": "Purchases",
-      "progressMessage": "Thank you for your purchase! If you'd like to check the status of your order, view your %{link} page.",
+      "progressMessage": "Thank you for your purchase! If you’d like to check the status of your order, view your %{link} page.",
       "estimatedProcessing": "Estimated Processing Time: %{time}",
       "noData": "Not Specified ",
       "vendorMessage": "Message for Vendor (optional)",
@@ -1719,8 +1490,8 @@
       "send": "Send",
       "share": {
         "title": "Share with friends",
-        "body": "I just made a purchase on Mobazha, the free marketplace without fees or restrictions. Learn more at %{link}.",
-        "shareMsg": "I just made a purchase on @Mobazha, the free marketplace without fees or restrictions.",
+        "body": "I just made a purchase on OpenBazaar, the free marketplace without fees or restrictions. Learn more at %{link}.",
+        "shareMsg": "I just made a purchase on @OpenBazaar, the free marketplace without fees or restrictions.",
         "postToTwitter": "Post to Twitter",
         "postToFacebook": "Post to Facebook",
         "postToPinterest": "Post to Pinterest",
@@ -1735,8 +1506,7 @@
       "firstItem": "First Item",
       "additionalItems": "Each Additional Item",
       "options": "Options",
-      "subtotal": "Subtotal",
-      "subtotalEx": "Subtotal (%{quantity})",
+      "subtotal": "Subtotal (%{quantity})",
       "shippingTotal": "Total Shipping",
       "total": "Total",
       "cryptoIconsAmount": "(%{amount})",
@@ -1746,7 +1516,7 @@
       "totalWarning2NoCoin": "Actual total may vary slightly on the next screen after conversion to the payment currency."
     },
     "errors": {
-      "moderatorsTitle": "Moderator Data Failed to Load",
+      "moderatorsTitle": "Moderator Data Failted to Load",
       "moderatorsMsg": "This listing has available moderators, but they could not be loaded.",
       "orderError": "Your order can not be processed due to the following errors.",
       "ownIDTitle": "You Can't Purchase Your Own Listings",
@@ -1760,152 +1530,8 @@
       "genericPurchaseErrTitle": "Unable To Complete The Purchase",
       "invalidCoinDiv": "The listing does not have a valid coin divisibility.",
       "unableToConvertCryptoQuantity": "Unable to convert the crypto quantity to base units.",
-      "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency.",
-      "noReceivingAccountSelected": "Please select a receiving account for RWA token purchase."
-    },
-    "rwaToken": {
-      "title": "RWA Token Purchase",
-      "description": "Purchase Real World Asset Tokens",
-      "tokenInfo": "Token Information",
-      "blockchain": "Blockchain",
-      "tokenAddress": "Token Address",
-      "tokenAmount": "Token Amount",
-      "paymentMethod": "Payment Method",
-      "receivingAccount": "Receiving Account",
-      "orderStatus": "Order Status",
-      "transactionHash": "Transaction Hash",
-      "gasUsed": "Gas Used",
-      "orderCreated": "Order Created",
-      "orderCompleted": "Order Completed",
-      "orderCancelled": "Order Cancelled",
-      "insufficientBalance": "Insufficient Balance",
-      "networkError": "Network Error",
-      "transactionFailed": "Transaction Failed",
-      "userRejected": "User Rejected Transaction",
-      "contractError": "Contract Call Failed",
-      "orderIdExists": "Order ID Already Exists",
-      "paymentNotice": {
-        "title": "RWA Token Payment",
-        "description": "This RWA Token is based on %{blockchain} blockchain and only supports stablecoin payments on this chain"
-      },
-      "notAuthorized": "Not Authorized",
-      "invalidStatus": "Invalid Order Status",
-      "zeroAddress": "Zero Address Not Allowed",
-      "invalidAmount": "Amount Must Be Greater Than 0"
-    },
-    "otherPaymentMethods": "Other Payment Methods",
-     "temporarilyUnavailable": "Temporarily Unavailable",
-     "comingSoon": "Coming Soon",
-    "paymentAmount": "Payment Amount",
-    "confirmPaymentButton": "Confirm Payment",
-    "noTokens": "No available tokens on this chain",
-    "collapse": "Collapse",
-    "more": "More",
-    "orderCompleted": "Order Completed",
-    "transferringRwaToken": "Transferring RWA Token",
-    "transferringRwaTokenMessage": "Calling smart contract to transfer tokens to buyer...",
-    "pleaseConnectWallet": "Please connect wallet first",
-    "paymentSuccess": "Payment successful",
-    "pleaseConnectWalletForAddress": "Please connect wallet to get address"
-  },
-  "receivingAccounts": {
-    "title": "Receiving Accounts List",
-    "addNewAccount": "Add Receiving Account",
-    "accountType": "Account Type",
-    "receivingAccount": "Receiving Account",
-    "lastTransactionTime": "Last Transaction Time",
-    "lastTransactionAmount": "Last Transaction Amount",
-    "status": "Status",
-    "actions": "Actions",
-    "edit": "Edit",
-    "disable": "Disable",
-    "enable": "Enable",
-    "connectStripeAccount": "Connect Stripe Account",
-    "reverifyStripeAccount": "Reverify Stripe Account",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "verified": "Verified",
-    "verifying": "Verifying",
-    "unverified": "Unverified",
-    "noAccounts": "No receiving accounts, please click 'Add Receiving Account' button to add.",
-    "addressCopied": "Address copied to clipboard",
-    "copyFailed": "Copy failed, please copy manually",
-    "blockchainWallet": "Blockchain Wallet",
-     "setupAccount": "Setup {chainType} Receiving Account",
-    "accountName": "Account Name",
-    "enterAccountName": "Please enter account name",
-    "accountNameCannotChange": "Account name cannot be changed after creation",
-    "deleteAccount": "Delete Account",
-    "cancel": "Cancel",
-    "save": "Save",
-    "saving": "Saving...",
-    "applyNewAccount": "Apply New Receiving Account",
-    "blockchainCategories": "Blockchain Categories",
-    "otherPaymentMethods": "Other Payment Methods",
-     "walletDescription": "Receive payments through {chainType} wallet",
-    "btcPayments": "BTC payments.",
-    "ethPayments": "ETH and ERC-20 token payments.",
-    "solPayments": "SOL and related token payments.",
-    "bscPayments": "BNB, BUSD and other token payments.",
-    "basePayments": "Base chain token payments.",
-    "cryptoPayments": "Cryptocurrency payments.",
-     "prepareWallet": "Prepare {chainType} Wallet",
-    "installWallet": "Make sure you have installed",
-    "btcWallet": "Bitcoin Core or other Bitcoin wallet",
-    "ethWallet": "MetaMask or other Ethereum wallet",
-    "solWallet": "Phantom or other Solana wallet",
-    "bscWallet": "MetaMask or other BSC wallet",
-    "baseWallet": "MetaMask or other Base wallet",
-    "relatedWallet": "Related wallet",
-    "connectWallet": "Connect Wallet",
-    "connectWalletDescription": "Click the button below to connect your wallet and get receiving address",
-    "connecting": "Connecting...",
-    "walletAddress": "Wallet Address",
-     "walletAddressHint": "This is your {chainType} wallet address, buyers will pay to this address",
-    "receiveTokens": "Receive Tokens",
-    "enablePaymentMethod": "Enable this payment method",
-    "enableHint": "After enabling, buyers can pay you through this method",
-    "paypalDescription": "Receive payments through PayPal, buyers can pay you using credit cards, debit cards or PayPal balance.",
-    "paypalEmail": "PayPal Email Address",
-    "paypalEmailPlaceholder": "e.g.: your-email@example.com",
-    "paypalEmailHint": "Please enter the email address associated with your PayPal account",
-    "paypalEnableHint": "After enabling, buyers can pay you through PayPal",
-    "stripeDescription": "Receive credit card payments through Stripe, supporting multiple currencies and payment methods worldwide.",
-    "stripeAccountId": "Stripe Account ID",
-    "copyAccountId": "Copy Account ID",
-    "connectStripe": "Connect Stripe Account",
-    "reverifyStripe": "Reverify Stripe Account",
-    "connectHint": "Click the button to connect your Stripe account, or create a new account",
-    "verificationHint": "Your Stripe account needs to complete verification to receive payments",
-    "verifiedHint": "Your Stripe account is verified and can receive payments",
-    "enableHintConnect": "Please connect Stripe account first",
-    "enableHintVerify": "Please complete Stripe account verification first",
-    "enableHintStripe": "After enabling, buyers can pay you through Stripe",
-    "accountIdCopied": "Account ID copied to clipboard",
-    "copyFailedManual": "Copy failed, please copy manually",
-    "backToList": "Back to List",
-    "stripeConnectSuccess": "Stripe account connected successfully",
-    "stripeInfoUpdated": "Stripe account information updated",
-    "stripeVerificationUpdated": "Stripe account verification updated",
-    "stripeSetupComplete": "Stripe account setup complete",
-    "stripeConnectFailed": "Stripe connection failed",
-    "stripeReverifyFailed": "Reverification failed, please try again",
-    "stripeEmbeddedSetupFailed": "Embedded setup failed, please try external setup",
-    "stripeSetupFailed": "Stripe setup failed",
-    "connectWalletFailed": "Wallet connection failed, please try again",
-    "unsupportedChainType": "Unsupported chain type",
-    "deleteAccountConfirm": "Are you sure you want to delete this receiving account?",
-    "stripeOptionsTitle": "Choose Stripe Setup Method",
-    "embeddedSetup": "Embedded Setup",
-    "embeddedSetupDescription": "Complete Stripe account setup on current page without leaving",
-    "externalSetup": "External Setup",
-    "externalSetupDescription": "Complete Stripe account setup in new window",
-    "stripeAccountSetup": "Stripe Account Setup",
-    "fetchAccountsFailed": "Failed to fetch receiving accounts, please try again",
-    "saveAccountSuccess": "Receiving account saved successfully",
-    "saveAccountFailed": "Failed to save receiving account",
-    "noData": "No data",
-    "noMessage": "No message"
+      "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency."
+    }
   },
   "moderators": {
     "moderatorsLoading": "Loading moderators…",
@@ -1987,7 +1613,7 @@
     "resetFilters": "Reset filters",
     "transactionsTable": {
       "headers": {
-        "orderID": "Order ID",
+        "orderId": "Order ID",
         "date": "Date",
         "listing": "Listing",
         "buyer": "Buyer",
@@ -2035,13 +1661,9 @@
       "enterMessagePlaceholder": "Enter message...",
       "enterMessageNoMoreModPlaceholder": "Enter message... (the moderator has issued a decision and will no longer see any new chat messages)",
       "modCannotChat": "You have issued a decision and cannot send further messages.",
-      "addImage": "Add Image",
-      "loadMessagesError": "There was an error loading the messages. ",
+      "loadMessagesError": "There was an error loading the messages. %{retryLink}",
       "retryLink": "retry",
-      "btnSend": "Send",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Send"
     },
     "contractTab": {
       "heading": "Contract (JSON)",
@@ -2066,7 +1688,7 @@
       "tipVendorContractNotArrived": "The vendor's contract has not yet arrived."
     },
     "summaryTab": {
-      "orderNumber": "Order #: %{orderID}",
+      "orderNumber": "Order #: %{orderId}",
       "copyLink": "Copy",
       "notApplicable": "n/a",
       "vendorFinalizedPayment": "You have claimed the payment.",
@@ -2121,7 +1743,7 @@
         "trackingNumberLabel": "Tracking #:",
         "coinTypeVerbose": "%{coinName} (%{coinCode})",
         "cryptoSentLabel": "%{coinTypeVerbose} sent",
-        "transactionIDLabel": "Transaction ID:",
+        "transactionIdLabel": "Transaction ID:",
         "yourNoteLabel": "Your note:",
         "noteFromVendorLabel": "Note from the vendor:",
         "noteFromStoreLabel": "Note from %{store}:",
@@ -2219,15 +1841,15 @@
         "disputedTimeUpBuyer": "Time is up! The moderator failed to make a decision in time. The vendor can now claim the funds.",
         "disputedTimeUpVendor": "Time is up! The moderator failed to make a decision in time. You can now claim the funds.",
         "paymentFinalizedBuyer": "The vendor has claimed the payment.",
-        "paymentFinalizedBuyerCompletable": "The vendor has claimed the payment. Please complete the order below whenever you're ready.",
+        "paymentFinalizedBuyerCompletable": "The vendor has claimed the payment. Please complete the order below whenever you’re ready.",
         "paymentFinalizedVendor": "You have claimed the payment.",
         "blocksRemaining": "%{blocksRemaining} blocks",
         "unconfirmedFunding": "This order can be disputed for %{blocksRemaining} or approximately %{timeRemaining}. The clock will start when the funding payment is confirmed.",
         "escrowExpired": "Time is up! A dispute can no longer be opened on this order.",
         "tipEscrowExpiredBuyer": "You and the vendor were given approximately %{totalTime} to open a dispute. Since a dispute was not opened, the funds can now be claimed by the vendor.",
-        "escrowExpiredVendorClaim": "Time is up! Claim payment for this order whenever you're ready.",
+        "escrowExpiredVendorClaim": "Time is up! Claim payment for this order whenever you’re ready.",
         "tipEscrowExpiredVendorClaim": "You and the buyer are given approximately %{totalTime} to open a dispute. Since a dispute was not opened, you can now claim the payment.",
-        "escrowExpiredBuyerComplete": "Time is up! A dispute can no longer be opened on this order. Please complete the order below whenever you're ready.",
+        "escrowExpiredBuyerComplete": "Time is up! A dispute can no longer be opened on this order. Please complete the order below whenever you’re ready.",
         "escrowTimeRemaining": "This order can be disputed for %{blocksRemaining} or approximately %{timeRemaining}.",
         "modDisputeEscrowExpiredBuyerOpened": "The buyer is disputing this order. You have %{timeRemaining} to process the dispute and make a decision.",
         "modDisputeEscrowExpiredVendorOpened": "The vendor is disputing this order. You have %{timeRemaining} to process the dispute and make a decision.",
@@ -2261,42 +1883,11 @@
       "fileUrlPlaceholder": "Link to file(s)",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Password to file (optional)",
-      "transactionIDLabel": "Transaction ID",
-      "transactionIDPlaceholder": "Paste the Transaction ID",
-      "rwaTokenAddressLabel": "RWA Token Address",
-      "rwaTokenAddressPlaceholder": "Enter RWA token contract address",
-      "rwaTokenAmountLabel": "RWA Token Amount",
-      "rwaTokenAmountPlaceholder": "Enter token amount to send",
-      "rwaTransactionHashLabel": "Transaction Hash",
-      "rwaTransactionHashPlaceholder": "Enter blockchain transaction hash",
-      "rwaBlockchainLabel": "Blockchain",
-      "rwaRechargeText": "Recharge RWA Token",
-      "rwaRechargingText": "Recharging...",
-      "rwaRechargeHelper": "Click button to recharge RWA token to buyer address",
-      "buyerPaymentInfo": "Buyer Payment Information",
-      "paymentAmount": "Payment Amount",
-      "paymentToken": "Payment Token",
-      "buyerAddress": "Buyer Address",
-      "transactionHash": "Transaction Hash",
-      "sellerRwaTokenInfo": "Seller RWA Token Information",
-      "rwaTokenAddress": "RWA Token Address",
-      "rwaTokenAmount": "RWA Token Amount",
-      "buyerReceiveAddress": "Buyer Receive Address",
-      "loadingOrderInfo": "Loading order information...",
-      "rwaTransferText": "Transfer RWA Token",
-      "rwaTransferringText": "Transferring...",
-      "rwaTransferHelper": "Click button to transfer RWA token to buyer address",
+      "transactionIdLabel": "Transaction ID",
+      "transactionIdPlaceholder": "Paste the Transaction ID",
       "noteLabel": "Note",
       "notePlaceholder": "optional",
       "noteHelperTextDigital": "The buyer will receive a notification containing the file information",
-      "noteHelperTextRwa": "The buyer will receive RWA token transfer notification",
-      "sellerReceiveAddress": "Seller Receive Address",
-      "pleaseSelectReceiveAddress": "Please select a receive address",
-      "rwaFulfillmentTimeout": "RWA Token Fulfillment Timeout",
-      "rwaFulfillmentTimeRemaining": "Time remaining to fulfill RWA Token:",
-      "rwaFulfillmentExpired": "RWA Token fulfillment time has expired",
-      "rwaFulfillmentExpiredMessage": "The 15-minute fulfillment window has expired. The order will be automatically cancelled and refunded.",
-      "rwaFulfillmentUrgent": "Urgent: Complete RWA Token transfer within",
       "btnCancel": "Cancel",
       "btnSubmit": "Submit"
     },
@@ -2337,10 +1928,10 @@
   },
   "metrics": {
     "title": "Optional Anonymous Metrics",
-    "newVersion": "Please review the update to the analytics data agreement below and click \"Activate.\"",
-    "msg1": "Please help improve Mobazha by agreeing to share analytics data about your experience with the development team.",
-    "msg2": "By clicking \"Activate,\" you agree to share the data listed below with Mobazha Company and its processors for the purposes described, and consent to the transfer of this data to servers located in the United States. You may stop the sharing of this data at any time by opening your settings, and clicking the Change Sharing Settings button in the Advanced section. If you are located in the European Economic Area, you may have certain rights with respect to this data, including the right of access, rectification, erasure, restriction of processing, objection to processing, and portability. You may contact us about these, or simply request us to stop using and delete the data we've collected, at any time by contacting data@mobazha.com.",
-    "listTitle": "The following data will be collected by Mobazha Company as you use:",
+    "newVersion": "Please review the update to the analytics data agreement below and click “Activate.”",
+    "msg1": "Please help improve OpenBazaar by agreeing to share analytics data about your experience with the development team.",
+    "msg2": "By clicking “Activate,” you agree to share the data listed below with OB1 Company and its processors for the purposes described, and consent to the transfer of this data to servers located in the United States. You may stop the sharing of this data at any time by opening your settings, and clicking the Change Sharing Settings button in the Advanced section. If you are located in the European Economic Area, you may have certain rights with respect to this data, including the right of access, rectification, erasure, restriction of processing, objection to processing, and portability. You may contact us about these, or simply request us to stop using and delete the data we’ve collected, at any time by contacting data@ob1.io.",
+    "listTitle": "The following data will be collected by OB1 Company as you use OpenBazaar:",
     "list": {
       "device": "Your IP address and device information, for the purposes listed below.",
       "errors": "Performance data like errors and how long content takes to load. This makes it easier for us to fix problems users are experiencing without waiting for a specific request to fix something.",
@@ -2350,10 +1941,10 @@
       "app": "Details about your app, which include its version and whether it is installed from a downloadable package from source. This lets us understand the context of the other data collected, so it can be applied correctly.",
       "orders": "Basic information on actions you take with orders, such as its state when disputed, or if the order was moderated. This helps us identify problems in the order process.",
       "listings": "Basic information about on actions taken when creating and editing listings. This includes the type of listing, but no other information about it. This gives us data on potential problems with creating and editing listings.",
-      "path": "The path to your installation of Mobazha. This will share the name of any folders in the path to the installation folder, which may include your root and/or user folder. This is a side effect of the data collection process, and is not used by the Mobazha team."
+      "path": "The path to your installation of OpenBazaar. This will share the name of any folders in the path to the installation folder, which may include your root and/or user folder. This is a side effect of the data collection process, and is not used by the OB1 team."
     },
     "disclaimer1": "No information that can be used to identify your orders or any of your transactions is shared with us. This data is always stored on your own computer, and cannot be accessed by anyone else.",
-    "disclaimer2": "As stated above, your sharing of this data is completely optional. You are not required to share this data in order to use Mobazha.",
+    "disclaimer2": "As stated above, your sharing of this data is completely optional. You are not required to share this data in order to use OpenBazaar.",
     "acceptBtn": "Accept",
     "declineBtn": "Decline",
     "activateBtn": "Activate",
@@ -2369,7 +1960,7 @@
     "failedFulfillHeading": "There was an error fulfilling the order.",
     "failedRefundHeading": "There was an error refunding the order.",
     "failedCompleteHeading": "There was an error completing the order.",
-    "failedOpenDisputeHeading": "There was an error opening the dispute.",
+    "failedOpenDisputeHeading": "There was an error completing the order.",
     "failedResolveHeading": "There was an error resolving the order.",
     "failedAcceptPayoutHeading": "There was an error accepting the payout.",
     "failedReleaseEscrowHeading": "There was an error claiming the payment."
@@ -2437,7 +2028,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "The return policy exceeds the maximum allowable length.",
     "termsAndConditionsTooLong": "The terms and conditions exceed the maximum allowable length.",
-    "provideShippingOption": "For a physical good, at least one shipping option is required. Please configure it in your Store Settings.",
+    "provideShippingOption": "For a physical good, at least one shipping option is required.",
     "tooManyCoupons": "You cannot have more than %{maxCouponCount} coupons.",
     "couponsPriceTooLarge": "The discount amount cannot be equal to or greater than the listing price.",
     "skuPriceTooLow": "A surcharge can be zero. But if providing a value larger than zero, the minimum value for a surcharge in %{cur} is %{min}.",
@@ -2458,7 +2049,6 @@
     "tooManyCats": "You have exceeded the maximum allowable amount of %{maxCats} categories.",
     "duplicateOptionName": "You already have a variant with this name.",
     "tooManyOptions": "You cannot have more than %{maxOptionCount} options.",
-    "tooManyOptionalFeatures": "You cannot have more than %{maxOptionalFeatureCount} optional features.",
     "provideQuantity": "Please provide a quantity.",
     "provideNumericQuantity": "Please provide the quantity as a number.",
     "quantityMustBePositive": "The quantity must be more than zero.",
@@ -2560,7 +2150,7 @@
     "provideShipper": "Please provide a shipping carrier.",
     "provideUrl": "Please provide a file url.",
     "invalidUrl": "Please provide a valid url.",
-    "provideTransactionID": "Please provide a transaction ID.",
+    "provideTransactionId": "Please provide a transaction ID.",
     "transactionIDTooLong": "Transaction ID exceeds the maximum length of %{maxLength} characters."
   },
   "errorPage": {
@@ -2598,8 +2188,8 @@
     "invalidName": "The name must be a string.",
     "invalidLogo": "The logo URL must be a valid URL.",
     "invalidsearch": "You must provide a valid search URL.",
-    "invalidlistings": "You must provide a valid listings search URL.",
-    "invalidtorsearch": "You must provide a valid Tor search URL.",
+    "invalidlistings": "You must provide a valid listings search URL",
+    "invalidtorsearch": "You must provide a valid Tor search URL",
     "invalidtorlistings": "You must provide a valid Tor listings search URL."
   },
   "bitcoinCurrencyUnits": {
@@ -3402,9 +2992,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNBBEAR": "3X Short BNB Token",
     "BNBBULL": "3X Long BNB Token",
     "BNC": "Bionic",
@@ -3616,12 +3203,7 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-    
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
+    "CFX": "Conflux",
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4749,10 +4331,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAVRO": "Mavro",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
@@ -4764,7 +4343,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Magic Cube Coin",
@@ -6454,29 +6032,5 @@
     "zh-TW": "Chinese (T)",
     "zu": "Zulu",
     "zu-ZA": "Zulu (South Africa)"
-  },
-  "rwaTokenSelector": {
-    "searchMode": "Search Tokens",
-    "addressMode": "Enter Address",
-    "searchPlaceholder": "Search by token name, code or symbol...",
-    "searchResults": "Search Results",
-    "noResults": "No matching tokens found",
-    "contractAddress": "Contract Address",
-    "addressPlaceholder": "Enter contract address starting with 0x...",
-    "verifyAddress": "Verify Address",
-    "verifying": "Verifying...",
-    "addressVerified": "Address verified successfully",
-    "addressNotFound": "No token found for this address",
-    "addressNotFoundHelp": "Please check if the address is correct, or try search mode to find tokens",
-    "invalidAddress": "Invalid contract address format",
-    "verificationError": "Error occurred during verification",
-    "selectedToken": "Selected Token",
-    "change": "Change",
-    "currentPrice": "Current Price",
-    "issuer": "Issuer",
-    "riskLevel": "Risk Level",
-    "verification": "Verification Authority",
-    "selectThisToken": "Select This Token",
-    "verified": "Verified"
   }
 }

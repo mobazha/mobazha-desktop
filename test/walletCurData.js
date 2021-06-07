@@ -1,7 +1,7 @@
 // Multiple test depend on this data. If you modify this file, please ensure
 // you're not breaking other tests.
 
-export const walletCurs = ['BCH', 'BTC', 'ETH', 'LTC', 'ZEC', 'CFX', 'BNB', 'BSCUSDT', 'BSCUSDC'];
+export const walletCurs = ['BCH', 'BTC', 'ETH', 'LTC', 'ZEC', 'CFX'];
 
 export const walletCurDef = {
   AED: {
@@ -16,28 +16,28 @@ export const walletCurDef = {
     currencyType: 'crypto',
     divisibility: 8,
     name: 'Bitcoin Cash',
-    testnetCode: 'BCH',
+    testnetCode: 'TBCH',
   },
   BTC: {
     code: 'BTC',
     currencyType: 'crypto',
     divisibility: 8,
     name: 'Bitcoin',
-    testnetCode: 'BTC',
+    testnetCode: 'TBTC',
   },
   ETH: {
     code: 'ETH',
     currencyType: 'crypto',
     divisibility: 18,
     name: 'Ethereum',
-    testnetCode: 'ETH',
+    testnetCode: 'TETH',
   },
   LTC: {
     code: 'LTC',
     currencyType: 'crypto',
     divisibility: 8,
     name: 'Litecoin',
-    testnetCode: 'LTC',
+    testnetCode: 'TLTC',
   },
   PLN: {
     code: 'PLN',
@@ -63,50 +63,8 @@ export const walletCurDef = {
   CFX: {
     code: 'CFX',
     currencyType: 'crypto',
-    divisibility: 18,
+    divisibility: 8,
     name: 'Conflux',
-    testnetCode: 'CFX',
-  },
-  BNB: {
-    code: 'BNB',
-    currencyType: 'crypto',
-    divisibility: 18,
-    name: 'Binance Coin',
-    testnetCode: 'BNB',
-  },
-  BSCUSDT: {
-    code: 'BSCUSDT',
-    currencyType: 'crypto',
-    divisibility: 6,
-    name: 'Tether',
-    testnetCode: 'BSCUSDT',
-  },
-  BSCUSDC: {
-    code: 'BSCUSDC',
-    currencyType: 'crypto',
-    divisibility: 6,
-    name: 'USD Coin',
-    testnetCode: 'BSCUSDC',
-  },
-  MATIC: {
-    code: 'MATIC',
-    currencyType: 'crypto',
-    divisibility: 18,
-    name: 'Polygon Coin',
-    testnetCode: 'MATIC',
-  },
-  MATICUSDT: {
-    code: 'MATICUSDT',
-    currencyType: 'crypto',
-    divisibility: 6,
-    name: 'Tether',
-    testnetCode: 'MATICUSDT',
-  },
-  MATICUSDC: {
-    code: 'MATICUSDC',
-    currencyType: 'crypto',
-    divisibility: 6,
-    name: 'USD Coin',
-    testnetCode: 'MATICUSDC',
+    testnetCode: 'TCFX',
   },
 };
