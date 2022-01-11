@@ -1,8 +1,6 @@
-/* eslint-disable class-methods-use-this */
 import $ from 'jquery';
 import app from '../../app';
-import { myPost } from '../../../src/api/api';
-import { guid } from '../../utils';
+import { guid } from '../../utils/';
 import { getSocket } from '../../utils/serverConnect';
 import {
   decimalToCurDef,
@@ -36,13 +34,10 @@ export default class Profile extends BaseModel {
   }
 
   url() {
-    if (this.id) {
-      return app.getServerUrl(`ob/profile/${this.id}`);
-    }
     return app.getServerUrl('ob/profile');
   }
 
-  // todo: set peerID instead of ID when setting ID.
+  // todo: set peerId instead of ID when setting ID.
   get idAttribute() {
     return 'peerID';
   }
@@ -59,8 +54,8 @@ export default class Profile extends BaseModel {
   }
 
   get isModerator() {
-    return this.get('moderator')
-      && !!this.get('moderatorInfo');
+    return this.get('moderator') &&
+      !!this.get('moderatorInfo');
   }
 
   get isVerified() {
@@ -107,25 +102,22 @@ export default class Profile extends BaseModel {
     if (typeof attrs.shortDescription !== 'string') {
       addError('shortDescription', 'The shortDescription must be provided as a string.');
     } else if (attrs.shortDescription > this.max.shortDescriptionLength) {
-      addError(
-        'shortDescription',
-        app.polyglot.t('profileModelErrors.shortDescriptionTooLong', { count: this.max.shortDescriptionLength }),
-      );
+      addError('shortDescription',
+        app.polyglot.t('profileModelErrors.shortDescriptionTooLong',
+          { count: this.max.shortDescriptionLength }));
     }
 
     // We'll delete the moderatorInfo errors, because we'll revalidate below passing
     // in the appropriate flag on whether required fields should be validated.
-    Object.keys(errObj).forEach((key) => {
+    Object.keys(errObj).forEach(key => {
       if (key.startsWith('moderatorInfo')) delete errObj[key];
     });
 
     if (attrs.moderatorInfo instanceof Moderator) {
       const validateRequiredFields = !!this.get('moderator');
-      const errs = attrs.moderatorInfo.isValid({ validateRequiredFields })
-        ? {} : attrs.moderatorInfo.validationError;
-      Object.keys(errs).forEach((key) => {
-        errObj[`moderatorInfo.${key}`] = errs[key];
-      });
+      const errs = attrs.moderatorInfo.isValid({ validateRequiredFields }) ?
+        {} : attrs.moderatorInfo.validationError;
+      Object.keys(errs).forEach(key => (errObj[`moderatorInfo.${key}`] = errs[key]));
     }
 
     if (Object.keys(errObj).length) return errObj;
@@ -140,8 +132,8 @@ export default class Profile extends BaseModel {
     Object.keys(attrs).forEach((field) => {
       if (typeof attrs[field] !== 'undefined') {
         updatedAttrs[field] = updatedAttrs[field].toString();
-        updatedAttrs[field] = updatedAttrs[field].charAt(0) !== '#'
-          ? `#${updatedAttrs[field]}` : updatedAttrs[field];
+        updatedAttrs[field] = updatedAttrs[field].charAt(0) !== '#' ?
+          `#${updatedAttrs[field]}` : updatedAttrs[field];
       }
     });
 
@@ -152,26 +144,23 @@ export default class Profile extends BaseModel {
     const response = { ...resp };
 
     if (
-      response.moderatorInfo
-      && response.moderatorInfo.fee
-      && response.moderatorInfo.fee.feeType !== 'PERCENTAGE'
-      && response.moderatorInfo.fee.fixedFee
+      response.moderatorInfo &&
+      response.moderatorInfo.fee &&
+      response.moderatorInfo.fee.fixedFee
     ) {
       try {
-        if (response.moderatorInfo.fee.fixedFee.amount === '') { // legacy fixed fee
+        if (response.moderatorInfo.fee.fixedFee.bigAmount === '') { // legacy fixed fee
           response.moderatorInfo.fee.fixedFee = {
             amount: response.moderatorInfo.fee.fixedFee.amount,
-            currencyKey: response.moderatorInfo.fee.fixedFee.currency.code,
+            currencyKey: response.moderatorInfo.fee.fixedFee.currencyCode,
           };
         } else {
           response.moderatorInfo.fee.fixedFee = {
             amount: curDefToDecimal(response.moderatorInfo.fee.fixedFee, {
-              amountKey: 'amount',
-              currencyKey: 'currency',
+              amountKey: 'bigAmount',
+              currencyKey: 'amountCurrency',
             }),
-            currency: {
-              code: response.moderatorInfo.fee.fixedFee.currency.code,
-            }
+            currencyCode: response.moderatorInfo.fee.fixedFee.amountCurrency.code,
           };
         }
       } catch (e) {
@@ -212,12 +201,12 @@ export default class Profile extends BaseModel {
       if (options.attrs.stats) delete options.attrs.stats;
 
       const images = [options.attrs.avatarHashes, options.attrs.headerHashes];
-      images.forEach((imageHashes) => {
+      images.forEach(imageHashes => {
         if (typeof imageHashes === 'object') {
           // If the image models are still in their default state (all images hashes as empty
           // strings), we won't send over the image to the server, since it will fail validation.
-          if (Object.keys(imageHashes).filter((key) => imageHashes[key] === '').length
-            === Object.keys(imageHashes).length) {
+          if (Object.keys(imageHashes).filter(key => imageHashes[key] === '').length ===
+            Object.keys(imageHashes).length) {
             if (imageHashes === options.attrs.avatarHashes) {
               delete options.attrs.avatarHashes;
             } else {
@@ -229,18 +218,19 @@ export default class Profile extends BaseModel {
 
       if (method !== 'delete') {
         if (
-          options.attrs.moderatorInfo
-          && options.attrs.moderatorInfo.fee
+          options.attrs.moderatorInfo &&
+          options.attrs.moderatorInfo.fee
         ) {
           if (options.attrs.moderatorInfo.fee.feeType === feeTypes.PERCENTAGE) {
             delete options.attrs.moderatorInfo.fee.fixedFee;
           } else {
-            const { amount } = options.attrs.moderatorInfo.fee.fixedFee;
-            const cur = options.attrs.moderatorInfo.fee.fixedFee.currency.code;
-            options.attrs.moderatorInfo.fee.fixedFee = decimalToCurDef(amount, cur, {
-              amountKey: 'amount',
-              currencyKey: 'currency',
-            });
+            const amount = options.attrs.moderatorInfo.fee.fixedFee.amount;
+            const cur = options.attrs.moderatorInfo.fee.fixedFee.currencyCode;
+            options.attrs.moderatorInfo.fee.fixedFee =
+              decimalToCurDef(amount, cur, {
+                amountKey: 'bigAmount',
+                currencyKey: 'amountCurrency',
+              });
 
             if (options.attrs.moderatorInfo.fee.feeType === feeTypes.FIXED) {
               options.attrs.moderatorInfo.fee.percentage = 0;
@@ -251,8 +241,8 @@ export default class Profile extends BaseModel {
     }
 
     if (method !== 'create' && !this.get('peerID')) {
-      throw new Error('I am unable to fetch, save or delete because the model does not'
-        + ' have a peerID set.');
+      throw new Error('I am unable to fetch, save or delete because the model does not' +
+        ' have a peerID set.');
     }
 
     return super.sync(method, model, options);
@@ -264,12 +254,12 @@ const profileCacheExpires = 1000 * 60 * 60;
 const profileCache = new Map();
 let profileCacheExpiredInterval;
 
-function expireCachedProfile(peerID) {
-  if (!peerID) {
-    throw new Error('Please provide a peerID');
+function expireCachedProfile(peerId) {
+  if (!peerId) {
+    throw new Error('Please provide a peerId');
   }
 
-  const cached = profileCache.get(peerID);
+  const cached = profileCache.get(peerId);
 
   if (cached) {
     cached.deferred.reject({
@@ -278,30 +268,30 @@ function expireCachedProfile(peerID) {
     });
   }
 
-  profileCache.delete(peerID);
+  profileCache.delete(peerId);
 }
 
 /**
  * This function will fetch a list of profiles via the profiles api utilizing
  * the async and usecache flags. It will return a list of promises that will
  * each resolve when their respective profile arrives via socket.
- * @param {Array} peerIDs List of peerID for whose profiles to fetch.
+ * @param {Array} peerIds List of peerId for whose profiles to fetch.
  * @returns {Array} An array of promises corresponding to the array of passed
- * in peerIDs. Each promise will resolve when it's respective profile is received
+ * in peerIds. Each promise will resolve when it's respective profile is received
  * via the socket. A profile model will be passed in the resolve handler.
  */
-export function getCachedProfiles(peerIDs = []) {
-  if (!(Array.isArray(peerIDs))) {
-    throw new Error('Please provide a list of peerIDs.');
+export function getCachedProfiles(peerIds = []) {
+  if (!(Array.isArray(peerIds))) {
+    throw new Error('Please provide a list of peerIds.');
   }
 
-  if (!peerIDs.length) {
-    throw new Error('Please provide at least one peerID.');
+  if (!peerIds.length) {
+    throw new Error('Please provide at least one peerId.');
   }
 
-  peerIDs.forEach((id) => {
+  peerIds.forEach(id => {
     if (typeof id !== 'string') {
-      throw new Error('One or more of the provided peerIDs are not strings.');
+      throw new Error('One or more of the provided peerIds are not strings.');
     }
   });
 
@@ -321,7 +311,7 @@ export function getCachedProfiles(peerIDs = []) {
     }, 1000 * 60 * 5);
   }
 
-  peerIDs.forEach((id) => {
+  peerIds.forEach(id => {
     let cached = profileCache.get(id);
 
     // make sure it's not expired
@@ -367,33 +357,33 @@ export function getCachedProfiles(peerIDs = []) {
     socket = getSocket();
 
     if (!socket) {
-      promises.forEach((promise) => {
+      promises.forEach(promise => {
         promise.reject({
           errCode: 'NO_SERVER_CONNECTION',
           error: 'There is no server connection.',
         });
       });
     } else {
-      const onSocketMessage = (e) => {
-        if (!(e.jsonData.peerID && (e.jsonData.profile || e.jsonData.error))) return;
+      const onSocketMessage = e => {
+        if (!(e.jsonData.peerId && (e.jsonData.profile || e.jsonData.error))) return;
         if (e.jsonData.id !== fetchId) return;
 
-        if (profileCache.get(e.jsonData.peerID)) {
+        if (profileCache.get(e.jsonData.peerId)) {
           if (e.jsonData.error) {
-            profileCache.get(e.jsonData.peerID)
+            profileCache.get(e.jsonData.peerId)
               .deferred
               .reject({
                 errCode: 'SERVER_ERROR',
                 error: e.jsonData.error,
               });
           } else {
-            profileCache.get(e.jsonData.peerID)
+            profileCache.get(e.jsonData.peerId)
               .deferred
               .resolve(new Profile(e.jsonData.profile, { parse: true }));
           }
 
-          if (profilesReceived.indexOf(e.jsonData.peerID) === -1) {
-            profilesReceived.push(e.jsonData.peerID);
+          if (profilesReceived.indexOf(e.jsonData.peerId) === -1) {
+            profilesReceived.push(e.jsonData.peerId);
           }
 
           if (profilesReceived.length === profilesToFetch.length) {
@@ -404,13 +394,17 @@ export function getCachedProfiles(peerIDs = []) {
 
       socket.on('message', onSocketMessage);
 
-      myPost(app.getServerUrl(`ob/fetchprofiles?async=true&usecache=true&asyncID=${fetchId}`), profilesToFetch)
-      .fail((jqXhr) => {
+      $.post({
+        url: app.getServerUrl(`ob/fetchprofiles?async=true&usecache=true&asyncID=${fetchId}`),
+        data: JSON.stringify(profilesToFetch),
+        dataType: 'json',
+        contentType: 'application/json',
+      }).fail(jqXhr => {
         socket.off('message', onSocketMessage);
-        promises.forEach((promise) => {
+        promises.forEach(promise => {
           promise.reject({
             errCode: 'SERVER_ERROR',
-            error: (jqXhr.responseJSON && jqXhr.responseJSON.reason) || '',
+            error: jqXhr.responseJSON && jqXhr.responseJSON.reason || '',
           });
         });
       });

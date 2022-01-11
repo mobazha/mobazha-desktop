@@ -1,7 +1,7 @@
 // Object where we can (very judiciously) attach any app-wide
 // shared state (e.g. router)
+
 export default {
-  initialized: false,
   serverConfig: {},
 
   // Short-hand convenience method to get the HTTP url of the active server configuration
@@ -11,16 +11,7 @@ export default {
         ' been attached to this instance.');
     }
 
-    if (import.meta.env.VITE_APP) {
-      return this.serverConfigs.activeServer ? `${this.serverConfigs.activeServer.httpUrl}v1/${urlFrag}` : '';
-    }
-    return `/v1/${urlFrag}`;
-  },
-
-  getImagePath(imgName) {
-    if (import.meta.env.VITE_APP) {
-      return `../imgs/${imgName}`;
-    }
-    return `/imgs/${imgName}`;
+    return this.serverConfigs.activeServer ?
+      `${this.serverConfigs.activeServer.httpUrl}v1/${urlFrag}` : '';
   },
 };
