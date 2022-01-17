@@ -1,6 +1,5 @@
-/* eslint-disable class-methods-use-this */
 import app from '../../app';
-import { events as listingEvents, shipsFreeToMe } from '.';
+import { events as listingEvents, shipsFreeToMe } from './';
 import { curDefToDecimal } from '../../utils/currency';
 import BaseModel from '../BaseModel';
 
@@ -26,7 +25,7 @@ export default class extends BaseModel {
       throw new Error('Please provide a country.');
     }
 
-    return this.get('shipsTo') == null || this.get('shipsTo').indexOf(country) !== -1;
+    return this.get('shipsTo').indexOf(country) !== -1;
   }
 
   get isCrypto() {
@@ -65,27 +64,37 @@ export default class extends BaseModel {
     parsedResponse.categories = Array.isArray(parsedResponse.categories) ?
       parsedResponse.categories : [];
 
-    const modifier = parsedResponse.price.modifier || 0;
+    const modifier = parsedResponse.modifier || 0;
     let amount = '';
     let currencyCode = '';
 
     try {
-      amount = parsedResponse.contractType === 'CRYPTOCURRENCY' ? 1 : curDefToDecimal({
-        amount: parsedResponse.price.amount,
-        currency: {
-          code: parsedResponse.price.currencyCode || parsedResponse.price.currency.code,
-          divisibility: parsedResponse.price.divisibility
-            || parsedResponse.price.currency.divisibility,
-        },
-      });
+      // Check old style responses
+      if (parsedResponse.price.currencyCode !== '' &&
+        typeof(parsedResponse.price.amount) !== 'string') {
+        parsedResponse.price = {
+          amount: parsedResponse.amount,
+          currency: parsedResponse.currency,
+        };
+      } else if (parsedResponse.price) {
+        parsedResponse.price = {
+          amount: parsedResponse.price.amount,
+          currency: {
+            code: parsedResponse.price.currencyCode,
+            divisibility: parsedResponse.price.divisibility,
+          },
+        };
+      }
+
+      amount = parsedResponse.contractType === 'CRYPTOCURRENCY' ?
+          1 : curDefToDecimal(parsedResponse.price);
     } catch (e) {
       console.error(`Unable to convert the listing price from base units: ${e.message}`);
     }
 
     try {
-      currencyCode = parsedResponse.contractType === 'CRYPTOCURRENCY'
-        ? parsedResponse.coinType
-        : (parsedResponse.price.currencyCode || parsedResponse.price.currency.code);
+      currencyCode = parsedResponse.contractType === 'CRYPTOCURRENCY' ?
+        parsedResponse.coinType : parsedResponse.price.currency.code;
     } catch (e) {
       // pass
     }
@@ -95,6 +104,13 @@ export default class extends BaseModel {
       currencyCode,
       modifier,
     };
+
+    try {
+      delete parsedResponse.cryptoCurrencyCode;
+      delete parsedResponse.modifier;
+    } catch (e) {
+      // pass
+    }
 
     if (parsedResponse.contractType === 'CRYPTOCURRENCY') {
       // Commenting out inventory related coded since its not functional (on the server
