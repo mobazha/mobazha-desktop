@@ -1,7 +1,6 @@
-/* eslint-disable class-methods-use-this */
-import is from 'is_js';
 import app from '../../app';
 import BaseModel from '../BaseModel';
+import is from 'is_js';
 import { isSupportedWalletCur } from '../../data/walletCurrencies';
 import { getCurrencyByCode } from '../../data/currencies';
 import { isValidCoinDivisibility } from '../../utils/currency';
@@ -14,7 +13,7 @@ export default class extends BaseModel {
       // by default, setting to "never" expire (due to a unix bug, the max is before 2038)
       expiry: (new Date(2037, 11, 31, 0, 0, 0, 0)).toISOString(),
       acceptedCurrencies: [
-        ...((app && app.profile && app.profile.get('currencies')) || []),
+        ...(app && app.profile && app.profile.get('currencies') || []),
       ],
     };
   }
@@ -24,9 +23,7 @@ export default class extends BaseModel {
       'PHYSICAL_GOOD',
       'DIGITAL_GOOD',
       'SERVICE',
-      // 2023.12.20, temporarily disable CRYPTOCURRENCY, check if there is some request in future
       'CRYPTOCURRENCY',
-      'RWA_TOKEN',
     ];
   }
 
@@ -85,35 +82,35 @@ export default class extends BaseModel {
       addError('expiry', 'The expiration date must be between now and the year 2038.');
     }
 
+    if (!Array.isArray(attrs.acceptedCurrencies) || !attrs.acceptedCurrencies.length) {
+      const translationKey = attrs.contractType === 'CRYPTOCURRENCY' ?
+        'metadataModelErrors.provideAcceptedCurrencyCrypto' :
+        'metadataModelErrors.provideAcceptedCurrency';
+      addError('acceptedCurrencies',
+        app.polyglot.t(translationKey));
+    } else if (attrs.acceptedCurrencies.findIndex(cur => (typeof cur !== 'string' || !cur)) !==
+      -1) {
+      // Ensure only non-empty strings are provided as accepted currencies
+      addError('acceptedCurrencies', 'Accepted currency values must be non-empty strings.');
+    } else {
+      // Ensure only supported wallet currencies are provided as accepted currencies
+      const unsupportedCurrencies = attrs.acceptedCurrencies
+        .filter(cur => !isSupportedWalletCur(cur));
+
+      if (unsupportedCurrencies.length) {
+        addError('acceptedCurrencies', app.polyglot.t('metadataModelErrors.unsupportedAcceptedCurs',
+          { curs: unsupportedCurrencies.join(', ') }));
+      }
+    }
+
     if (attrs.contractType === 'CRYPTOCURRENCY') {
       if (Array.isArray(attrs.acceptedCurrencies) && attrs.acceptedCurrencies.length > 1) {
-        addError('acceptedCurrencies', 'For cryptocurrency listings, only one accepted '
-          + 'currency is allowed.');
+        addError('acceptedCurrencies', 'For cryptocurrency listings, only one acccepted ' +
+          'currency is allowed.');
       }
 
       if (!attrs.cryptoListingCurrencyCode || typeof attrs.cryptoListingCurrencyCode !== 'string') {
         addError('cryptoListingCurrencyCode', 'Please provide a cryptoListingCurrencyCode.');
-      }
-    } else if (attrs.contractType === 'RWA_TOKEN') {
-      // RWA Token支持同一个链上的多种支付币种（如USDT、USDC等）
-      if (!Array.isArray(attrs.acceptedCurrencies) || attrs.acceptedCurrencies.length === 0) {
-        addError('acceptedCurrencies', 'For RWA token listings, at least one accepted currency is required.');
-      }
-
-      // RWA Token 需要验证定价币种
-      if (typeof attrs.pricingCurrency !== 'object') {
-        addError('pricingCurrency', 'The pricingCurrency must be provided as an object for RWA token listings.');
-      } else {
-        if (
-          !attrs.pricingCurrency.code
-          || !getCurrencyByCode(attrs.pricingCurrency.code)
-        ) {
-          addError('pricingCurrency.code', 'The pricing currency is not one of the available ones.');
-        }
-
-        if (!isValidCoinDivisibility(attrs.pricingCurrency.divisibility)[0]) {
-          addError('pricingCurrency.divisibility', 'The divisibility is not valid.');
-        }
       }
     } else {
       // The ones in this block should not be user facing unless there's a dev error.
@@ -121,8 +118,8 @@ export default class extends BaseModel {
         addError('pricingCurrency', 'The pricingCurrency must be provided as an object.');
       } else {
         if (
-          !attrs.pricingCurrency.code
-          || !getCurrencyByCode(attrs.pricingCurrency.code)
+          !attrs.pricingCurrency.code ||
+          !getCurrencyByCode(attrs.pricingCurrency.code)
         ) {
           addError('pricingCurrency.code', 'The currency is not one of the available ones.');
         }
