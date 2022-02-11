@@ -1,9 +1,10 @@
-/* eslint-disable class-methods-use-this */
+import _ from 'underscore';
 import bigNumber from 'bignumber.js';
 import app from '../../app';
 import BaseOrder from './BaseOrder';
 import Contract from './Contract';
 import Transactions from '../../collections/order/Transactions';
+import Transaction from '../../models/order/Transaction';
 
 class Order extends BaseOrder {
   constructor(attrs, options) {
@@ -33,6 +34,8 @@ class Order extends BaseOrder {
   get nested() {
     return {
       contract: Contract,
+      paymentAddressTransactions: Transactions,
+      refundAddressTransaction: Transaction,
     };
   }
 
@@ -50,23 +53,24 @@ class Order extends BaseOrder {
     let orderPrice;
 
     try {
-      orderPrice = this.contract
-        .get('orderOpen')
-        .payment
-        .amount;
+      orderPrice =
+        this.contract
+          .get('orderOpen')
+          .payment
+          .amount;
     } catch (e) {
       // pass
     }
 
     return (
-      orderPrice instanceof bigNumber
-        ? orderPrice : bigNumber()
+      orderPrice instanceof bigNumber ?
+        orderPrice : bigNumber()
     );
   }
 
   get totalPaid() {
     return this.paymentsIn
-      .reduce((total, transaction) => total.plus(transaction.value), bigNumber(0));
+      .reduce((total, transaction) => total.plus(transaction.get('value')), bigNumber(0));
   }
 
   getBalanceRemaining() {
@@ -74,7 +78,8 @@ class Order extends BaseOrder {
   }
 
   get isPartiallyFunded() {
-    return !this.get('funded');
+    const balanceRemaining = this.getBalanceRemaining();
+    return balanceRemaining.gt(0) && balanceRemaining.lt(this.orderPrice);
   }
 
   /**
@@ -82,7 +87,7 @@ class Order extends BaseOrder {
    * funded.
    */
   get isFunded() {
-    return this.get('funded');
+    return this.isPartiallyFunded || this.getBalanceRemaining() === 0;
   }
 
   /**
@@ -91,27 +96,27 @@ class Order extends BaseOrder {
    * confirmed, it will return 0.
    */
   get fundedBlockHeight() {
-    const height = 0;
+    let height = 0;
 
-    // const models = this.paymentsIn
-    //   .filter(payment => {
-    //     const paymentHeight = payment.get('height');
-    //     return typeof paymentHeight === 'number' && paymentHeight > 0;
-    //   })
-    //   .sort((a, b) => (a.get('height') - b.get('height')));
+    const models = this.paymentsIn
+      .filter(payment => {
+        const paymentHeight = payment.get('height');
+        return typeof paymentHeight === 'number' && paymentHeight > 0;
+      })
+      .sort((a, b) => (a.get('height') - b.get('height')));
 
-    // _.every(models, (payment, pIndex) => {
-    //   const transactions = new Transactions(
-    //     models.slice(0, pIndex + 1),
-    //     { paymentCoin: this.paymentCoin }
-    //   );
-    //   if (this.getBalanceRemaining(transactions) <= 0) {
-    //     height = payment.get('height');
-    //     return false;
-    //   }
+    _.every(models, (payment, pIndex) => {
+      const transactions = new Transactions(
+        models.slice(0, pIndex + 1),
+        { paymentCoin: this.paymentCoin }
+      );
+      if (this.getBalanceRemaining(transactions) <= 0) {
+        height = payment.get('height');
+        return false;
+      }
 
-    //   return true;
-    // });
+      return true;
+    });
 
     return height;
   }
@@ -121,33 +126,18 @@ class Order extends BaseOrder {
    * (e.g. money moving from the multisig to the vendor, refunds).
    */
   get paymentsIn() {
-    return new Transactions(this.get('contract').get('transactions'));
+    return new Transactions(
+      this.get('contract').transactions
+        .filter(payment => (payment.get('value').gt(0)))
+    );
   }
 
   get isOrderCancelable() {
-    return this.buyerID === app.profile.id
-      && !this.moderatorID
-      && ['PROCESSING_ERROR', 'PENDING'].includes(this.get('state'))
-      && this.isFunded;
+    return this.get('isCancelable');
   }
 
   get isOrderDisputable() {
-    const orderState = this.get('state');
-
-    if (this.buyerID === app.profile.id) {
-      return !!this.moderatorID
-        && (
-          ['AWAITING_FULFILLMENT', 'PENDING', 'FULFILLED'].includes(orderState)
-          || (orderState === 'PROCESSING_ERROR' && this.isFunded)
-        );
-    }
-
-    if (this.vendorID === app.profile.id) {
-      return !!this.moderatorID
-        && ['PARTIALLY_FULFILLED', 'FULFILLED'].includes(orderState);
-    }
-
-    return false;
+    return this.get('isDisputable');
   }
 
   parse(response = {}) {
@@ -160,10 +150,8 @@ class Order extends BaseOrder {
 
       response.contract = Order.parseContract(response.contract);
 
-      response.contract.disputeClose = Order.parseDisputePayout(
-        response.contract.disputeClose,
-        response.contract.orderOpen?.payment?.coin,
-      );
+      response.contract.disputeResolution =
+        Order.parseDisputePayout(response.contract.disputeResolution);
     }
 
     return response;
