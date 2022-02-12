@@ -1,37 +1,4 @@
 {
-  "smartHome": {
-    "title": "Mobazha AI",
-    "subtitle": "智能购物助手",
-    "newChat": "新对话",
-    "welcome": {
-      "title": "您想要什么？",
-      "subtitle": "描述您的需求，我来为您推荐最合适的产品和解决方案",
-      "placeholder": "告诉我您想要什么，比如：\"我想买一部性价比高的手机\"",
-      "continuePlaceholder": "继续您的问题..."
-    },
-    "suggestions": {
-      "smartphone": "我想买一部新手机",
-      "laptop": "推荐一台笔记本电脑",
-      "home": "布置新家需要什么",
-      "fitness": "健身装备推荐"
-    },
-    "footer": {
-      "tagline": "Mobazha AI基于先进的人工智能技术，为您提供个性化的购物建议"
-    },
-    "errors": {
-      "sendMessage": "发送消息失败"
-    },
-    "chatInput": {
-      "placeholder": "输入您的消息...",
-      "tips": "按 Enter 发送，Shift+Enter 换行",
-      "characterCount": "字符计数"
-    },
-    "messageList": {
-      "loading": "加载中...",
-      "empty": "暂无消息",
-      "retry": "重试"
-    }
-  },
   "publish": {
     "failedRetryTitle": "重新发布遇到问题。",
     "statusPublishing": "正在提交更改...",
@@ -126,7 +93,7 @@
   "formattedCurrency": {
     "unrecognizedCurrencyTip": "无法提供价格信息，因为它以无法识别的货币（%{cur}）定价。"
   },
-  "addressBarPlaceholder": "输入@handle，Mobazha ID 或关键词",
+  "addressBarPlaceholder": "输入@handle，OpenBazaar ID 或关键词",
   "testnet": "测试模式",
   "testnetTooltip": "测试模式只能使用测试币，不会发生实质交易",
   "tabMenuHeading": "菜单",
@@ -171,7 +138,7 @@
         "title": "无法获取您的个人资料和设置数据。"
       },
       "retryOnboardingSave": {
-        "title": "无法保存%{type} 数据。"
+        "title": "无法保存% {type} 数据。"
       },
       "unableToGetFollowData": {
         "title": "无法获取您关注的人的数据"
@@ -193,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "取消",
       "connectAttemptMsg": "连接到%{serverName}。 %{cancelLink}"
-    },
-    "user_store": "%{userName}的店铺"
+    }
   },
   "notifications": {
     "title": "通知",
@@ -238,32 +204,22 @@
     "notConnectedMenuItem": "未连接",
     "torOnTooltip": "Tor有效",
     "discoverCalloutTitle": "发现",
-    "discoverCalloutBody": "浏览Mobazha上的数百家商店并购物",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
+    "discoverCalloutBody": "浏览OpenBazaar上的数百家商店并购物",
     "myPage": "我的主页",
     "customizePage": "个性化主页",
-    "createListing": "创建新商品",
-    "tools": "工具",
+    "createListing": "创建新条目",
     "purchases": "已买记录",
     "sales": "已卖纪录",
     "cases": "争议记录",
     "settings": "设置",
     "help": "帮助",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "返回",
       "forward": "前进",
       "refresh": "刷新",
-      "login": "Login",
       "discover": "发现",
-      "paymentMethods": "收款账号管理",
       "wallet": "钱包",
       "notifications": "通知",
-      "shoppingCart": "购物车",
-      "favorite": "收藏",
       "nav": "导航",
       "close": "关闭"
     },
@@ -273,51 +229,13 @@
     }
   },
   "chat": {
-    "title": "聊天",
-    "userInfo": {
-      "idLabel": "ID:",
-      "locationPrefix": "📍",
-      "viewRating": "查看用户评价"
-    },
-    "loading": "加载中...",
-    "conversations": {
-      "searchPlaceholder": "搜索用户ID或名称...",
-      "noConversations": "暂无会话",
-      "noMatchingConversations": "未找到匹配的会话",
-      "loading": "加载会话中...",
-      "error": "加载会话失败",
-      "selectConversation": "选择一个会话开始聊天"
-    },
-    "messages": {
-      "inputPlaceholder": "输入消息...",
-      "sendButton": "发送",
-      "uploadingImage": "正在上传图片...",
-      "cancelUpload": "取消",
-      "noMessages": "暂无消息",
-      "loadingMessages": "加载消息中...",
-      "downloadFile": "下载",
-      "sendImage": "发送图片",
-      "emoji": "表情",
-      "me": "我"
-    },
-    "errors": {
-      "sendMessageFailed": "发送消息失败",
-      "imageUploadFailed": "图片上传失败",
-      "fileReadFailed": "读取文件失败",
-      "imageSizeExceeded": "图片大小不能超过5MB",
-      "invalidFileType": "请选择图片文件"
-    },
-    "status": {
-      "read": "已读",
-      "unread": "未读"
-    },
     "fetchingConversations": "检索您的聊天对话...",
     "errorFetching": "检索您的聊天对话时出错。",
     "errorFetchingWithMessage": "检索您的聊天对话时出错 : %{msg}",
     "unreadMessages": "未读消息%{arrow}",
     "conversation": {
       "messageInputPlaceholder": "输入消息...",
-      "loadMessagesError": "加载消息时发生错误。",
+      "loadMessagesError": "加载消息时发生错误。%{retryLink}",
       "retryLink": "重试",
       "subMenu": {
         "viewPage": "查看主页",
@@ -335,7 +253,7 @@
     "followsYou": "关注你",
     "message": "消息",
     "customize": "自定义",
-    "createListing": "创建新商品",
+    "createListing": "创建新条目",
     "block": "屏蔽",
     "about": "关于",
     "aboutEmpty": "关于是空的…",
@@ -373,7 +291,7 @@
     "modAddError": "添加此主持人时出错。\n%{errMsg}",
     "modRemoveError": "删除此主持人时出错。\n%{errMsg}",
     "storeWelcomeCalloutTitle": "欢迎来到您的商店！",
-    "storeWelcomeCalloutBody": "您的Mobazha商店现在已经上线了。可以从创建新商品或自定义您的页面开始。",
+    "storeWelcomeCalloutBody": "您的OpenBazaar商店现在已经上线了。可以从创建新商品条目或自定义您的页面开始。",
     "storeWelcomeCalloutBtnClose": "关闭",
     "store": {
       "retryStoreFetch": "重试",
@@ -385,7 +303,7 @@
       "sortBy": "排序",
       "countListings": "%{display_count}列表 |||| %{display_count}列表",
       "countListingsFound": "%{countListings}已找到",
-      "inactive":"您的商店目前处于非活动状态并且未公开。",
+      "inactive": "您的商店目前处于非活动状态并且未公开。%{link}",
       "inactiveLink": "更改",
       "listingDataChangedPopin": "列表数据已更改。",
       "shippingDataChangedPopin": "您的国家和/或送货地址信息已更改，这可能会影响哪些商品免费送货给您。",
@@ -431,7 +349,7 @@
       "failTextListing": "获取商品%{listing}信息出现问题。请重试。",
       "failTextListingLink": "商店",
       "failTextListingWithLink": "获取商品%{listing}信息出现问题。请重试，或者浏览链接中的其他商品%{link}.",
-      "socialHeading": "Mobazha新闻&讨论:",
+      "socialHeading": "OpenBazaar新闻&讨论:",
       "btnCancel": "取消",
       "btnTryAgain": "重试"
     }
@@ -508,9 +426,9 @@
     "noCoinSupport": "此仲裁人不支持%{coin}。"
   },
   "about": {
-    "linkText": "关于Mobazha",
+    "linkText": "关于OpenBazaar",
     "blurbs": {
-      "tradeFree": "Mobazha致力于帮助用户构建自由的点到点交易网络。"
+      "tradeFree": "OpenBazaar致力于帮助用户构建自由的点到点交易网络。"
     },
     "version": "版本 %{version}",
     "bothVersions": "客户端 %{cVer}，服务器 %{sVer}",
@@ -534,10 +452,10 @@
     },
     "licenseTab": {
       "linkText": "许可",
-      "sectionHeader": "Mobazha许可证",
-      "licensePreface": "Mobazha是MIT许可下的开源软件。该许可证是宽容的，旨在允许人们完全重用其他开源项目或专有软件的代码。完整的许可证文本如下。",
+      "sectionHeader": "OpenBazaar许可证",
+      "licensePreface": "OpenBazaar是MIT许可下的开源软件。该许可证是宽容的，旨在允许人们完全重用其他开源项目或专有软件的代码。完整的许可证文本如下。",
       "header": "MIT许可证(MIT)",
-      "copyright": "Copright &copy; 2023 Mobazha Developers",
+      "copyright": "Copright &copy; 2018 OpenBazaar Developers",
       "paragraphs": {
         "permission": "特此授予任何获得本软件和相关文档文件（“软件”）副本的人免费使用本软件，包括但不限于使用、复制、修改的权利 ，合并，发布，分发，再授权和/或出售本软件的副本，并允许提供本软件的人员遵守以下条件：",
         "inclusion": "上述版权声明和本许可声明应包含在本软件的所有副本或主要部分。",
@@ -554,12 +472,12 @@
       "sectionHeader": "OpenBazaar的故事",
       "paragraphs": {
         "taakisDarkMarket": "2014年4月，在多伦多一个秘密的技术比赛中，一个名为“黑市”的项目被创建了。 Amir Taaki领导一个开发人员小团队为去中心化的市场构建了一个概念证明。 该软件是完全点到点的，没有中心组织控制它。 黑暗市场赢得了比赛，但是阿米尔和他的团队决定不继续在这个项目上工作。",
-        "briansOpenBazaar": "布莱恩·霍夫曼（Brian Hoffman）与阿米尔（Amir）谈了黑市，并了解到他们不再继续开发。他喜欢去中心化市场的想法，但不喜欢聚焦在暗网市场，所以他分叉了这个项目，更名为Mobazha",
+        "briansOpenBazaar": "布莱恩·霍夫曼（Brian Hoffman）与阿米尔（Amir）谈了黑市，并了解到他们不再继续开发。他喜欢去中心化市场的想法，但不喜欢聚焦在暗网市场，所以他分叉了这个项目，更名为OpenBazaar",
         "alphaTeamalphaRelease": "无需许可市场的想法是强大的，世界各地的人们加入Brian来帮助构建这个开源软件。9月份，该团队发布了该软件的第一个测试版本。",
         "momentOfTruth": "在接下来的几个月中，团队继续改进软件，并得到了比特币社区的一个令人鼓舞的回应。他们于2015年初访问了位于布鲁塞尔的FOSSDEM（免费开源软件开发商欧洲会议），并向热情的人群介绍了该项目。布莱恩和该团队的几名核心成员决定，现在是将项目从兼职志愿者工作转变为严肃的、资金充足的活动，为世界带来自由贸易的时候了。",
         "foundedAndFunded": "他们创建了一家公司，OB1，获得了Union Square Ventures和Andreessen Horowitz的100万美元风险投资，并立即开始招聘开发人员，从头开始构建更好的软件版本。",
-        "marketOpening": "2016年4月该软件的第一个完整版本发布了，全球数以万计的用户下载了Mobazha，并直接使用Bitcoin进行相互买卖。",
-        "toInfinityAndBeyond": "初始团队的工作为他们获得了在2016年秋天的300万美元第二轮投资。在第1版的突破性工作的基础上，扩大的OB1将在Mobazha 2上工作，目的是为世界各地更多的人提供自由贸易。",
+        "marketOpening": "2016年4月该软件的第一个完整版本发布了，全球数以万计的用户下载了OpenBazaar，并直接使用Bitcoin进行相互买卖。",
+        "toInfinityAndBeyond": "初始团队的工作为他们获得了在2016年秋天的300万美元第二轮投资。在第1版的突破性工作的基础上，扩大的OB1将在OpenBazaar 2上工作，目的是为世界各地更多的人提供自由贸易。",
         "cashCTA": "捐款",
         "or": "或者",
         "codeCTA": "参与其中"
@@ -582,7 +500,7 @@
       "helperLanguage": "显示界面元素",
       "helperCountry": "您居住的国家/地区",
       "helperCurrency": "显示货币",
-      "helperTranslations": "帮助翻译%{helperTranslationsLink}上的Mobazha",
+      "helperTranslations": "帮助翻译%{helperTranslationsLink}上的OpenBazaar",
       "helperTranslationsLink": "Transifex",
       "sectionName": "通用",
       "bitcoinUnit": "比特币单位",
@@ -624,7 +542,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "页面",
+      "sectionPage": "页面",
       "sectionLinks": "链接",
       "sectionAbout": "关于",
       "sectionTheme": "主题",
@@ -643,7 +561,7 @@
       "placeholderNotes": "例如将包裹放在小区收件箱内",
       "sectionName": "收货地址",
       "statusDeletingAddress": "删除地址%{name} ...",
-      "statusDeleteAddressComplete": "地址%{name}已删除。",
+      "statusDeleteAddressComplete": "地址%{名称}已删除。",
       "statusDeleteAddressFailed": "无法删除地址%{name}。",
       "deleteAddressErrorAlertTitle": "无法删除地址%{name}",
       "statusAddingAddress": "添加地址%{name} ...",
@@ -699,7 +617,7 @@
         "purge": "清除共享文件",
         "purgeHelper": "删除与他人共享的缓存文件",
         "purgeBtn": "清除文件",
-        "purgeToolTip": "Mobazha共享你浏览过的其他用户的内容，如果不想共享的这些文本或图片，此按钮将会删除它们，这不会影响属于你的任何文件。",
+        "purgeToolTip": "OpenBazaar共享你浏览过的其他用户的内容，如果不想共享的这些文本或图片，此按钮将会删除它们，这不会影响属于你的任何文件。",
         "purgeError": "出现错误，你的缓存文件可能未被删除。",
         "purgeComplete": "你的缓存文件已被删除。",
         "blockData": "块数据",
@@ -776,7 +694,7 @@
       "languages": "语言",
       "languagesHelper": "输入你支持的所有语言（即: 你可以清楚地沟通）。",
       "acceptGuidelines": "我已阅读推荐的%{acceptGuidelinesLink}",
-      "acceptGuidelinesLink": "Mobazha争议解决指导要则",
+      "acceptGuidelinesLink": "OpenBazaar争议解决指导要则",
       "understandRequirements": "我理解我必须提供我的服务来解决任何申请人的争端，除非他们违反了上述条款。",
       "status": {
         "saving": "保存审核设置...",
@@ -825,68 +743,6 @@
         "done": "商店设置已保存。",
         "fail": "保存商店设置失败。",
         "error": "保存商店设置时发生错误。"
-      },
-      "shippingOption": {
-        "error": "无法删除唯一的快递选项。",
-        "noShippingOption": "商店中有物理商品，应至少提供一种快递选项。"
-      },
-      "shippingOptions": {
-        "optionHeading": "快递选项#%{listPosition}",
-        "shippingDestinations": "目的地",
-        "regionsPlaceholder": "输入国家...",
-        "nameLabel": "选项标题",
-        "namePlaceholder": "例如美国海运，International等等",
-        "typeLabel": "类型",
-        "shippingTypes": {
-          "FIXED_PRICE": "快递",
-          "LOCAL_PICKUP": "上门自取"
-        },
-        "btnAddShippingOption": "添加快递选项",
-        "btnDeleteShippingOption": "删除",
-        "clearAll": "全部清除",
-        "services": {
-          "nameLabel": "服务",
-          "namePlaceholder": "例如标准，中通快递，隔日到",
-          "estimatedDeliveryLabel": "预计递送时间",
-          "estimatedDeliveryPlaceholder": "例如5-7天",
-  
-          "weightRange": "重量范围",
-          "firstWeightAndFee": "首重/首重费用",
-          "renewalUnitWeightAndFee": "续重单位重量/单价",
-          "fee": "费用",
-          "pricePlaceholder": "0.00",
-          "addService": "+添加服务",
-  
-          "notice": "说明!",
-          "firstRenewalTemplate": "按首重续费计算",
-          "firstRenewalExplanation": "运费=首重费用+(包裹重量-首重)/续重单位重量*单价+挂号费",
-          "startWeight": "开始重量",
-          "endWeight": "结束重量",
-          "firstWeight": "首重",
-          "firstFreight": "首重运费",
-          "renewalUnitWeight": "续重单位重量",
-          "renewalUnitPrice": "单价",
-          "registrationFee": "挂号费",
-          "sameWeightTemplate": "同重量段费用相同",
-          "sameWeightExplanation": "运费=费用+挂号费",
-  
-          "action": "操作",
-          "delete": "删除",
-          "cancel": "取 消",
-          "submitting": "提交中...",
-          "confirm": "确 认"
-        },
-        "modal": {
-          "addService": "添加服务",
-          "template": "模板",
-          "selectTemplate": "请选择模板",
-          "add": "+ 添加",
-          "pleaseInput": "请输入",
-          "serviceNameDuplicate": "服务名称重复"
-        },
-        "toolTip": {
-          "delete": "删除"
-        }
       },
       "errors": {
         "modNotFoundTitle": "未找到仲裁人",
@@ -1020,8 +876,8 @@
       "placeholderPort": "服务器端口",
       "torLabel": "Tor",
       "useTor": "使用Tor",
-      "configureTorMessage": "Tor已被检测到，如果你想使用Tor，请检查下面的\"使用Tor\"框并指定你的\"Tor SOCKS5 proxy\"设置，点击Save确认你的决定。",
-      "torNotAvailableMessage": "Tor未被检测到，如果你想在没有Tor的情况下继续，取消勾选下面的\"使用Tor\"并点击保存，否则启动Tor然后重试连接。",
+      "configureTorMessage": "Tor已被检测到，如果你想使用Tor，请检查下面的“使用Tor”框并指定你的“Tor SOCKS5 proxy”设置，点击Save确认你的决定。",
+      "torNotAvailableMessage": "Tor未被检测到，如果你想在没有Tor的情况下继续，取消勾选下面的“使用Tor”并点击保存，否则启动Tor然后重试连接。",
       "torProxyLabel": "Tor SOCKS5代理",
       "torProxyPlaceholder": "127.0.0.1:9150",
       "torPwLabel": "Tor密码",
@@ -1053,14 +909,6 @@
   "cryptoTicker": {
     "currentPrice": "%{cur}当前价格"
   },
-  "paymentMethods": {
-    "title": "收款账号管理",
-    "closeLink": "关闭",
-    "cryptoSection": "加密货币收款",
-    "tradPaymentSection": "传统支付方式",
-    "saveSuccess": "设置已保存",
-    "errorSaving": "保存设置时出错"
-  },
   "wallet": {
     "title": "钱包",
     "closeLink": "关闭钱包",
@@ -1072,12 +920,10 @@
       "transactionsHeader": "交易"
     },
     "coinNav": {
-      "unsupportedCurTip": "这是一个目前尚未支持的货币。",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "这是一个目前尚未支持的货币。"
     },
     "sendBtn": "发送",
     "receiveBtn": "接收",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "转账到",
       "toPlaceholder": "输入%{cur}地址",
@@ -1091,27 +937,6 @@
     },
     "receiveMoney": {
       "title": "扫描或发送货币到该地址"
-    },
-    "external": {
-      "description": "你可以提供一个外部钱包地址来接收订单的%{coin}付款",
-      "addAddress": "添加外部钱包地址",
-      "inputPlaceHolder": "请输入你的钱包地址",
-      "invalidAddress": "不是一个有效的%{coin}钱包地址，地址格式一般为：%{addr}",
-      "notice": "* 该地址必须为%{coin}网络上的钱包地址。",
-      "enableLabel": "启用此外部钱包地址以接收订单付款",
-      "add": "添加",
-      "edit": "编辑",
-      "copy": "复制",
-      "statusAddingAddress": "为%{coin}添加订单外部收款地址…",
-      "statusAddAddressComplete": "%{coin}的订单外部收款地址已添加。",
-      "statusAddressEnabled": "%{coin}的订单外部收款地址已激活。",
-      "statusAddressDisabled": "%{coin}的订单外部收款地址已禁用。",
-      "statusAddAddressFailed": "添加%{coin}的订单外部收款地址失败。",
-      "statusEnableAddressFailed": "激活%{coin}的订单外部收款地址失败。",
-      "statusDisableAddressFailed": "禁用%{coin}的订单外部收款地址失败。",
-      "addAddressErrorAlertTitle": "不能添加%{coin}的订单外部收款地址",
-      "enableAddressErrorAlertTitle": "不能激活%{coin}的订单外部收款地址",
-      "disableAddressErrorAlertTitle": "不能禁用%{coin}的订单外部收款地址"
     },
     "spendConfirmBox": {
       "heading": "你确定吗？",
@@ -1162,18 +987,16 @@
     },
     "cryptoTeaser": {
       "coinCount": "%{count}+ 个币",
-      "bodyLine": "免费在Mobazha上交易 %{coinCount} ",
+      "bodyLine": "免费在OpenBazaar上交易 %{coinCount} ",
       "btnCreateListing": "创建货币商品",
       "linkViewCryptoListings": "查看加密货币商品"
     }
   },
   "formats": {
-    "ALL": "全部",
-    "PHYSICAL_GOOD": "实物商品",
+    "PHYSICAL_GOOD": "物理商品",
     "DIGITAL_GOOD": "数字商品",
     "SERVICE": "服务",
-    "CRYPTOCURRENCY": "加密货币",
-    "RWA_TOKEN": "RWA代币"
+    "CRYPTOCURRENCY": "加密货币"
   },
   "conditionTypes": {
     "NEW": "新",
@@ -1188,21 +1011,6 @@
     "fetchErrorWithMsg": "获取库存时出错: %{msg}",
     "unknownInventory": "未知"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "确定删除吗？",
-      "body": "该商品将从购物车中删除。",
-      "btnCancel": "取消",
-      "btnDelete": "是的，删除",
-      "tip": "%{item}已被删除。"
-    }
-  },
   "listingDetail": {
     "edit": "编辑",
     "delete": "删除",
@@ -1212,15 +1020,12 @@
     "listingDataChangedPopin": "商品列表数据已更改。",
     "viewPhotos": "查看%{count}张照片 |||| 查看%{count}张照片",
     "type": "类型: %{type}",
-    "condition": "条件: %{condition}",
-    "weight": "重量: %{weight} g",
-    "inventory": "库存: %{inventory}",
+    "condition": "条件: %{条件}",
+    "inventory": "库存: %{库存}",
     "tags": "标签",
     "paymentsAccepted": "付款已接受",
     "noTags": "未添加标签",
     "buyNow": "立即购买",
-    "addToCart": "加入购物车",
-    "addToFavorite": "收藏",
     "buyCryptoNow": "现在交易",
     "description": "描述",
     "noDescription": "未添加描述",
@@ -1269,7 +1074,7 @@
       "zeroPriceMsg": "您无法以0或更少的价格进行购买。",
       "outOfStock": "您无法进行购买，因为商品目前缺货。",
       "reloadOutdatedHash": "试着重新加载列表",
-      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买此商家信息，请%{reloadLink}。"
+      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买此商家信息，请％{reloadLink}。"
     }
   },
   "listingCard": {
@@ -1292,8 +1097,7 @@
     "btnShowMatureContent": "显示成人内容",
     "tipShowMatureContent": "显示成人内容",
     "tipHideMatureContent": "隐藏成人内容",
-    "blockedUser": "你屏蔽了这个用户",
-    "rwaTokenBadge": "RWA代币"
+    "blockedUser": "你屏蔽了这个用户"
   },
   "listingDelete": {
     "deletingListing": "正在删除商品信息%{listing} ...",
@@ -1328,7 +1132,6 @@
     "sectionNames": {
       "general": "通用",
       "photos": "照片",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "附件",
       "shipping": "快递",
       "tags": "标签",
@@ -1338,7 +1141,6 @@
       "variants": "可变量",
       "variantsDetailed": "可变量（添加其他尺寸，颜色，材质等）",
       "inventory": "库存",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "退货条款",
       "termsAndConditions": "条款和条件",
       "coupons": "优惠券",
@@ -1359,17 +1161,12 @@
     "helperSKUWithVariants": "当商品变体存在时，Skus可以在%{variantInventoryLink}部分中声明",
     "variantInventoryLink": "变体库存",
     "helperCondition": "您的商品信息的整体状况",
-    "helperWeight": "产品重量",
     "helperNSFW": "如果是成人内容，则标记是",
     "helperTags": "添加多个标签。输入标签名称，按回车键，重复。",
     "helperCategories": "不支持类别嵌套 例如鞋类->靴子目前不支持）。输入类别名称，按回车键，重复。",
     "helperReturnPolicy": "如果留空，则商品信息将显示\"无退货条款输入\"",
     "helperTerms": "如果留空，则商品信息将显示“没有条款和条件输入”",
     "helperPrice": "设置您的价格单位，如美元，元，%{cur}，或其他",
-    "minQuantity": "最小购买数量",
-    "maxQuantity": "最大购买数量",
-    "helperMinQuantity": "买家单次购买的最小数量",
-    "helperMaxQuantity": "买家单次购买的最大数量",
     "helperAcceptedCurrencies": "接受所有货币将吸引最多用户",
     "createListingLabel": "创建商品清单",
     "editListingLabel": "编辑商品清单",
@@ -1378,7 +1175,6 @@
     "visibility": "可见度",
     "price": "价格",
     "condition": "新旧程度",
-    "weight": "重量",
     "sku": "SKU",
     "description": "描述",
     "uploading": "正在上传...",
@@ -1415,22 +1211,33 @@
       "helperPriceModifier": "按市场价格交易，或者指定一个价格修改器（+/-）",
       "lblReceive": "接收"
     },
-    "rwaTokenType": {
-      "helperReceive": "您交易将获得的货币（RWA Token支持多种支付币种）",
-      "addCurrency": "添加支付币种",
-      "tokenType": "代币类型",
-      "lblReceive": "接收",
-      "lblTokenType": "RWA代币类型",
-      "lblTokenAddress": "代币合约地址",
-      "lblTokenId": "代币ID（可选）",
-      "lblTokenSelection": "选择RWA代币",
-      "placeholderTokenAddress": "输入RWA代币合约地址...",
-      "placeholderTokenId": "输入代币ID（NFT代币需要）...",
-      "helperTokenAddress": "RWA代币的智能合约地址，用于验证和交易",
-      "helperTokenId": "如果是NFT代币，请输入具体的代币ID",
-      "helperTokenSelection": "搜索或输入地址来查找和确认RWA代币",
-      "lblBlockchain": "区块链",
-      "helperBlockchain": "选择RWA代币所在的区块链网络"
+    "shippingOptions": {
+      "optionHeading": "快递选项#%{listPosition}",
+      "shippingDestinations": "目的地",
+      "regionsPlaceholder": "输入国家...",
+      "nameLabel": "选项标题",
+      "namePlaceholder": "例如美国海运，International等等",
+      "typeLabel": "类型",
+      "shippingTypes": {
+        "FIXED_PRICE": "固定价格",
+        "LOCAL_PICKUP": "货到付款"
+      },
+      "btnAddShippingOption": "添加快递选项",
+      "btnDeleteShippingOption": "删除",
+      "clearAll": "全部清除",
+      "services": {
+        "nameLabel": "服务",
+        "namePlaceholder": "例如标准，中通快递，隔日到",
+        "estimatedDeliveryLabel": "预计递送时间",
+        "estimatedDeliveryPlaceholder": "例如5-7天",
+        "priceLabel": "价格（首项）",
+        "additionalItemPriceLabel": "价格（附加项目）",
+        "pricePlaceholder": "0.00",
+        "addService": "+添加服务"
+      },
+      "toolTip": {
+        "delete": "删除"
+      }
     },
     "coupons": {
       "titleLabel": "标题",
@@ -1452,8 +1259,6 @@
       "titleLabel": "标题",
       "titlePlaceholder": "例如大小，颜色，材料等",
       "choicesLabel": "选择",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "例如小，中，大等",
       "toolTip": {
         "delete": "删除"
@@ -1473,25 +1278,11 @@
       "unlimitedQuantityLabel": "无限制",
       "placeholderNeedMoreData": "当至少有一个变体时，将显示变体库存表。",
       "unableToCalcTotalPrice": "无法计算",
-      "unableToCalcTotalPriceTip": "上架价格和附加费都必须是数字，如果包含小数，则应使用句点作为分隔符，例如\"0.00\"。",
+      "unableToCalcTotalPriceTip": "上架价格和附加费都必须是数字，如果包含小数，则应使用句点作为分隔符，例如“0.00”。",
       "surcharge": "追加付款",
       "totalPrice": "总价",
       "sku": "SKU",
-      "quantity": "数量",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "数量"
     },
     "confirmCloseDialog": {
       "title": "您有未保存的更改",
@@ -1507,7 +1298,6 @@
       "tooManyPhotosTitle": "照片过多",
       "tooManyPhotosBody": "您的部分或全部照片被阻止上传，因为已经超过了允许的最大数量。",
       "unableToLoadImages": "我们无法加载你的图片。 |||| 我们无法加载您的图片。",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "上传图片时出错。 |||| 上传图片时出错。"
     }
   },
@@ -1589,7 +1379,7 @@
     },
     "tosScreen": {
       "heading": "服务条款",
-      "tos": "Mobazha是一个提供人们之间点到点直接交易货物和服务的网络 - 内建加密货币机制 - 没有任何中央组织控制网络，这意味着您需要对网络上的活动负责。\n \nMobazha用户不是默认匿名的，网络上用户之间大部分的通信都是加密的，但用户IP地址是公开的，可以与网络上的活动相关联，恶意使用者可以使用这些信息攻击你;保护您的隐私是您自己的责任。\n \nMobazha用户必须遵守法律以及道德规范。Mobazha开发人员不会宽恕 - 也不负责 - 任何使用该平台进行非法活动。\n \n Mobazha致力于构建免费的交易平台，但是和任何软件一样，我们会发现错误，但不承担任何与软件问题带来的资金丢失。\n \n通过使用Mobazha，您需要对Mobazha网络上自己的行为负责。"
+      "tos": "OpenBazaar是一个提供人们之间点到点直接交易货物和服务的网络 - 内建加密货币机制 - 没有任何中央组织控制网络，这意味着您需要对网络上的活动负责。\n \nOpenBazaar用户不是默认匿名的，网络上用户之间大部分的通信都是加密的，但用户IP地址是公开的，可以与网络上的活动相关联，恶意使用者可以使用这些信息攻击你;保护您的隐私是您自己的责任。\n \nOpenBazaar用户必须遵守法律以及道德规范。OpenBazaar开发人员不会宽恕 - 也不负责 - 任何使用该平台进行非法活动。\n \n OpenBazaar致力于构建免费的交易平台，但是和任何软件一样，我们会发现错误，但不承担任何与软件问题带来的资金丢失。\n \n通过使用OpenBazaar，您需要对OpenBazaar网络上自己的行为负责。"
     }
   },
   "pageControls": {
@@ -1600,22 +1390,9 @@
     "previous": "上一页",
     "next": "下一页"
   },
-  "receivingAccountSelector": {
-    "placeholder": "请选择收款账户",
-    "infoText": "选择用于接收资金的账户",
-    "receivingAccountInfo": "请为此次RWA代币购买选择一个收款账户。账户必须与代币在同一区块链上。",
-    "noAccountText": "此区块链没有可用的收款账户。请先添加收款账户。",
-    "addAccountText": "添加收款账户",
-    "noSelectionText": "请选择一个收款账户",
-    "fetchError": "获取收款账户失败，请稍后再试"
-  },
   "purchase": {
-    "rwaAmount": "RWA代币数量",
-    "rwaQuantityRange": "购买数量范围：%{min} - %{max}",
-    "rwaReceivingAccount": "收款账户",
     "purchaseDataChangedPopin": "此商品信息的数据已更改。",
     "returnToListing": "返回商品信息",
-    "returnToCart": "Return To Cart",
     "optional": "可选",
     "shippingTitle": "快递",
     "cryptoCurrencyTitle": "货币",
@@ -1637,21 +1414,17 @@
     "couponCode": "优惠券代码",
     "couponCodePlaceholder": "输入代码",
     "applyCode": "应用",
-    "code": "\"%{code}\"应用于订单",
+    "code": "”%{code}“应用于订单",
     "codeErrors": {
-      "invalid": "\"%{code}\"不是有效的代码",
-      "duplicate": "您只能添加\"%{code}\"一次",
+      "invalid": "“%{code}”不是有效的代码",
+      "duplicate": "您只能添加“%{code}”一次",
       "excessive": "你不能申请100%或以上的折扣。",
       "blank": "您必须输入一个优惠券代码。"
     },
     "removeCode": "删除",
     "memo": "备注",
     "memoPlaceholder": "在此向卖家提供其他详细信息（可选）",
-    "paymentMethodTitle": "加密货币支付",
     "pay": "支付>",
-    "submitOrder": "提交订单",
-    "submittingOrder": "提交订单中",
-    "pleaseWait": "请稍等...",
     "payNote": "点击付费将跳到到最后一步。",
     "scamWarning": "警告: 防范诈骗",
     "pending": "待处理...",
@@ -1667,12 +1440,6 @@
     "cryptoAddressHelperWarning2": "该地址不能被更改。",
     "directPayment": "直接付款",
     "directPaymentDetails": "无需仲裁人，直接向卖家付款。只应在是信任的卖家时选择此项，如果出现问题，您将无法对订单提出争议申诉。",
-    "loginConfirm": {
-      "title": "需要登录", 
-      "body": "购买商品需要先登录,是否现在登录?",
-      "btnLogin": "去登录",
-      "btnCancel": "取消"
-    },
     "confirmPayment": {
       "title": "订单信息确认无误？",
       "msg": "如果是，请继续进行最后一步。",
@@ -1686,14 +1453,14 @@
       "to": "到: %{address}",
       "payFromWallet": "从钱包付款",
       "note1": "如果您需要比特币入门帮助，请阅读%{link}。",
-      "note1Link": "需要比特币？在Mobazha上？",
+      "note1Link": "需要比特币？在OpenBazaar上？",
       "note2": "您的付款将被安全地托管，如果出现任何问题，您将有权开启争议。",
       "note3": "*仲裁人服务费仅适用于争议被建立的情况。",
       "note4": "一旦你付款了，接口更新可能会花一点时间。",
       "btnConfirmedPay": "是，支付",
-      "walletNote": "不支持\"Segregated Witness\"的<b>外部钱包</b>可能无法付款。",
-      "walletLink": "您可以将资金转入您的Mobazha钱包。",
-      "feeNote": "<b>当您向Mobazha钱包发送资金时，请记住要支付任何手续费用</ b>。"
+      "walletNote": "不支持“Segregated Witness”的<b>外部钱包</b>可能无法付款。",
+      "walletLink": "您可以将资金转入您的OpenBazaar钱包。",
+      "feeNote": "<b>当您向OpenBazaar钱包发送资金时，请记住要支付任何手续费用</ b>。"
     },
     "completeSection": {
       "paymentSent": "支付指令已发送！",
@@ -1708,8 +1475,8 @@
       "send": "发送",
       "share": {
         "title": "与朋友分享",
-        "body": "我在Mobazha上进行了购买，这是一个没有任何其他费用或限制的免费市场，请通过%{link}了解更多信息。",
-        "shareMsg": "我刚在免费市场@Mobazha进行了购买，没有任何手续费用或限制。",
+        "body": "我在OpenBazaar上进行了购买，这是一个没有任何其他费用或限制的免费市场，请通过%{link}了解更多信息。",
+        "shareMsg": "我刚在免费市场@OpenBazaar进行了购买，没有任何手续费用或限制。",
         "postToTwitter": "发布到Twitter",
         "postToFacebook": "发布到Facebook",
         "postToPinterest": "发布到Pinterest",
@@ -1724,8 +1491,7 @@
       "firstItem": "第一个商品",
       "additionalItems": "每个附加商品",
       "options": "选项",
-      "subtotal": "小计",
-      "subtotalEx": "小计（%{quantity})",
+      "subtotal": "小计（%{quantity}）",
       "shippingTotal": "总运费",
       "total": "总计",
       "cryptoIconsAmount": "(%{amount})",
@@ -1742,158 +1508,14 @@
       "insufficientInventoryTitle": "库存不足",
       "insufficientInventoryBody": "卖家没有足够的库存，只剩下%{remainingInventory}个商品。 |||| 卖家没有足够的库存，只剩下%{remainingInventory}个商品。",
       "reloadOutdatedHash": "加载最新版本",
-      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买商家信息，请%{reloadLink}并重新开始购买流程。",
-      "noReceivingAccountSelected": "请为RWA代币购买选择收款账户。"
-    },
-    "rwaToken": {
-      "title": "RWA代币购买",
-      "description": "购买真实世界资产代币",
-      "tokenInfo": "代币信息",
-      "blockchain": "区块链",
-      "tokenAddress": "代币地址",
-      "tokenAmount": "代币数量",
-      "paymentMethod": "支付方式",
-      "receivingAccount": "收款账户",
-      "orderStatus": "订单状态",
-      "transactionHash": "交易哈希",
-      "gasUsed": "Gas使用量",
-      "orderCreated": "订单已创建",
-      "orderCompleted": "订单已完成",
-      "orderCancelled": "订单已取消",
-      "insufficientBalance": "余额不足",
-      "networkError": "网络错误",
-      "transactionFailed": "交易失败",
-      "userRejected": "用户拒绝交易",
-      "contractError": "合约调用失败",
-      "orderIdExists": "订单ID已存在",
-      "paymentNotice": {
-        "title": "RWA Token 支付",
-        "description": "此 RWA Token 基于 %{blockchain} 区块链，仅支持该链上的稳定币支付"
-      },
-      "notAuthorized": "权限不足",
-      "invalidStatus": "订单状态无效",
-      "zeroAddress": "零地址不允许",
-      "invalidAmount": "金额必须大于0"
-    },
-    "otherPaymentMethods": "其他支付方式",
-     "temporarilyUnavailable": "暂时不可用",
-     "comingSoon": "即将推出",
-    "paymentAmount": "支付金额",
-    "confirmPaymentButton": "确认支付",
-    "noTokens": "该链上暂无可用代币",
-    "collapse": "收起",
-    "more": "更多",
-    "orderCompleted": "订单已完成",
-    "transferringRwaToken": "正在转移RWA Token",
-    "transferringRwaTokenMessage": "正在调用智能合约转移代币给买家...",
-    "pleaseConnectWallet": "请先连接钱包",
-    "paymentSuccess": "支付成功",
-    "pleaseConnectWalletForAddress": "请先连接钱包获取地址"
-  },
-  "receivingAccounts": {
-    "title": "收款账户列表",
-    "addNewAccount": "添加收款账户",
-    "accountType": "收款账户类型",
-    "receivingAccount": "收款账户",
-    "lastTransactionTime": "最近入账时间",
-    "lastTransactionAmount": "最近入账金额",
-    "status": "状态",
-    "actions": "操作",
-    "edit": "编辑",
-    "disable": "禁用",
-    "enable": "启用",
-    "connectStripeAccount": "连接Stripe账户",
-    "reverifyStripeAccount": "重新验证Stripe账户",
-    "enabled": "已启用",
-    "disabled": "已禁用",
-    "verified": "已验证",
-    "verifying": "验证中",
-    "unverified": "未验证",
-    "noAccounts": "暂无收款账户，请点击'添加收款账户'按钮添加。",
-    "addressCopied": "地址已复制到剪贴板",
-    "copyFailed": "复制失败，请手动复制",
-    "blockchainWallet": "区块链钱包",
-     "setupAccount": "设置 {chainType} 收款账户",
-    "accountName": "账户名称",
-    "enterAccountName": "请输入账户名称",
-    "accountNameCannotChange": "账户名称创建后不可修改",
-    "deleteAccount": "删除账户",
-    "cancel": "取消",
-    "save": "保存",
-    "saving": "保存中...",
-    "applyNewAccount": "申请新收款账户",
-    "blockchainCategories": "区块链类型",
-    "otherPaymentMethods": "其他支付方式",
-     "walletDescription": "通过{chainType}钱包接收",
-    "btcPayments": "BTC 支付。",
-    "ethPayments": "ETH 和 ERC-20 代币支付。",
-    "solPayments": "SOL 及相关代币支付。",
-    "bscPayments": "BNB、BUSD等代币支付。",
-    "basePayments": "Base链上的代币支付。",
-    "cryptoPayments": "加密货币支付。",
-     "prepareWallet": "准备{chainType}钱包",
-    "installWallet": "确保您已安装",
-    "btcWallet": "Bitcoin Core 或其他比特币钱包",
-    "ethWallet": "MetaMask 或其他支持以太坊的钱包",
-    "solWallet": "Phantom 或其他支持Solana的钱包",
-    "bscWallet": "MetaMask 或其他支持BSC的钱包",
-    "baseWallet": "MetaMask 或其他支持Base的钱包",
-    "relatedWallet": "相关钱包",
-    "connectWallet": "连接钱包",
-    "connectWalletDescription": "点击下方按钮连接您的钱包，获取收款地址",
-    "connecting": "连接中...",
-    "walletAddress": "钱包地址",
-     "walletAddressHint": "这是您的{chainType}钱包地址，买家将向此地址付款",
-    "receiveTokens": "接收代币",
-    "enablePaymentMethod": "启用此收款方式",
-    "enableHint": "启用后，买家可以通过此方式向您付款",
-    "paypalDescription": "通过PayPal接收付款，买家可以使用信用卡、借记卡或PayPal余额向您付款。",
-    "paypalEmail": "PayPal邮箱地址",
-    "paypalEmailPlaceholder": "例如：your-email@example.com",
-    "paypalEmailHint": "请输入您的PayPal账户关联的邮箱地址",
-    "paypalEnableHint": "启用后，买家可以通过PayPal向您付款",
-    "stripeDescription": "通过Stripe接收信用卡付款，支持全球多种货币和支付方式。",
-    "stripeAccountId": "Stripe账户ID",
-    "copyAccountId": "复制账户ID",
-    "connectStripe": "连接Stripe账户",
-    "reverifyStripe": "重新验证Stripe账户",
-    "connectHint": "点击按钮连接您的Stripe账户，或创建新账户",
-    "verificationHint": "您的Stripe账户需要完成验证才能接收付款",
-    "verifiedHint": "您的Stripe账户已验证，可以接收付款",
-    "enableHintConnect": "请先连接Stripe账户",
-    "enableHintVerify": "请先完成Stripe账户验证",
-    "enableHintStripe": "启用后，买家可以通过Stripe向您付款",
-    "accountIdCopied": "账户ID已复制到剪贴板",
-    "copyFailedManual": "复制失败，请手动复制",
-    "backToList": "返回列表",
-    "stripeConnectSuccess": "Stripe账户连接成功",
-    "stripeInfoUpdated": "Stripe账户信息已更新",
-    "stripeVerificationUpdated": "Stripe账户验证已更新",
-    "stripeSetupComplete": "Stripe账户设置完成",
-    "stripeConnectFailed": "Stripe连接失败",
-    "stripeReverifyFailed": "重新验证失败，请重试",
-    "stripeEmbeddedSetupFailed": "嵌入式设置失败，请尝试外部设置",
-    "stripeSetupFailed": "Stripe设置失败",
-    "connectWalletFailed": "连接钱包失败，请重试",
-    "unsupportedChainType": "不支持的链类型",
-    "deleteAccountConfirm": "确定要删除此收款账户吗？",
-    "stripeOptionsTitle": "选择Stripe设置方式",
-    "embeddedSetup": "嵌入式设置",
-    "embeddedSetupDescription": "在当前页面完成Stripe账户设置，无需离开当前页面",
-    "externalSetup": "外部设置",
-    "externalSetupDescription": "在新窗口中完成Stripe账户设置",
-    "stripeAccountSetup": "Stripe账户设置",
-    "fetchAccountsFailed": "获取收款账户失败，请重试",
-    "saveAccountSuccess": "收款账户保存成功",
-    "saveAccountFailed": "保存收款账户失败",
-    "noData": "暂无",
-    "noMessage": "暂无消息"
+      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买商家信息，请％{reloadLink}并重新开始购买流程。"
+    }
   },
   "moderators": {
     "moderatorsLoading": "加载仲裁人...",
     "moderatorsXofY": "正在加载仲裁人 %{current}/%{total}",
-    "loadingXofYTimedOut": "已加载%{loaded}%{total}仲裁人。 %{remainder}仲裁人未加载。|||| 已加载%{loaded}%{total}仲裁人。 %{remainder}仲裁人未加载。",
-    "moderatorsLoaded": "%{total}仲裁人加载了|||| 已加载%{total}仲裁人。",
+    "loadingXofYTimedOut": "已加载％{加载}％{total}版主。 ％{remainder}版主未加载。|||| 已加载％{加载}％{total}版主。 ％{remainder}版主未加载。",
+    "moderatorsLoaded": "％{total}版主加载了|||| 已加载％{total}版主。",
     "noModsMsg": {
       "noModerators": {
         "title": "没有有效的仲裁人可用。",
@@ -1908,7 +1530,7 @@
         "body": "仲裁人可以使用此商品接受的一种或多种其他货币。"
       },
       "noMatchingVerifiedModerators": {
-        "title": "尚未加载已接受%{coin}验证的仲裁人。",
+        "title": "尚未加载已接受％{coin}验证的版主。",
         "body": "尝试查看未经验证的仲裁人。"
       }
     },
@@ -2017,13 +1639,9 @@
       "enterMessagePlaceholder": "输入消息...",
       "enterMessageNoMoreModPlaceholder": "输入消息...（仲裁人发布了一个决定，将不再看到任何新的聊天消息）",
       "modCannotChat": "您已发布决定，无法发送更多消息。",
-      "addImage": "Add Image",
-      "loadMessagesError": "加载消息时发生错误。",
+      "loadMessagesError": "加载消息时发生错误。%{retryLink}",
       "retryLink": "重试",
-      "btnSend": "发送",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "发送"
     },
     "contractTab": {
       "heading": "合同（JSON）",
@@ -2245,40 +1863,9 @@
       "passwordPlaceholder": "文件密码（可选）",
       "transactionIDLabel": "交易ID",
       "transactionIDPlaceholder": "粘贴交易ID",
-      "rwaTokenAddressLabel": "RWA代币地址",
-      "rwaTokenAddressPlaceholder": "输入RWA代币合约地址",
-      "rwaTokenAmountLabel": "RWA代币数量",
-      "rwaTokenAmountPlaceholder": "输入要发送的代币数量",
-      "rwaTransactionHashLabel": "交易哈希",
-      "rwaTransactionHashPlaceholder": "输入区块链交易哈希",
-      "rwaBlockchainLabel": "区块链",
-      "rwaRechargeText": "充值RWA代币",
-      "rwaRechargingText": "正在充值...",
-      "rwaRechargeHelper": "点击按钮将RWA代币充值到买家地址",
-      "buyerPaymentInfo": "买家支付信息",
-      "paymentAmount": "支付金额",
-      "paymentToken": "支付代币",
-      "buyerAddress": "买家地址",
-      "transactionHash": "交易哈希",
-      "sellerRwaTokenInfo": "卖家RWA代币信息",
-      "rwaTokenAddress": "RWA代币地址",
-      "rwaTokenAmount": "RWA代币数量",
-      "buyerReceiveAddress": "买家接收地址",
-      "loadingOrderInfo": "正在加载订单信息...",
-      "rwaTransferText": "转移RWA代币",
-      "rwaTransferringText": "正在转移...",
-      "rwaTransferHelper": "点击按钮将RWA代币转移给买家",
       "noteLabel": "备注",
       "notePlaceholder": "可选",
       "noteHelperTextDigital": "买家将收到包含文件信息的通知",
-      "noteHelperTextRwa": "买家将收到RWA代币充值通知",
-      "sellerReceiveAddress": "卖家收款地址",
-      "pleaseSelectReceiveAddress": "请选择收款地址",
-      "rwaFulfillmentTimeout": "RWA代币发货超时",
-      "rwaFulfillmentTimeRemaining": "剩余发货时间：",
-      "rwaFulfillmentExpired": "RWA代币发货时间已过期",
-      "rwaFulfillmentExpiredMessage": "15分钟发货窗口已过期。订单将自动取消并退款。",
-      "rwaFulfillmentUrgent": "紧急：请在以下时间内完成RWA代币转移",
       "btnCancel": "取消",
       "btnSubmit": "提交"
     },
@@ -2319,8 +1906,8 @@
   },
   "metrics": {
     "title": "可选的匿名信息",
-    "newVersion": "请查看以下的分析数据协议的更新，并点击\"激活\"",
-    "msg1": "请帮助改进Mobazha，同意与开发团队分享有关您使用体验的匿名数据。",
+    "newVersion": "请查看以下的分析数据协议的更新，并点击“激活”",
+    "msg1": "请帮助改进OpenBazaar，同意与开发团队分享有关您使用体验的匿名数据。",
     "msg2": "分享的数据不包含任何可用于识别您，您的订单以及任何交易信息。您的个人数据总是存储在您自己的计算机上，且任何其他人都无法访问。",
     "listTitle": "以下数据将被分享: ",
     "list": {
@@ -2332,10 +1919,10 @@
       "app": "关于您应用程序的详细信息，包括版本号，以及它是从软件安装包还是从源代码进行安装。",
       "orders": "订单处理过程中的基本操作信息，如开立争议时的订单状态，订单是否有仲裁人参与。这将有助于我们识别订单处理中存在的问题。",
       "listings": "在创建和编辑商品信息时的基本操作信息，仅包括商品基本类型和相关操作信息，不包括任何其他关于商品的信息。这将为我们分析创建和编辑商品时存在的潜在问题提供数据。",
-      "path": "安装Mobazha应用的路径。它将包含安装文件夹路径的名称，其中可能包括您的根目录和/或用户文件夹路径。"
+      "path": "安装OpenBazaar应用的路径。它将包含安装文件夹路径的名称，其中可能包括您的根目录和/或用户文件夹路径。"
     },
     "disclaimer1": "我们不收集任何用来识别您的订单以及任何交易信息。这些信息始终存储在您自己的计算机上，且任何其他人都无法访问。",
-    "disclaimer2": "如上所述，您是否愿意分享这些数据完全可选。使用Mobazha不要求您一定要分享这些数据。",
+    "disclaimer2": "如上所述，您是否愿意分享这些数据完全可选。使用OpenBazaar不要求您一定要分享这些数据。",
     "acceptBtn": "接受",
     "declineBtn": "拒绝",
     "activateBtn": "激活",
@@ -2410,7 +1997,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "退货条款超出允许的最大长度。",
     "termsAndConditionsTooLong": "其他条款和条件超过最大允许长度。",
-    "provideShippingOption": "对于物理货物，至少需要提供一个快递选项。请在您的商店设置中进行配置。",
+    "provideShippingOption": "对于物理货物，至少需要提供一个快递选项。",
     "tooManyCoupons": "您不能拥有超过%{maxCouponCount}张优惠券。",
     "couponsPriceTooLarge": "折扣金额不能等于或大于商品价格。"
   },
@@ -2420,7 +2007,7 @@
     "descriptionTooLong": "描述超出允许的最大长度。",
     "badConditionType": "条件不是可用类型之一",
     "provideAmount": "请提供价格。",
-    "provideNumericAmount": "请提供价格数值，如果包含小数，则应使用小数点作为分隔符，例如\"0.00\"。",
+    "provideNumericAmount": "请提供价格数值，如果包含小数，则应使用小数点作为分隔符，例如“0.00”。",
     "provideAmountGreaterThanZero": "价格必须大于0。",
     "imageRequired": "请提供至少一张图片",
     "tooManyTags": "已经超过了%{maxTags}个标记的最大允许量。",
@@ -2430,7 +2017,7 @@
     "provideQuantity": "请提供数量",
     "provideNumericQuantity": "请提供数量数值。",
     "quantityMustBePositive": "数量必须大于零。",
-    "duplicateVariantName": "您有多个\"%{name}\"变体，变态名称必须是唯一的。"
+    "duplicateVariantName": "您有多个“%{name}”变体，变态名称必须是唯一的。"
   },
   "metadataModelErrors": {
     "providePriceModifier": "请提供一个价格修改。",
@@ -2448,7 +2035,7 @@
     "percentageLow": "百分比值必须大于零。",
     "percentageHigh": "您不能设置高于或等于100%的百分比",
     "priceLow": "价格必须大于零。",
-    "provideNumericDiscountAmount": "请提供折扣金额值，如果包含小数，则应使用小数点作为分隔符，例如\"0.00\"。",
+    "provideNumericDiscountAmount": "请提供折扣金额值，如果包含小数，则应使用小数点作为分隔符，例如“0.00”。",
     "needUniqueDiscountCode": "您已经使用该代码的优惠券，请提供唯一的优惠券代码。"
   },
   "shippingOptionModelErrors": {
@@ -2480,8 +2067,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "如果您的费用类型是固定值或固定值外加百分比，您必须为您的费用设置有效货币。",
-    "fixedFeeAsNumber": "如果您的费用类型是固定值或固定值外加百分比，则必须为固定费用设置有效金额。如果包含小数点，则应使用小数点作为分隔符，例如\"0.00\"。",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "如果您的费用类型是固定值或固定值外加百分比，则必须为固定费用设置有效金额。如果包含小数点，则应使用小数点作为分隔符，例如“0.00”。"
   },
   "skuModelErrors": {
     "provideQuantity": "请提供数量",
@@ -2500,7 +2086,7 @@
   },
   "spendModelErrors": {
     "provideAddress": "请提供一个付款地址。",
-    "provideAmountNumber": "请提供一个数字金额，如果包含一个小数，则应该使用小数点作为分隔符，例如\"0.00\"。",
+    "provideAmountNumber": "请提供一个数字金额，如果包含一个小数，则应该使用小数点作为分隔符，例如“0.00”。",
     "amountGreaterThanZero": "金额必须大于零。",
     "insufficientFunds": "您钱包内余额不足，请考虑充值或直接进行扫码支付。",
     "missingExchangeRateData": "无法使用%{cur}进行支付，因为没有%{cur}和%{serverCur}之间可用的汇率数据。请选择其他币种。如果任何可用货币，您可以随时选择%{serverCur}。",
@@ -2533,7 +2119,7 @@
   },
   "errorPage": {
     "userNotFoundTitle": "无法找到该用户",
-    "userNotFoundMsg": "在网络上找不到\"%{user}\"，请确保您输入了正确的句柄或peerID。",
+    "userNotFoundMsg": "在网络上找不到“%{user}”，请确保您输入了正确的句柄或peerID。",
     "pageNotFoundTitle": "无法找到此页面",
     "pageNotFoundMsg": "检查地址栏以确保URL正确。",
     "genericErrorTitle": "出现错误"
@@ -2948,7 +2534,7 @@
     "NPR": "尼泊尔卢比",
     "NZD": "新西兰元",
     "OMR": "阿曼里亚尔",
-    "PAB": "巴尔波亚",
+    "PAB": "巴尔博亚",
     "PEN": "Nuevo Sol",
     "PGK": "Kina",
     "PHP": "菲律宾比索",
@@ -3342,9 +2928,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3543,12 +3126,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -3694,6 +3271,7 @@
     "CWV": "CWV Chain",
     "CXC": "CAPITAL X CELL",
     "CXO": "CargoX",
+    "CXP": "CaixaPay",
     "CXT": "Coinonat",
     "CYBR": "CYBR Token",
     "CYDER": "Cyder",
@@ -4574,10 +4152,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic 网络",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4588,7 +4163,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",
@@ -5130,7 +4704,7 @@
     "RIYA": "Etheriya",
     "RKC": "Rookiecoin",
     "RKN": "Rakon",
-    "RKT": "Rocket",
+    "RKT": "Rock",
     "RLC": "iExec RLC",
     "RLT": "RouletteToken",
     "RLX": "Relex",
@@ -6166,29 +5740,5 @@
     "zh-TW": "中文（繁）",
     "zu": "祖鲁",
     "zu-ZA": "祖鲁(祖鲁语)"
-  },
-  "rwaTokenSelector": {
-    "searchMode": "搜索代币",
-    "addressMode": "输入地址",
-    "searchPlaceholder": "搜索代币名称、代码或符号...",
-    "searchResults": "搜索结果",
-    "noResults": "未找到匹配的代币",
-    "contractAddress": "合约地址",
-    "addressPlaceholder": "输入0x开头的合约地址...",
-    "verifyAddress": "验证地址",
-    "verifying": "验证中...",
-    "addressVerified": "地址验证成功",
-    "addressNotFound": "未找到该地址对应的代币",
-    "addressNotFoundHelp": "请检查地址是否正确，或尝试搜索模式查找代币",
-    "invalidAddress": "无效的合约地址格式",
-    "verificationError": "验证过程中出现错误",
-    "selectedToken": "已选择的代币",
-    "change": "更改",
-    "currentPrice": "当前价格",
-    "issuer": "发行方",
-    "riskLevel": "风险等级",
-    "verification": "验证机构",
-    "selectThisToken": "选择此代币",
-    "verified": "已验证"
   }
 }
