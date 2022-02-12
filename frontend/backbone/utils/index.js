@@ -3,10 +3,9 @@
 
 import $ from 'jquery';
 import _ from 'underscore';
-import twemoji from 'twemoji';
-import path from 'path';
 import app from '../app';
-import { myGet } from '../../src/api/api';
+import multihashes from 'multihashes';
+import twemoji from 'twemoji';
 
 export function getGuid(handle, resolver) {
   const deferred = $.Deferred();
@@ -19,8 +18,8 @@ export function getGuid(handle, resolver) {
   url = url.charAt(url.length - 1) !== '/' ? `${url}/` : url;
   url += handle;
 
-  myGet(url).done(peerID => deferred.resolve(peerID))
-    .fail(error => deferred.reject(error));
+  $.get(url).done(peerID => deferred.resolve(peerID))
+    .fail(xhr => deferred.reject(xhr));
 
   return deferred.promise();
 }
@@ -124,6 +123,15 @@ export function guid(prefix = '') {
   return `${prefix}${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 }
 
+export function isMultihash(_string) {
+  try {
+    multihashes.validate(multihashes.fromB58String(_string));
+    return true;
+  } catch (exc) {
+    return false;
+  }
+}
+
 // applies a template to select2 to turn text emojis into images
 export function selectEmojis(option) {
   return $(`<span class="select2ImgOpt">${twemoji.parse(option.text,
@@ -198,25 +206,4 @@ export function deparam(queryStr = '') {
   }
 
   return parsed;
-}
-
-export function truncateImageFilename(filename) {
-  if (!filename || typeof filename !== 'string') {
-    throw new Error('Please provide a filename as a string.');
-  }
-
-  const truncated = filename;
-
-  const maxImageFilenameLength = 255;
-  if (filename.length > maxImageFilenameLength) {
-    const parsed = path.parse(filename);
-    const nameParseLen = maxImageFilenameLength - parsed.ext.length;
-
-    // acounting for rare edge case of the extension in and of itself
-    // exceeding the max length
-    return parsed.name.slice(0, nameParseLen < 0 ? 0 : nameParseLen)
-      + parsed.ext.slice(0, maxImageFilenameLength);
-  }
-
-  return truncated;
 }
