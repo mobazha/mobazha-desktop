@@ -1,10 +1,10 @@
 // used for sales, purchases and cases
 import app from '../app';
-import BaseCollection from './BaseCollection';
+import { Collection } from 'backbone';
 import Transaction from '../models/transaction/Transaction';
 import Case from '../models/transaction/Case';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   constructor(models = [], options = {}) {
     const opts = {
       type: 'sales',
@@ -22,12 +22,12 @@ export default class extends BaseCollection {
   }
 
   model(attrs) {
-    const Md = attrs.caseID ? Case : Transaction;
+    const Md = attrs.caseId ? Case : Transaction;
     return new Md(attrs, { parse: true });
   }
 
   modelId(attrs) {
-    return this.type === 'cases' ? attrs.caseID : attrs.orderID;
+    return this.type === 'cases' ? attrs.caseId : attrs.orderID;
   }
 
   url() {
