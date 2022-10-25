@@ -7,7 +7,7 @@ import CryptoDelivery from './CryptoDelivery';
 function defaults(attrs = {}, context = {}) {
   if (context.contractType === 'DIGITAL_GOOD') {
     attrs.digitalDelivery = new DigitalDelivery(attrs.digitalDelivery || {});
-  } else if (context.contractType === 'CRYPTOCURRENCY' || context.contractType === 'RWA_TOKEN') {
+  } else if (context.contractType === 'CRYPTOCURRENCY') {
     attrs.cryptocurrencyDelivery = new CryptoDelivery(attrs.cryptocurrencyDelivery || {});
   } else if (context.contractType === 'PHYSICAL_GOOD' && !context.isLocalPickup) {
     attrs.physicalDelivery = new PhysicalDelivery(attrs.physicalDelivery || {});
@@ -37,7 +37,7 @@ export default class extends BaseModel {
   }
 
   url() {
-    return app.getServerUrl('order/fulfill');
+    return app.getServerUrl('ob/orderfulfillment');
   }
 
   get idAttribute() {
