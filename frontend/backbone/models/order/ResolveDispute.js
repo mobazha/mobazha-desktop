@@ -31,7 +31,7 @@ export default class extends BaseModel {
   }
 
   url() {
-    return app.getServerUrl('dispute/close');
+    return app.getServerUrl('ob/closedispute');
   }
 
   get idAttribute() {
