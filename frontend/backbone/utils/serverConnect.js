@@ -1,13 +1,11 @@
+import { EOL } from 'os';
+import { ipcRenderer } from 'electron';
 import $ from 'jquery';
 import { Events } from 'backbone';
-import _ from 'underscore';
-import { myGet } from '../../src/api/api';
-import { ipc } from '@/utils/ipcRenderer.js';
-import Socket from './Socket';
-import { guid } from '.';
+import Socket from '../utils/Socket';
+import { guid } from './';
 import app from '../app';
 import ServerConfig from '../models/ServerConfig';
-import LocalServerProxy from './localServerProxy';
 
 /*
   The module is used to establish a connection with a server as well as monitor
@@ -31,10 +29,6 @@ const events = {
 
 export { events };
 
-const isBundledApp = ipc.sendSync('controller.system.getGlobal', 'isBundledApp');
-
-const getLocalServer = _.once(() => isBundledApp ? new LocalServerProxy() : null);
-
 let currentConnection = null;
 let debugLog = '';
 
@@ -45,10 +39,10 @@ function log(msg) {
 
   if (!msg) return;
 
-  const logMsg = `[SERVER-CONNECT] ${msg}\n`;
+  const logMsg = `[SERVER-CONNECT] ${msg}${EOL}`;
   debugLog += logMsg;
   // "if (ipcRenderer)" needed to prevent the `npm test` from bombing.
-  if (ipc) ipc.send('server-connect-log', logMsg);
+  if (ipcRenderer) ipcRenderer.send('server-connect-log', logMsg);
 }
 
 export function getDebugLog() {
@@ -137,7 +131,7 @@ function authenticate(server) {
 
   const deferred = $.Deferred();
 
-  const fetchConfig = myGet(`${server.httpUrl}v1/ob/config`)
+  const fetchConfig = $.get(`${server.httpUrl}/ob/config`)
     .done(() => deferred.resolve())
     .fail((e) => deferred.reject('failed', e));
 
@@ -234,7 +228,7 @@ export default function connect(server, options = {}) {
   };
 
   const deferred = $.Deferred();
-  const localServer = getLocalServer();
+  const localServer = app.localServer;
   let attempt = 1;
   let socket = null;
   let connectAttempt = null;
@@ -247,6 +241,7 @@ export default function connect(server, options = {}) {
     };
 
     let aggregateData = {
+      localServer,
       server,
       socket,
       ...data,
@@ -259,6 +254,8 @@ export default function connect(server, options = {}) {
         totalConnectAttempts: opts.attempts,
       };
     }
+
+    if (localServer) aggregateData.localServer = localServer;
 
     return aggregateData;
   };
@@ -311,7 +308,7 @@ export default function connect(server, options = {}) {
     if (connectAttempt) connectAttempt.cancel();
   };
 
-  if (server.get('builtIn') && !isBundledApp) {
+  if (server.get('builtIn') && !localServer) {
     // This should never happen to normal users. The only way it would is if you are a dev
     // and mucking with localStorage and / or fudging the source for the app to masquerade
     // as a bundled app.
@@ -321,7 +318,7 @@ export default function connect(server, options = {}) {
 
   const newServerDataDir = server.get('dataDir');
 
-  let commandLineArgs = [];
+  let commandLineArgs = ['-v'];
 
   if (server.get('useTor')) commandLineArgs.push('--tor');
   const torPw = server.get('torPassword');
@@ -336,7 +333,7 @@ export default function connect(server, options = {}) {
   // If we're not connecting to the local bundled server or it's running with incompatible
   // command line arguments, let's ensure it's stopped.
   if (
-    isBundledApp &&
+    localServer &&
     localServer.isRunning &&
     (
       !server.get('builtIn') ||
@@ -509,15 +506,15 @@ export default function connect(server, options = {}) {
           }
         };
 
-        _proxySetHandlers.forEach(handler => ipc.removeListener('proxy-set', handler));
-        ipc.on('proxy-set', onProxySet);
+        ipcRenderer.send('set-proxy', setProxyId, `socks5://${server.get('torProxy')}`);
+        _proxySetHandlers.forEach(handler => ipcRenderer.removeListener('proxy-set', handler));
+        ipcRenderer.on('proxy-set', onProxySet);
         _proxySetHandlers = [onProxySet];
-
-        ipc.send('controller.mainwindow.setProxy', {id: setProxyId, socks5Setting: `socks5://${server.get('torProxy')}`});
       } else {
         innerConnectNotify('clearing-tor-proxy');
         innerLog('Clearing any proxy that may be set.');
         const setProxyId = guid();
+        ipcRenderer.send('set-proxy', setProxyId, '');
 
         const onProxySet = (e, id) => {
           if (id === setProxyId) {
@@ -526,11 +523,9 @@ export default function connect(server, options = {}) {
           }
         };
 
-        _proxySetHandlers.forEach(handler => ipc.removeListener('proxy-set', handler));
-        ipc.on('proxy-set', onProxySet);
+        _proxySetHandlers.forEach(handler => ipcRenderer.removeListener('proxy-set', handler));
+        ipcRenderer.on('proxy-set', onProxySet);
         _proxySetHandlers = [onProxySet];
-
-        ipc.send('controller.mainwindow.setProxy', {id: setProxyId, socks5Setting: ''});
       }
     }
 
@@ -629,5 +624,5 @@ export default function connect(server, options = {}) {
 }
 
 // "if (ipcRenderer)" needed to prevent the `npm test` from bombing.
-if (ipc) ipc.send('server-connect-ready');
+if (ipcRenderer) ipcRenderer.send('server-connect-ready');
 log('Browser has been started or refreshed.');

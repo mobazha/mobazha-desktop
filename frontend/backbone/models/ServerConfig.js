@@ -4,10 +4,8 @@
  * from the server via the ob/config api.
  */
 
-import is from 'is_js';
-import process from 'process';
 import LocalStorageSync from '../utils/lib/backboneLocalStorage';
-import { ipc } from '../../src/utils/ipcRenderer.js';
+import is from 'is_js';
 import app from '../app';
 import BaseModel from './BaseModel';
 
@@ -23,9 +21,7 @@ export default class extends BaseModel {
   defaults() {
     return {
       serverIp: 'localhost',
-      port: import.meta.env.VITE_TESTNET === 'true' ? 4002 : 5102,
-      webVersion: false,
-      gateway: false,
+      port: 4002,
       SSL: false,
       builtIn: false,
       useTor: false,
@@ -133,17 +129,7 @@ export default class extends BaseModel {
 
   get socketUrl() {
     const prefix = this.get('SSL') ? 'wss' : 'ws';
-    const baseUrl = `${prefix}://${this.get('serverIp')}:${this.get('port')}/ws`;
-
-    if (this.get('webVersion')) {
-      if (this.get('gateway')) {
-        return `${baseUrl}?Gateway=true`;
-      }
-      const token = localStorage.getItem('token');
-      return `${baseUrl}?token=${token}`;
-    }
-
-    return `${baseUrl}/default`;
+    return `${prefix}://${this.get('serverIp')}:${this.get('port')}/ws`;
   }
 
   /**
@@ -173,8 +159,7 @@ export default class extends BaseModel {
   }
 
   isTorPwRequired() {
-    const isBundledApp = ipc.sendSync('controller.system.getGlobal', 'isBundledApp');
     return ['win', 'darwin'].indexOf(process.platform) > -1 &&
-      this.isLocalServer() && isBundledApp;
+      this.isLocalServer() && app.isBundledApp;
   }
 }
