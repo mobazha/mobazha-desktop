@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "cancelar",
       "connectAttemptMsg": "Conectando-se a %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Notificações",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Tor ativo",
     "discoverCalloutTitle": "Descobrir",
     "discoverCalloutBody": "Navegue e compre em centenas de lojas no Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Minha Página",
     "customizePage": "Personalizar Página",
     "createListing": "Criar Anúncio",
-    "tools": "Tools",
     "purchases": "Compras",
     "sales": "Vendas",
     "cases": "Disputas",
     "settings": "Configurações",
     "help": "Ajuda",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Voltar",
       "forward": "Avançar",
       "refresh": "Atualizar",
-      "login": "Login",
       "discover": "Descobrir",
       "wallet": "Carteira",
       "notifications": "Notificações",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Navegação",
       "close": "Fechar"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Mensagens não lidas %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Inserir mensagem...",
-      "loadMessagesError": "Houve um erro ao carregar as mensagens. ",
+      "loadMessagesError": "Houve um erro ao carregar as mensagens. %{retryLink}",
       "retryLink": "tentar novamente",
       "subMenu": {
         "viewPage": "Ver página",
@@ -312,7 +302,7 @@
       "sortBy": "Ordenar por",
       "countListings": "%{display_count} anúncio |||| %{display_count} anúncios",
       "countListingsFound": "%{countListings} encontrado(s)",
-      "inactive": "A sua loja está atualmente inativa e escondida do público.",
+      "inactive": "A sua loja está atualmente inativa e escondida do público. %{link}",
       "inactiveLink": "Modificar",
       "listingDataChangedPopin": "Os dados do anúncio foram modificados.",
       "shippingDataChangedPopin": "O seu país e/ou o seu endereço de entrega mudou. Isso pode afetar quais anúncios terão frete grátis para você.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Página",
+      "sectionPage": "Página",
       "sectionLinks": "Links",
       "sectionAbout": "Sobre",
       "sectionTheme": "Tema",
@@ -753,69 +743,6 @@
         "fail": "Falha ao salvar as configurações da loja.",
         "error": "Houve um erro ao salvar as configurações da loja."
       },
-      "shippingOption": {
-        "error": "Não é possível excluir a única opção de envio.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Opção de Frete #%{listPosition}",
-        "shippingDestinations": "Destinos",
-        "regionsPlaceholder": "Insira países…",
-        "nameLabel": "Título da Opção",
-        "namePlaceholder": "ex: envio para o Brasil, Internacional, etc",
-        "typeLabel": "Tipo",
-        "shippingTypes": {
-          "FIXED_PRICE": "Preço Fixo",
-          "LOCAL_PICKUP": "Retirar Pessoalmente"
-        },
-        "btnAddShippingOption": "Inserir Opção de Frete",
-        "btnDeleteShippingOption": "Apagar",
-        "clearAll": "Limpar Tudo",
-        "services": {
-          "nameLabel": "Serviço",
-          "namePlaceholder": "ex: PAC, SEDEX, etc.",
-          "estimatedDeliveryLabel": "Tempo de Entrega",
-          "estimatedDeliveryPlaceholder": "ex: 5-7 dias",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Inserir Serviço",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Inserir Serviço",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Apagar"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Moderador não encontrado",
         "modsNotFound": "%{guids} não pode ser encontrado na rede. Talvez ele não seja um ID de peer válido. |||| %{guids} não puderam ser encotrados na rede. Talvez eles não sejam IDs de peer válidos.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Transações"
     },
     "coinNav": {
-      "unsupportedCurTip": "Essa moeda atualmente não é suportada.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "Essa moeda atualmente não é suportada."
     },
     "sendBtn": "Enviar",
     "receiveBtn": "Receber",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "Para",
       "toPlaceholder": "Insira um Endereço %{cur}",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Escaneia ou envie moedas para esse endereço"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Você tem certeza?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Item Físico",
     "DIGITAL_GOOD": "Item Digital",
     "SERVICE": "Serviço",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "Houve um erro ao obter o inventário: %{msg}",
     "unknownInventory": "Desconhecido"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Editar",
     "delete": "Apagar",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "Ver %{count} Foto |||| Ver %{count} Fotos",
     "type": "Tipo: %{type}",
     "condition": "Condição: %{condition}",
-    "weight": "Peso: %{weight} g",
     "inventory": "Estoque: %{inventory}",
     "tags": "Tags",
     "paymentsAccepted": "Formas de Pagamento",
     "noTags": "Nenhuma tag",
     "buyNow": "COMPRAR",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "COMPRAR",
     "description": "Descrição",
     "noDescription": "Sem descrição",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Geral",
       "photos": "Fotos",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Anexos",
       "shipping": "Frete",
       "tags": "Tags",
@@ -1256,7 +1140,6 @@
       "variants": "Variantes",
       "variantsDetailed": "Variantes (tamanhos, cores, materiais, etc.)",
       "inventory": "Inventário",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Política de Devolução",
       "termsAndConditions": "Termos e Condições",
       "coupons": "Cupons",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "Quando existem variantes, os SKUs podem ser declarados na seção %{variantInventoryLink}",
     "variantInventoryLink": "Inventário de Variantes",
     "helperCondition": "A condição geral do seu produto anunciado",
-    "helperWeight": "Peso do Item",
     "helperNSFW": "Clique em Sim, caso o anúncio contiver conteúdo adulto/ofensivo",
     "helperTags": "Você pode acrescentar várias tags. Pressione Enter após inserir cada tag.",
     "helperCategories": "Não há suporte para subcategorias (ex: Sapatos > Botas não funciona). Insira um nome de uma categoria, tecle Enter, e escreva o nome da próxima.",
@@ -1292,7 +1174,6 @@
     "visibility": "Visibilidade",
     "price": "Preço",
     "condition": "Condição",
-    "weight": "Peso",
     "sku": "Unidade de Manutenção de Estoque (SKU)",
     "description": "Descrição",
     "uploading": "Enviando…",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Deixe em branco para negociar a preço de mercado, ou especifique um desconto (ex:-10%) ou acréscimo (ex:+5%)",
       "lblReceive": "Receber"
     },
+    "shippingOptions": {
+      "optionHeading": "Opção de Frete #%{listPosition}",
+      "shippingDestinations": "Destinos",
+      "regionsPlaceholder": "Insira países…",
+      "nameLabel": "Título da Opção",
+      "namePlaceholder": "ex: envio para o Brasil, Internacional, etc",
+      "typeLabel": "Tipo",
+      "shippingTypes": {
+        "FIXED_PRICE": "Preço Fixo",
+        "LOCAL_PICKUP": "Retirar Pessoalmente"
+      },
+      "btnAddShippingOption": "Inserir Opção de Frete",
+      "btnDeleteShippingOption": "Apagar",
+      "clearAll": "Limpar Tudo",
+      "services": {
+        "nameLabel": "Serviço",
+        "namePlaceholder": "ex: PAC, SEDEX, etc.",
+        "estimatedDeliveryLabel": "Tempo de Entrega",
+        "estimatedDeliveryPlaceholder": "ex: 5-7 dias",
+        "priceLabel": "Custo (1º item)",
+        "additionalItemPriceLabel": "Custo (item adicional)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Inserir Serviço"
+      },
+      "toolTip": {
+        "delete": "Apagar"
+      }
+    },
     "coupons": {
       "titleLabel": "Título",
       "couponCodeLabel": "Cupom Promocional",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Título",
       "titlePlaceholder": "ex: Tamanho, Cor, Material, etc.",
       "choicesLabel": "Escolhas",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "ex: Pequeno, Médio, Grande, etc",
       "toolTip": {
         "delete": "Apagar"
@@ -1374,21 +1281,7 @@
       "surcharge": "Cobrança adicional",
       "totalPrice": "Preço Total",
       "sku": "Unidade de Manutenção de Estoque (SKU)",
-      "quantity": "Quantidade",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Quantidade"
     },
     "confirmCloseDialog": {
       "title": "Você possui modificações não salvas",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "Existem fotos em excesso",
       "tooManyPhotosBody": "Algumas de suas fotos não foram enviadas porque você excedeu a quantia máxima permitida.",
       "unableToLoadImages": "Não foi possível carregar a sua imagem. |||| Não foi possível carregar as suas imagens.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Houve um erro ao enviar a sua imagem. |||| Houve um erro ao enviar as suas imagens."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "Os dados deste anúncio foram modificados.",
     "returnToListing": "Voltar ao anúncio",
-    "returnToCart": "Return To Cart",
     "optional": "opcional",
     "shippingTitle": "Frete",
     "cryptoCurrencyTitle": "Moeda",
@@ -1599,8 +1490,7 @@
       "firstItem": "Primeiro Item",
       "additionalItems": "Cada Item Adicional",
       "options": "Opções",
-      "subtotal": "Subtotal",
-      "subtotalEx": "Subtotal (%{quantity})",
+      "subtotal": "Subtotal (%{quantity})",
       "shippingTotal": "Frete Total",
       "total": "Total",
       "cryptoIconsAmount": "(%{amount})",
@@ -1748,13 +1638,9 @@
       "enterMessagePlaceholder": "Inserir mensagem...",
       "enterMessageNoMoreModPlaceholder": "Insira uma mensagem... (o moderador já emitiu uma decisão e não irá mais ver novas mensagens de chat)",
       "modCannotChat": "Você já emitiu uma decisão e não pode mais enviar mensagens.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Houve um erro ao carregar as mensagens. ",
+      "loadMessagesError": "Houve um erro ao carregar as mensagens. %{retryLink}",
       "retryLink": "tentar novamente",
-      "btnSend": "Enviar",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Enviar"
     },
     "contractTab": {
       "heading": "Contrato (JSON)",
@@ -2110,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "O texto da sua política de devolução está mais longo do que o permitido.",
     "termsAndConditionsTooLong": "O texto dos seus termos e condições está mais longo do que o permitido.",
-    "provideShippingOption": "Para um item físico, exige-se pelo menos uma opção de frete. Por favor, configure-o nas configurações da sua loja.",
+    "provideShippingOption": "Para um item físico, exige-se pelo menos uma opção de frete.",
     "tooManyCoupons": "Você não pode ter mais do que %{maxCouponCount} cupons.",
     "couponsPriceTooLarge": "A quantia de desconto não pode ser maior ou igual ao preço do anúncio."
   },
@@ -2180,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "Se o seu tipo de taxa é fixa ou fixa mais percentual, você deve definir uma moeda válida para a sua taxa.",
-    "fixedFeeAsNumber": "Se o seu tipo de taxa for fixa ou fixa + percentual, você deve definir um valor válido para sua taxa fixa. Se for incluir um decimal, use ponto como separador (ex: 2.00) ao invés de vírgula (ex: 2,00).",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "Se o seu tipo de taxa for fixa ou fixa + percentual, você deve definir um valor válido para sua taxa fixa. Se for incluir um decimal, use ponto como separador (ex: 2.00) ao invés de vírgula (ex: 2,00)."
   },
   "skuModelErrors": {
     "provideQuantity": "Por favor, forneça uma quantidade.",
@@ -3042,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3243,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4275,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4289,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",

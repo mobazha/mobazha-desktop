@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "отменить",
       "connectAttemptMsg": "Подключение к %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Уведомления",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Tor активирован",
     "discoverCalloutTitle": "Исследуй ",
     "discoverCalloutBody": "Смотри и делай покупки в сотнях магазинов на Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Моя страница",
     "customizePage": "Настроить страницу",
     "createListing": "Создать объявление",
-    "tools": "Tools",
     "purchases": "Покупки",
     "sales": "Продажи",
     "cases": "История",
     "settings": "Настройки",
     "help": "Помощь",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Назад",
       "forward": "Вперед",
       "refresh": "Обновить",
-      "login": "Login",
       "discover": "Исследовать",
       "wallet": "Кошелёк",
       "notifications": "Уведомления",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Навигация",
       "close": "Закрыть"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Непрочитанные сообщения %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Введите сообщение...",
-      "loadMessagesError": "Ошибка при загрузке сообщений. ",
+      "loadMessagesError": "Ошибка при загрузке сообщений. %{retryLink}",
       "retryLink": "Попробовать снова",
       "subMenu": {
         "viewPage": "Магазин",
@@ -312,7 +302,7 @@
       "sortBy": "Сортировать по",
       "countListings": "%{display_count} listing |||| %{display_count} listings",
       "countListingsFound": "%{countListings} найдено",
-      "inactive": "Ваш магазин в настоящее время неактивен и скрыт от пользователей.",
+      "inactive": "Ваш магазин в настоящее время неактивен и скрыт от пользователей. %{link}",
       "inactiveLink": "Изменить",
       "listingDataChangedPopin": "Информация была изменена.",
       "shippingDataChangedPopin": "Ваша страна и/или адрес доставки был изменен. Это может отразится на стоимости доставки.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF ",
-      "sectionName": "Страница",
+      "sectionPage": "Страница",
       "sectionLinks": "Ссылки",
       "sectionAbout": "О нас",
       "sectionTheme": "Тема",
@@ -753,69 +743,6 @@
         "fail": "Сбой сохранения настроек магазина.",
         "error": "Произошла ошибка при сохранении настроек магазина."
       },
-      "shippingOption": {
-        "error": "Невозможно удалить единственный вариант доставки.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Shipping Option #%{listPosition}",
-        "shippingDestinations": "Destinations",
-        "regionsPlaceholder": "Введите страны...",
-        "nameLabel": "Option Title",
-        "namePlaceholder": "e.g. USA Shipping, International, etc",
-        "typeLabel": "Тип",
-        "shippingTypes": {
-          "FIXED_PRICE": "Фиксированная цена",
-          "LOCAL_PICKUP": "Самовывоз"
-        },
-        "btnAddShippingOption": "Добавить опцию доставки",
-        "btnDeleteShippingOption": "Удалить",
-        "clearAll": "Clear All",
-        "services": {
-          "nameLabel": "Услуга",
-          "namePlaceholder": "e.g. Standard, Express, Overnight",
-          "estimatedDeliveryLabel": "Est. Delivery Time",
-          "estimatedDeliveryPlaceholder": "например, 5-7 дней",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Добавить услугу",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Добавить услугу",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Удалить"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Модератор не найден",
         "modsNotFound": "%{guids} could not be found on the network. It may not be a valid peer ID. |||| %{guids} could not be found on the network. They may not be valid peer IDs.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Операции"
     },
     "coinNav": {
-      "unsupportedCurTip": "This is currently an unsupported currency.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "This is currently an unsupported currency."
     },
     "sendBtn": "Отправить",
     "receiveBtn": "Получить",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "Для",
       "toPlaceholder": "Enter a %{cur} Address",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Сканировать или отправить монеты по адресу"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Вы уверены?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Физический товар",
     "DIGITAL_GOOD": "Цифровой товар",
     "SERVICE": "Услуга",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "There was an error obtaining the inventory: %{msg}",
     "unknownInventory": "Неизвестно"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Изменить",
     "delete": "Удалить",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "View %{count} Photo |||| View %{count} Photos",
     "type": "Тип: %{type}",
     "condition": "Состояние: %{condition}",
-    "weight": "Масса: %{weight} g",
     "inventory": "Inventory: %{inventory}",
     "tags": "Теги",
     "paymentsAccepted": "Payments Accepted",
     "noTags": "Теги не указаны.",
     "buyNow": "КУПИТЬ СЕЙЧАС",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "TRADE NOW",
     "description": "Описание",
     "noDescription": "Описание не указано",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Общий",
       "photos": "Фотографии",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Прикрепленное ",
       "shipping": "Доставка",
       "tags": "Теги",
@@ -1256,7 +1140,6 @@
       "variants": "Варианты",
       "variantsDetailed": "Варианты (добавьте дополнительные размеры, цвета, материалы и т. д.)",
       "inventory": "Inventory",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Политика возвратов",
       "termsAndConditions": "Правила и условия",
       "coupons": "Купоны",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "When variants are present, Skus can be declared in the %{variantInventoryLink} section",
     "variantInventoryLink": "Variant Inventory",
     "helperCondition": "The overall condition of your listing",
-    "helperWeight": "Вес предмета",
     "helperNSFW": "Mark yes if the listing is NSFW",
     "helperTags": "Добавьте больше тегов. Введите имя тега, нажмите enter, повторите.",
     "helperCategories": "Вложенность категорий не поддерживается (например, Обувь>Ботинки пока не работает). Введите название категории, нажмите enter, повторите.",
@@ -1292,7 +1174,6 @@
     "visibility": "Обзор",
     "price": "Цена",
     "condition": "Состояние",
-    "weight": "Масса",
     "sku": "Артикул",
     "description": "Описание",
     "uploading": "Загрузка...",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Получить"
     },
+    "shippingOptions": {
+      "optionHeading": "Shipping Option #%{listPosition}",
+      "shippingDestinations": "Destinations",
+      "regionsPlaceholder": "Введите страны...",
+      "nameLabel": "Option Title",
+      "namePlaceholder": "e.g. USA Shipping, International, etc",
+      "typeLabel": "Тип",
+      "shippingTypes": {
+        "FIXED_PRICE": "Фиксированная цена",
+        "LOCAL_PICKUP": "Самовывоз"
+      },
+      "btnAddShippingOption": "Добавить опцию доставки",
+      "btnDeleteShippingOption": "Удалить",
+      "clearAll": "Clear All",
+      "services": {
+        "nameLabel": "Услуга",
+        "namePlaceholder": "e.g. Standard, Express, Overnight",
+        "estimatedDeliveryLabel": "Est. Delivery Time",
+        "estimatedDeliveryPlaceholder": "например, 5-7 дней",
+        "priceLabel": "Price (first item)",
+        "additionalItemPriceLabel": "Price (additional item)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Добавить услугу"
+      },
+      "toolTip": {
+        "delete": "Удалить"
+      }
+    },
     "coupons": {
       "titleLabel": "Название",
       "couponCodeLabel": "Код купона",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Название",
       "titlePlaceholder": "например, размер, цвет, материал и т. д.",
       "choicesLabel": "Ассортимент",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "e.g. Small, Medium, Large, etc",
       "toolTip": {
         "delete": "Удалить"
@@ -1374,21 +1281,7 @@
       "surcharge": "Surcharge",
       "totalPrice": "Total Price",
       "sku": "Артикул",
-      "quantity": "Количество",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Количество"
     },
     "confirmCloseDialog": {
       "title": "Имеются несохраненные изменения",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "Слишком много фотографий",
       "tooManyPhotosBody": "Не удалось загрузить некоторые или все фотографии, так как Вы превысили бы максимальное количество.",
       "unableToLoadImages": "We were unable to load your image. |||| We were unable to load your images.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Произошла ошибка при загрузке изображения. |||| Произошла ошибка при загрузке изображений."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "The data for this listing has changed.",
     "returnToListing": "Вернуться к товару",
-    "returnToCart": "Return To Cart",
     "optional": "необязательно",
     "shippingTitle": "Доставка",
     "cryptoCurrencyTitle": "Валюта",
@@ -1548,12 +1439,6 @@
     "cryptoAddressHelperWarning2": "This address cannot be changed.",
     "directPayment": "Оплатить напрямую",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
-    "loginConfirm": {
-      "title": "Требуется вход",
-      "body": "Для совершения покупки необходимо войти в систему. Войти сейчас?",
-      "btnLogin": "Войти",
-      "btnCancel": "Отмена"
-    },
     "confirmPayment": {
       "title": "Все выглядит хорошо ?",
       "msg": "If yes, please proceed to the final step.",
@@ -1605,15 +1490,14 @@
       "firstItem": "First Item",
       "additionalItems": "Each Additional Item",
       "options": "Параметры",
-      "subtotal": "Subtotal",
-      "subtotalEx": "Subtotal (%{quantity})",
+      "subtotal": "Subtotal (%{quantity})",
       "shippingTotal": "Total Shipping",
       "total": "Суммарно",
       "cryptoIconsAmount": "(%{amount})",
       "cryptoIconsAmountCombo": "%{icons} %{cryptoIconsAmount}"
     },
     "errors": {
-      "moderatorsTitle": "Moderator Data Failed to Load",
+      "moderatorsTitle": "Moderator Data Failted to Load",
       "moderatorsMsg": "This listing has available moderators, but they could not be loaded.",
       "orderError": "Your order can not be processed due to the following errors.",
       "ownIDTitle": "You Can't Purchase Your Own Listings",
@@ -1754,13 +1638,9 @@
       "enterMessagePlaceholder": "Введите сообщение...",
       "enterMessageNoMoreModPlaceholder": "Enter message... (the moderator has issued a decision and will no longer see any new chat messages)",
       "modCannotChat": "You have issued a decision and cannot send further messages.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Ошибка при загрузке сообщения. ",
+      "loadMessagesError": "Ошибка при загрузке сообщения. %{retryLink}",
       "retryLink": "Повторить",
-      "btnSend": "Отправить",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Отправить"
     },
     "contractTab": {
       "heading": "Контракт (JSON)",
@@ -2116,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "The return policy exceeds the maximum allowable length.",
     "termsAndConditionsTooLong": "The terms and conditions exceed the maximum allowable length.",
-    "provideShippingOption": "Для физического товара требуется хотя бы один вариант доставки. Пожалуйста, настройте его в настройках вашего магазина.",
+    "provideShippingOption": "For a physical good, at least one shipping option is required.",
     "tooManyCoupons": "You cannot have more than %{maxCouponCount} coupons.",
     "couponsPriceTooLarge": "Сумма скидки не может быть равна или больше, чем цена в объявлении."
   },
@@ -2186,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "If your fee type is fixed or fixed plus percentage, you must set a valid currency for your fee.",
-    "fixedFeeAsNumber": "If your fee type is fixed or fixed plus percentage, you must set a valid amount for your fixed fee. If including a decimal, a period should be used as the seperator, for example \"0.00\".",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "If your fee type is fixed or fixed plus percentage, you must set a valid amount for your fixed fee. If including a decimal, a period should be used as the seperator, for example \"0.00\"."
   },
   "skuModelErrors": {
     "provideQuantity": "Укажите количество.",
@@ -3048,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3249,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4281,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4295,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",

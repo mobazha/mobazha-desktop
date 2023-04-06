@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "annuleren",
       "connectAttemptMsg": "Verbinden met %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Notificaties",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Tor actief",
     "discoverCalloutTitle": "Ontdek",
     "discoverCalloutBody": "Browse en winkel bij honderden winkels op Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Mijn Pagina",
     "customizePage": "Pas Pagina Aan",
     "createListing": "Creeer artikel",
-    "tools": "Tools",
     "purchases": "Aankopen",
     "sales": "Verkopen",
     "cases": "Voorvallen",
     "settings": "Instellingen",
     "help": "Help",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Terug",
       "forward": "Verder",
       "refresh": "Ververs",
-      "login": "Login",
       "discover": "Ontdek",
       "wallet": "Wallet",
       "notifications": "Notificaties",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Navigatie",
       "close": "Sluit"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Ongelezen berichten %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Voer bericht in",
-      "loadMessagesError": "Er was een fout bij het ophalen van de berichten. ",
+      "loadMessagesError": "Er was een fout bij het ophalen van de berichten. %{retryLink}",
       "retryLink": "opnieuw proberen",
       "subMenu": {
         "viewPage": "Bekijk pagina",
@@ -312,7 +302,7 @@
       "sortBy": "Sorteer op",
       "countListings": "%{display_count} listing |||| %{display_count} listings",
       "countListingsFound": "%{countListings} gevonden",
-      "inactive": "Jouw winkel is nu inactief en verborgen voor het publiek.",
+      "inactive": "Jouw winkel is nu inactief en verborgen voor het publiek. %{link}",
       "inactiveLink": "Verander",
       "listingDataChangedPopin": "Artikel informatie is veranderd.",
       "shippingDataChangedPopin": "Uw land en/of verzendadresgegevens zijn veranderd. Dit kan invloed hebben op welke artikelen gratis naar u verzonden kunnen worden.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Pagina",
+      "sectionPage": "Pagina",
       "sectionLinks": "Links",
       "sectionAbout": "Over",
       "sectionTheme": "Thema",
@@ -753,69 +743,6 @@
         "fail": "Opslaan van winkel instellingen mislukt",
         "error": "Fout bij opslaan van winkel instellingen"
       },
-      "shippingOption": {
-        "error": "Kan de enige verzendoptie niet verwijderen.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Verzend Optie #%{listPosition}",
-        "shippingDestinations": "Bestemming",
-        "regionsPlaceholder": "Voer landen toe...",
-        "nameLabel": "Option Title",
-        "namePlaceholder": "B.v. USA verzending,  Internationaal, etc..",
-        "typeLabel": "Type",
-        "shippingTypes": {
-          "FIXED_PRICE": "Vaste prijs",
-          "LOCAL_PICKUP": "Zelf ophalen"
-        },
-        "btnAddShippingOption": "Voeg verzend optie toe",
-        "btnDeleteShippingOption": "Verwijder",
-        "clearAll": "Verwijder alles",
-        "services": {
-          "nameLabel": "Dienst",
-          "namePlaceholder": "b.v. Standaard, Express, Overnight",
-          "estimatedDeliveryLabel": "Verwachte leveringsdatum",
-          "estimatedDeliveryPlaceholder": "b.v. 5-7 dagen",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Voeg service toe",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Voeg service toe",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Verwijder"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Moderator niet gevonden",
         "modsNotFound": "%{guids} kon niet gevonden worden op het netwerk. Het is mogelijk niet een valide peer ID. |||| %{guids} konden niet gevonden worden op het netwerk. Het zijn mogelijk niet valide peer IDs.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Transactions"
     },
     "coinNav": {
-      "unsupportedCurTip": "This is currently an unsupported currency.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "This is currently an unsupported currency."
     },
     "sendBtn": "Verzend",
     "receiveBtn": "Receive",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "Naar",
       "toPlaceholder": "Voer een %{cur} address in.",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Scan or send coins to this address"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Weet u het zeker?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Fysiek goed",
     "DIGITAL_GOOD": "Digitaal goed",
     "SERVICE": "Dienst",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "There was an error obtaining the inventory: %{msg}",
     "unknownInventory": "Unknown"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Bewerkt",
     "delete": "Verwijder",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "Bekijk %{count} foto |||| Bekijk %{count} foto's",
     "type": "Type: %{type}",
     "condition": "Conditie: %{condition}",
-    "weight": "Gewicht: %{weight} g",
     "inventory": "Inventory: %{inventory}",
     "tags": "Tags",
     "paymentsAccepted": "Betalingen geaccepteerd",
     "noTags": "Geen tags opgevoerd",
     "buyNow": "KOOP NU",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "TRADE NOW",
     "description": "Beschrijving",
     "noDescription": "Geen beschrijving opgevoerd",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Algemeen",
       "photos": "Foto's",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Bijlagen",
       "shipping": "Verzending",
       "tags": "Tags",
@@ -1256,7 +1140,6 @@
       "variants": "Uitvoeringen",
       "variantsDetailed": "Uitvoeringen (voeg maten, kleuren, materialen etc. toe)",
       "inventory": "Inventaris",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Terugstuurbeleid",
       "termsAndConditions": "Voorwaarden",
       "coupons": "Coupons",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "In geval van uitvoeringen kunnen verhandelbare eenheden opgegeven worden in de %{variantInventoryLink} sectie",
     "variantInventoryLink": "Variatie voorraad",
     "helperCondition": "De staat van je artikel",
-    "helperWeight": "Product gewicht",
     "helperNSFW": "Markeer ja als dit artikel niet geschikt is voor op het werk (Not suitable for work)",
     "helperTags": "Voeg veel tags toe. Voer een tag naam in en druk enter, herhaal.",
     "helperCategories": "Categorie nesting wordt niet ondersteund (b.v. Schoenen > Laarzen werkt op dit moment niet). Voer een categorienaam in, druk op enter, herhaal.",
@@ -1292,7 +1174,6 @@
     "visibility": "Zichtbaarheid",
     "price": "Prijs",
     "condition": "Staat",
-    "weight": "Gewicht",
     "sku": "SKU",
     "description": "Beschrijving",
     "uploading": "Bezig met uploaden...",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Receive"
     },
+    "shippingOptions": {
+      "optionHeading": "Verzend Optie #%{listPosition}",
+      "shippingDestinations": "Bestemming",
+      "regionsPlaceholder": "Voer landen toe...",
+      "nameLabel": "Option Title",
+      "namePlaceholder": "B.v. USA verzending,  Internationaal, etc..",
+      "typeLabel": "Type",
+      "shippingTypes": {
+        "FIXED_PRICE": "Vaste prijs",
+        "LOCAL_PICKUP": "Zelf ophalen"
+      },
+      "btnAddShippingOption": "Voeg verzend optie toe",
+      "btnDeleteShippingOption": "Verwijder",
+      "clearAll": "Verwijder alles",
+      "services": {
+        "nameLabel": "Dienst",
+        "namePlaceholder": "b.v. Standaard, Express, Overnight",
+        "estimatedDeliveryLabel": "Verwachte leveringsdatum",
+        "estimatedDeliveryPlaceholder": "b.v. 5-7 dagen",
+        "priceLabel": "Prijs (eerste item)",
+        "additionalItemPriceLabel": "Prijs (elk volgend item)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Voeg service toe"
+      },
+      "toolTip": {
+        "delete": "Verwijder"
+      }
+    },
     "coupons": {
       "titleLabel": "Titel",
       "couponCodeLabel": "Coupon code",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Titel",
       "titlePlaceholder": "b.v. afmeting, kleur, materiaal, etc.",
       "choicesLabel": "Keuzes",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "b.v. S, M, L, XL, XXL, etc",
       "toolTip": {
         "delete": "Verwijder"
@@ -1374,21 +1281,7 @@
       "surcharge": "Surcharge",
       "totalPrice": "Total Price",
       "sku": "SKU",
-      "quantity": "Hoeveelheid",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Hoeveelheid"
     },
     "confirmCloseDialog": {
       "title": "U heeft niet opgeslagen wijzigingen",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "Teveel foto's",
       "tooManyPhotosBody": "Enkele of al je foto's zijn niet geupload, omdate je het maximaal aantal foto's bereikt hebt.",
       "unableToLoadImages": "Je afbeelding kon niet worden geladen. |||| Je  afbeelding kon niet worden geladen.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Fout bij het uploaden van je afbeelding. |||| Fout bij het uploaden van je afbeelding."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "De informatie van dit artikel is gewijzigd.",
     "returnToListing": "Terug naar artikel.",
-    "returnToCart": "Return To Cart",
     "optional": "optioneel",
     "shippingTitle": "Verzending",
     "cryptoCurrencyTitle": "Valuta",
@@ -1599,8 +1490,7 @@
       "firstItem": "Eerste artikel",
       "additionalItems": "Elk volgend artikel",
       "options": "Opties",
-      "subtotal": "Subtotaal",
-      "subtotalEx": "Subtotaal (%{quantity})",
+      "subtotal": "Subtotaal (%{quantity})",
       "shippingTotal": "Totaal Verzending",
       "total": "Totaal",
       "cryptoIconsAmount": "(%{amount})",
@@ -1748,13 +1638,9 @@
       "enterMessagePlaceholder": "Vul bericht in...",
       "enterMessageNoMoreModPlaceholder": "Voer bericht in...(de moderator heeft een beslissing genomen en zal niet nieuwe berichten ontvangen)",
       "modCannotChat": "Je hebt een beslissing genomen en kunt geen berichten meer sturen.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Er was een fout bij het ophalen van de berichten. ",
+      "loadMessagesError": "Er was een fout bij het ophalen van de berichten. %{retryLink}",
       "retryLink": "opnieuw proberen",
-      "btnSend": "Verzend",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Verzend"
     },
     "contractTab": {
       "heading": "Contract (JSON)",
@@ -2110,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "Het terugstuurbeleid overschrijd het maximaal aantal karakters.",
     "termsAndConditionsTooLong": "De verkoopvoorwaarden overschrijden de maximaal toegestande lengte. ",
-    "provideShippingOption": "Voor een fysiek artikel is in ieder geval 1 verzend optie verplicht. Configureer het in uw winkelinstellingen.",
+    "provideShippingOption": "Voor een fysiek artikel is in ieder geval 1 verzend optie verplicht.",
     "tooManyCoupons": "Je mag niet meer dan %{maxCouponCount} coupons hebben.",
     "couponsPriceTooLarge": "Het kortingsbedrag kan niet gelijk of groter zijn dan de artikelprijs."
   },
@@ -2180,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "Als je fee type vast is of vast plus percentage, dan moet je een geldige valuta instellen voor je fee.",
-    "fixedFeeAsNumber": "Als je fee type vast is of vast plus percentage, dan moet je een geldige hoeveelheid instellen voor je vaste fee. Als een decimaal wordt gebruikt, moet een punt als scheidingsteken worden gebruikt, bijvoorbeeld \"0.00\".",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "Als je fee type vast is of vast plus percentage, dan moet je een geldige hoeveelheid instellen voor je vaste fee. Als een decimaal wordt gebruikt, moet een punt als scheidingsteken worden gebruikt, bijvoorbeeld \"0.00\"."
   },
   "skuModelErrors": {
     "provideQuantity": "Voer een hoeveelheid in.",
@@ -3042,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3243,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4275,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4289,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",

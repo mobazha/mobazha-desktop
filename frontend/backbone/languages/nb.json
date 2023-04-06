@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "avbryt",
       "connectAttemptMsg": "Kobler til %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Varslinger",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Tor aktiv",
     "discoverCalloutTitle": "Oppdag",
     "discoverCalloutBody": "Se og handle i hundrevis av butikker på Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Min side",
     "customizePage": "Tilpass siden",
     "createListing": "Opprett oppføring",
-    "tools": "Tools",
     "purchases": "Kjøp",
     "sales": "Salg",
     "cases": "Saker",
     "settings": "Innstillinger",
     "help": "Hjelp",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Tilbake",
       "forward": "Fremover",
       "refresh": "Oppdater",
-      "login": "Login",
       "discover": "Oppdag",
       "wallet": "Lommebok",
       "notifications": "Varslinger",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Navigering",
       "close": "Lukk"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Uleste meldinger %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Skriv melding...",
-      "loadMessagesError": "Det oppstod en feil ved henting av meldinger. ",
+      "loadMessagesError": "Det oppstod en feil ved henting av meldinger. %{retryLink}",
       "retryLink": "prøv på nytt",
       "subMenu": {
         "viewPage": "Se side",
@@ -312,7 +302,7 @@
       "sortBy": "Sorter Etter",
       "countListings": "%{display_count} listing |||| %{display_count} listings",
       "countListingsFound": "%{countListings} funnet",
-      "inactive": "Butikken din er for tiden inaktiv og skjult.",
+      "inactive": "Butikken din er for tiden inaktiv og skjult. %{link}",
       "inactiveLink": "Endre",
       "listingDataChangedPopin": "Oppføringen er endret.",
       "shippingDataChangedPopin": "Ditt land eller fraktinformasjon er endret. Dette kan påvirke hvilke oppføringer som vil gi deg gratis frakt.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Side",
+      "sectionPage": "Side",
       "sectionLinks": "Lenker",
       "sectionAbout": "Om",
       "sectionTheme": "Drakt",
@@ -753,69 +743,6 @@
         "fail": "Butikkinnstillinger kunne ikke lagres.",
         "error": "Det oppstod en feil ved lagring av dine butikkinnstillinger."
       },
-      "shippingOption": {
-        "error": "Kan ikke slette det eneste fraktalternativet.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Fraktvalg #%{listPosition}",
-        "shippingDestinations": "Destinasjoner",
-        "regionsPlaceholder": "Skriv inn land...",
-        "nameLabel": "Valg Tittel",
-        "namePlaceholder": "f.eks. USA, Internasjonal, osv",
-        "typeLabel": "Type",
-        "shippingTypes": {
-          "FIXED_PRICE": "Fast Pris",
-          "LOCAL_PICKUP": "Lokal Henting"
-        },
-        "btnAddShippingOption": "Legg til Fraktalternativ",
-        "btnDeleteShippingOption": "Slett",
-        "clearAll": "Tøm Alt",
-        "services": {
-          "nameLabel": "Tjeneste",
-          "namePlaceholder": "f.eks. Standard, Ekspress, Over natten",
-          "estimatedDeliveryLabel": "Antatt Leveringstid",
-          "estimatedDeliveryPlaceholder": "f.eks. 5-7 dager",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Legg til Tjeneste",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Legg til Tjeneste",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Slett"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Moderator Ikke Funnet",
         "modsNotFound": "%{guids} ble ikke funnet på nettverket. Det er kanskje ikke en gyldig node ID. |||| %{guids} ble ikke funnet på nettverket. De er kanskje ikke gyldige node IDer.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Transaksjoner"
     },
     "coinNav": {
-      "unsupportedCurTip": "This is currently an unsupported currency.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "This is currently an unsupported currency."
     },
     "sendBtn": "Send",
     "receiveBtn": "Receive",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "Til",
       "toPlaceholder": "Skriv inn en %{cur} Adresse",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Scan or send coins to this address"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Er du sikker?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Fysisk Vare",
     "DIGITAL_GOOD": "Digital Vare",
     "SERVICE": "Tjeneste",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "There was an error obtaining the inventory: %{msg}",
     "unknownInventory": "Unknown"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Rediger",
     "delete": "Slett",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "Vis %{count} Bilde |||| Vis %{count} Bilder",
     "type": "Type: %{type}",
     "condition": "Tilstand: %{condition}",
-    "weight": "Vekt: %{weight} g",
     "inventory": "Inventory: %{inventory}",
     "tags": "Merkelapper",
     "paymentsAccepted": "Aksepterte Betalinger",
     "noTags": "Ingen merkelapper oppgitt",
     "buyNow": "KJØP NÅ",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "TRADE NOW",
     "description": "Beskrivelse",
     "noDescription": "Ingen beskrivelse angitt",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Generelt",
       "photos": "Bilder",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Vedlegg",
       "shipping": "Frakt",
       "tags": "Merkelapper",
@@ -1256,7 +1140,6 @@
       "variants": "Varianter",
       "variantsDetailed": "Varianter (Legg til flere størrelser, farger, materialer, osv)",
       "inventory": "Inventar",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Regler for retur",
       "termsAndConditions": "Vilkår og betingelser",
       "coupons": "Kuponger",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "Når varianter er tilstede kan SKUer angis i %{variantInventoryLink} seksjonen",
     "variantInventoryLink": "Variantinventar",
     "helperCondition": "Tilstanden for oppføringen din",
-    "helperWeight": "Gjenstandsvekt",
     "helperNSFW": "Velg ja om oppføringen er NSFW",
     "helperTags": "Legg til mange merkelapper. Skriv inn et merkelappnavn, trykk enter, gjenta.",
     "helperCategories": "Nøstede kategorier er ikke støttet (f.eks. Sko > Støvler virker for tiden ikke). Angi et kategorinavn, trykk enter, gjenta.",
@@ -1292,7 +1174,6 @@
     "visibility": "Synlighet",
     "price": "Pris",
     "condition": "Tilstand",
-    "weight": "Vekt",
     "sku": "SKU",
     "description": "Beskrivelse",
     "uploading": "Laster opp...",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Receive"
     },
+    "shippingOptions": {
+      "optionHeading": "Fraktvalg #%{listPosition}",
+      "shippingDestinations": "Destinasjoner",
+      "regionsPlaceholder": "Skriv inn land...",
+      "nameLabel": "Valg Tittel",
+      "namePlaceholder": "f.eks. USA, Internasjonal, osv",
+      "typeLabel": "Type",
+      "shippingTypes": {
+        "FIXED_PRICE": "Fast Pris",
+        "LOCAL_PICKUP": "Lokal Henting"
+      },
+      "btnAddShippingOption": "Legg til Fraktalternativ",
+      "btnDeleteShippingOption": "Slett",
+      "clearAll": "Tøm Alt",
+      "services": {
+        "nameLabel": "Tjeneste",
+        "namePlaceholder": "f.eks. Standard, Ekspress, Over natten",
+        "estimatedDeliveryLabel": "Antatt Leveringstid",
+        "estimatedDeliveryPlaceholder": "f.eks. 5-7 dager",
+        "priceLabel": "Pris (primærgjenstand)",
+        "additionalItemPriceLabel": "Pris (tilleggsgjenstand)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Legg til Tjeneste"
+      },
+      "toolTip": {
+        "delete": "Slett"
+      }
+    },
     "coupons": {
       "titleLabel": "Tittel",
       "couponCodeLabel": "Kupongkode",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Tittel",
       "titlePlaceholder": "f.eks. Størrelse, Farge, Material, osv",
       "choicesLabel": "Valg",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "f.eks. Liten, Medium, Stor, osv",
       "toolTip": {
         "delete": "Slett"
@@ -1374,21 +1281,7 @@
       "surcharge": "Surcharge",
       "totalPrice": "Total Price",
       "sku": "SKU",
-      "quantity": "Antall",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Antall"
     },
     "confirmCloseDialog": {
       "title": "Du har endringer som ikke er lagret",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "For mange bilder",
       "tooManyPhotosBody": "Noen eller alle bildene dine kunne ikke lastes opp fordi du ville brutt grensen for maks antall bilder.",
       "unableToLoadImages": "Vi kunne ikke laste bildet ditt. |||| Vi kunne ikke laste bildene dine.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Det oppstod en feil ved opplasting av bildet ditt. |||| Det oppstod en feil ved opplasting av bildene dine."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "Data for denne oppføringen er blitt endret.",
     "returnToListing": "Tilbake til oppføring",
-    "returnToCart": "Return To Cart",
     "optional": "valgfri",
     "shippingTitle": "Frakt",
     "cryptoCurrencyTitle": "Valuta",
@@ -1599,8 +1490,7 @@
       "firstItem": "Primærgjenstand",
       "additionalItems": "Hver tillegsgjenstand",
       "options": "Valg",
-      "subtotal": "Delsum",
-      "subtotalEx": "Delsum (%{quantity})",
+      "subtotal": "Delsum (%{quantity})",
       "shippingTotal": "Samlet pris for frakt",
       "total": "Totalpris",
       "cryptoIconsAmount": "(%{amount})",
@@ -1748,13 +1638,9 @@
       "enterMessagePlaceholder": "Skriv melding...",
       "enterMessageNoMoreModPlaceholder": "Skriv melding... (moderatoren har tatt en avgjørelse og vil ikke lenger se nye meldinger)",
       "modCannotChat": "Du har tatt en avgjørelse og kan ikke sende flere meldinger.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Det oppstod en feil ved henting av meldinger. ",
+      "loadMessagesError": "Det oppstod en feil ved henting av meldinger. %{retryLink}",
       "retryLink": "prøv på nytt",
-      "btnSend": "Send",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Send"
     },
     "contractTab": {
       "heading": "Kontrakt (JSON)",
@@ -2110,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "Regler for retur overskrider maks tillatte lengde.",
     "termsAndConditionsTooLong": "Vilkår og betingelser overskrider maks tillatt lengde.",
-    "provideShippingOption": "For en fysisk vare er minst ett fraktalternativ nødvendig. Vennligst konfigurer den i butikkinnstillingene.",
+    "provideShippingOption": "For en fysisk vare er minst ett fraktalternativ nødvendig.",
     "tooManyCoupons": "Du kan ikke ha flere enn %{maxCouponCount} kuponger.",
     "couponsPriceTooLarge": "Rabattsummen kan ikke være lik eller større enn prisen."
   },
@@ -2180,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "Hvis din avgiftstype er fast eller fast pluss prosent, så må du angi en gyldig valuta for avgiften.",
-    "fixedFeeAsNumber": "Hvis din avgiftstype er fast eller fast pluss prosent så må du angi en gyldig sum for din faste avgift. Hvis desimaler skal være med skal punktum brukes som separator, for eksempel \"0.00\".",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "Hvis din avgiftstype er fast eller fast pluss prosent så må du angi en gyldig sum for din faste avgift. Hvis desimaler skal være med skal punktum brukes som separator, for eksempel \"0.00\"."
   },
   "skuModelErrors": {
     "provideQuantity": "Vennligst angi et antall.",
@@ -3042,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3243,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4275,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4289,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",

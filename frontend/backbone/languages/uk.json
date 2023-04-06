@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "скасувати",
       "connectAttemptMsg": "Підключення до %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Сповіщення",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Tor активний",
     "discoverCalloutTitle": "Перегляд",
     "discoverCalloutBody": "Відвідуй та досліджуй тисячі магазинів на Mobazha",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Моя сторінка",
     "customizePage": "Налаштувати сторінку",
     "createListing": "Створити",
-    "tools": "Tools",
     "purchases": "Покупки",
     "sales": "Продажі",
     "cases": "Історія",
     "settings": "Налаштування",
     "help": "Допомога",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Назад",
       "forward": "Вперед",
       "refresh": "Оновити",
-      "login": "Login",
       "discover": "Перегляд",
       "wallet": "Гаманець",
       "notifications": "Сповіщення",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Навігація",
       "close": "Закрити"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Непрочитані повідомлення %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Введіть повідомлення ...",
-      "loadMessagesError": "Під час завантаження повідомлень сталася помилка. ",
+      "loadMessagesError": "Під час завантаження повідомлень сталася помилка. %{retryLink}",
       "retryLink": "повторити спробу",
       "subMenu": {
         "viewPage": "Дивитись сторінку",
@@ -312,7 +302,7 @@
       "sortBy": "Сортувати за",
       "countListings": "%{display_count} товар |||| %{display_count} товарів",
       "countListingsFound": "знайдено: %{countListings}",
-      "inactive": "Ваш магазин наразі неактивний і прихований від громадськості.",
+      "inactive": "Ваш магазин наразі неактивний і прихований від громадськості. %{link}",
       "inactiveLink": "Змінити",
       "listingDataChangedPopin": "Налаштування товару було збережено.",
       "shippingDataChangedPopin": "Інформацію про вашу країну та/або адресу доставки було оновлено. Це може бути застосовано до кожного з товарів з безкоштовною доставкою до вас.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Сторінка",
+      "sectionPage": "Сторінка",
       "sectionLinks": "Посилання",
       "sectionAbout": "Опис",
       "sectionTheme": "Тема оформлення",
@@ -753,69 +743,6 @@
         "fail": "Неможливо зберегти налаштування магазину.",
         "error": "Відбулась помилка під час зберігання налаштувань магазину."
       },
-      "shippingOption": {
-        "error": "Неможливо видалити єдиний варіант доставки.",
-        "noShippingOption": "There are physical listings in the Store. At least one shipping option should be provided."
-      },
-      "shippingOptions": {
-        "optionHeading": "Опція доставки #%{listPosition}",
-        "shippingDestinations": "Пункти призначення",
-        "regionsPlaceholder": "Вкажіть країни...",
-        "nameLabel": "Назва опції",
-        "namePlaceholder": "наприклад, Укрпошта, Нова Пошта, тощо",
-        "typeLabel": "Тип",
-        "shippingTypes": {
-          "FIXED_PRICE": "Фіксована ціна",
-          "LOCAL_PICKUP": "Локальний самовивіз"
-        },
-        "btnAddShippingOption": "Додати варіант доставки",
-        "btnDeleteShippingOption": "Видалити",
-        "clearAll": "Очистити все",
-        "services": {
-          "nameLabel": "Послуга",
-          "namePlaceholder": "наприклад, Стандарт, Експрес, Нічне перевезення, тощо",
-          "estimatedDeliveryLabel": "Орієнтовний термін доставки",
-          "estimatedDeliveryPlaceholder": "наприклад, 5-7 днів",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Додати сервіс",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Додати сервіс",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Видалити"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Модератора не знайдено",
         "modsNotFound": "% {guids} не вдалося знайти в мережі. Це не може бути дійсним ідентифікатором ID. |||| % {guids} не вдалося знайти в мережі. Цей одноранговий ідентифікатор ID  недійсний.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Транзакції"
     },
     "coinNav": {
-      "unsupportedCurTip": "Наразі це не є підтримувана валюта.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "Наразі це не є підтримувана валюта."
     },
     "sendBtn": "Відправити",
     "receiveBtn": "Отримати",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "Отримувач",
       "toPlaceholder": "Введіть %{cur} адресу",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Сканувати або надіслати кошти на цю адресу"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Ви впевнені?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Фізичний товар",
     "DIGITAL_GOOD": "Електронний товар",
     "SERVICE": "Послуга",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "Виникла помилка під час отримання інвентарю: %{msg}",
     "unknownInventory": "Невідомо"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Редагувати",
     "delete": "Видалити",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "Переглянути %{count} фото |||| Переглянути %{count} фотографії",
     "type": "Тип: %{type}",
     "condition": "Стан: %{condition}",
-    "weight": "вага: %{weight} g",
     "inventory": "Інвентар: %{inventory}",
     "tags": "Tags, Теги",
     "paymentsAccepted": "Приймаються валюти",
     "noTags": "Теги не вказано",
     "buyNow": "ПРИДБАТИ ЗАРАЗ",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "ОБМІНЯТИ",
     "description": "Опис",
     "noDescription": "Опис не вказано",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Загальні",
       "photos": "Зображення",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Вкладення",
       "shipping": "Доставка",
       "tags": "Tags, Теги",
@@ -1256,7 +1140,6 @@
       "variants": "Варіанти",
       "variantsDetailed": "Варіанти (Додавання додаткових розмірів, кольорів, матеріалів, тощо)",
       "inventory": "Інвентар",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Умови повернення товару",
       "termsAndConditions": "Правила роботи магазину",
       "coupons": "Купони",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "Якщо присутні варіанти, номери товарів можуть бути зазначені в розділі %{variantInventoryLink}",
     "variantInventoryLink": "Варіант інвентаря",
     "helperCondition": "Загальний стан вашого товару",
-    "helperWeight": "Вага предмета",
     "helperNSFW": "Позначте так, якщо список містить NSFW",
     "helperTags": "Додайте більше тегів. Введіть тег, натисніть enter, повторіть.",
     "helperCategories": "Вкладення категорій не підтримується (наприклад, Взуття> Чоботи на даний момент не працюють). Введіть назву категорії, натисніть enter, повторіть дію.",
@@ -1292,7 +1174,6 @@
     "visibility": "Видимість",
     "price": "Ціна",
     "condition": "Стан",
-    "weight": "вага",
     "sku": "Номер Товару",
     "description": "Опис",
     "uploading": "Надсилання даних...",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Обміняйте за ринковим курсом або вкажіть модифікатор ціни (+/-)",
       "lblReceive": "Отримати"
     },
+    "shippingOptions": {
+      "optionHeading": "Опція доставки #%{listPosition}",
+      "shippingDestinations": "Пункти призначення",
+      "regionsPlaceholder": "Вкажіть країни...",
+      "nameLabel": "Назва опції",
+      "namePlaceholder": "наприклад, Укрпошта, Нова Пошта, тощо",
+      "typeLabel": "Тип",
+      "shippingTypes": {
+        "FIXED_PRICE": "Фіксована ціна",
+        "LOCAL_PICKUP": "Локальний самовивіз"
+      },
+      "btnAddShippingOption": "Додати варіант доставки",
+      "btnDeleteShippingOption": "Видалити",
+      "clearAll": "Очистити все",
+      "services": {
+        "nameLabel": "Послуга",
+        "namePlaceholder": "наприклад, Стандарт, Експрес, Нічне перевезення, тощо",
+        "estimatedDeliveryLabel": "Орієнтовний термін доставки",
+        "estimatedDeliveryPlaceholder": "наприклад, 5-7 днів",
+        "priceLabel": "Ціна (за один товар)",
+        "additionalItemPriceLabel": "Ціна (додатковий товар)",
+        "pricePlaceholder": "\n0.00",
+        "addService": "+ Додати сервіс"
+      },
+      "toolTip": {
+        "delete": "Видалити"
+      }
+    },
     "coupons": {
       "titleLabel": "Назва",
       "couponCodeLabel": "Код купону",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Назва",
       "titlePlaceholder": "наприклад, Розмір, Колір, матеріал, тощо",
       "choicesLabel": "Варіант",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "наприклад, Малий, Середній, Великий, тощо",
       "toolTip": {
         "delete": "Видалити"
@@ -1374,21 +1281,7 @@
       "surcharge": "Доплата",
       "totalPrice": "Сумарна ціна",
       "sku": "Номер Товару",
-      "quantity": "Кількість",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Кількість"
     },
     "confirmCloseDialog": {
       "title": "Ви маєте незбережені зміни",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "Забагато фотографій",
       "tooManyPhotosBody": "Деякі або всі ваші фотографії не можна завантажувати через те, що ви перевищили максимально допустиму кількість.",
       "unableToLoadImages": "Ми не змогли завантажити ваше зображення. |||| Ми не змогли завантажити ваші зображення.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Ой! Під час завантаження зображення виникла помилка. |||| Ой! Під час завантаження ваших зображень виникла помилка."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "Дані товару було оновлено.",
     "returnToListing": "Повернутися до товару",
-    "returnToCart": "Return To Cart",
     "optional": "опціонально",
     "shippingTitle": "Доставка",
     "cryptoCurrencyTitle": "Валюта",
@@ -1599,8 +1490,7 @@
       "firstItem": "Перший товар",
       "additionalItems": "Кожен додатковий пункт",
       "options": "Опції",
-      "subtotal": "Сумарно",
-      "subtotalEx": "Сумарно (%{quantity})",
+      "subtotal": "Сумарно (%{quantity})",
       "shippingTotal": "Загальна кількість",
       "total": "Всього",
       "cryptoIconsAmount": "(%{amount})",
@@ -1748,13 +1638,9 @@
       "enterMessagePlaceholder": "Введіть повідомлення...",
       "enterMessageNoMoreModPlaceholder": "Введіть повідомлення ... (модератор виніс рішення і більше не бачить нових повідомлень в чаті)",
       "modCannotChat": "Ви вже прийняли рішення і не можете надсилати інші повідомлення.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Під час завантаження повідомлень сталася помилка. ",
+      "loadMessagesError": "Під час завантаження повідомлень сталася помилка. %{retryLink}",
       "retryLink": "повторити спробу",
-      "btnSend": "Відправити",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Відправити"
     },
     "contractTab": {
       "heading": "Контракт (JSON)",
@@ -2110,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "Політика повернення перевищує максимально допустиму довжину.",
     "termsAndConditionsTooLong": "Умови та правила, перевищують максимально дозволену довжину.",
-    "provideShippingOption": "Для фізичних товарів, потрібен щонайменше один варіант доставки. Налаштуйте його в налаштуваннях магазину.",
+    "provideShippingOption": "Для фізичних товарів, потрібен щонайменше один варіант доставки.",
     "tooManyCoupons": "Ви не можете мати більше %{maxCouponCount} купонів.",
     "couponsPriceTooLarge": "Сума знижки не може бути рівною або більшою, ніж вказана ціна."
   },
@@ -2180,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "Якщо ваш тип оплати фіксований або фіксований з додатковим відсотком, ви повинні встановити дійсну валюту для вашої плати.",
-    "fixedFeeAsNumber": "Якщо ваш тип оплати фіксований або фіксований з додатковим відсотком, ви повинні встановити дійсну суму для фіксованого відсотку. Якщо врахувати десяткове число, то слід використовувати період як роздільник, наприклад \"0,00\".",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "Якщо ваш тип оплати фіксований або фіксований з додатковим відсотком, ви повинні встановити дійсну суму для фіксованого відсотку. Якщо врахувати десяткове число, то слід використовувати період як роздільник, наприклад \"0,00\"."
   },
   "skuModelErrors": {
     "provideQuantity": "Будь ласка, вкажіть кількість.",
@@ -3042,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3243,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-    
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4275,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4289,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",

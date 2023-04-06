@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "Zrušit",
       "connectAttemptMsg": "Připojuje se k %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "Upozornění",
@@ -205,30 +204,21 @@
     "torOnTooltip": "Aktivní Tor",
     "discoverCalloutTitle": "Objevit",
     "discoverCalloutBody": "Procházej a nakupuj ve stovkách obchodů na Mobazhau",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "Moje stránka",
     "customizePage": "Přizpůsobit stránku",
     "createListing": "Vytvořit záznam",
-    "tools": "Tools",
     "purchases": "Nákupy",
     "sales": "Prodeje",
     "cases": "Případy",
     "settings": "Nastavení",
     "help": "Pomoc",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "Zpět",
       "forward": "Přeposlat",
       "refresh": "Znovu načíst",
-      "login": "Login",
       "discover": "Objevit",
       "wallet": "Peněženka",
       "notifications": "Upozornění",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "Navigace",
       "close": "Zavřít"
     },
@@ -244,7 +234,7 @@
     "unreadMessages": "Nepřečtené zprávy %{arrow}",
     "conversation": {
       "messageInputPlaceholder": "Vlož zprávu...",
-      "loadMessagesError": "Při načítání tvých zpráv nastala chyba. ",
+      "loadMessagesError": "Při načítání tvých zpráv nastala chyba. %{retryLink}",
       "retryLink": "zkusit znovu",
       "subMenu": {
         "viewPage": "Zobrazit stránku",
@@ -312,7 +302,7 @@
       "sortBy": "Třídit podle",
       "countListings": "%{display_count} soupis zboží |||| %{display_count} soupisy zboží",
       "countListingsFound": "%{countListings} nalezeno",
-      "inactive": "Tvůj obchod je aktuálně neaktivní a skrytý před veřejností.",
+      "inactive": "Tvůj obchod je aktuálně neaktivní a skrytý před veřejností. %{link}",
       "inactiveLink": "Změnit",
       "listingDataChangedPopin": "Data výpisu zboží se změnila.",
       "shippingDataChangedPopin": "Informace o tvé zemi a/nebo dodací adrese se změnily. To může ovlivnit, které výpisy zboží mají pro tebe dopravu zdarma.",
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "Stránka",
+      "sectionPage": "Stránka",
       "sectionLinks": "Odkazy",
       "sectionAbout": "O nás",
       "sectionTheme": "Motiv",
@@ -753,69 +743,6 @@
         "fail": "Ukládání nastavení obchodu se nezdařilo.",
         "error": "Při ukládání nastavení obchodu došlo k chybě."
       },
-      "shippingOption": {
-        "error": "Nelze smazat jedinou možnost dopravy.",
-        "noShippingOption": "V obchodě jsou fyzické záznamy. Měla by být poskytnuta alespoň jedna možnost dopravy."
-      },
-      "shippingOptions": {
-        "optionHeading": "Možnost dodání #%{listPosition}",
-        "shippingDestinations": "Destinace",
-        "regionsPlaceholder": "Zadej země...",
-        "nameLabel": "Volitelný název",
-        "namePlaceholder": "např. doprava do USA, mezinárodní, atd",
-        "typeLabel": "Typ",
-        "shippingTypes": {
-          "FIXED_PRICE": "Fixní cena",
-          "LOCAL_PICKUP": "Lokální vyzvednutí"
-        },
-        "btnAddShippingOption": "Přidat možnost dopravy",
-        "btnDeleteShippingOption": "Smazat",
-        "clearAll": "Vymaž vše",
-        "services": {
-          "nameLabel": "Servis",
-          "namePlaceholder": "např. Standardní, Expresní, Přes noc",
-          "estimatedDeliveryLabel": "Odhadovaná Dodací lhůta",
-          "estimatedDeliveryPlaceholder": "např. 5-7 dní",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ Přidat službu",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "Přidat službu",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "Smazat"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "Moderátor nalezen",
         "modsNotFound": "%{guids} nelze najít v síti. Nemusí to být platný peer ID. |||| %{guids} nelze najít v síti. Nemusí to být platné peer ID.",
@@ -992,12 +919,10 @@
       "transactionsHeader": "Transakce"
     },
     "coinNav": {
-      "unsupportedCurTip": "Toto je aktuálně nepodporovaná měna.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "Toto je aktuálně nepodporovaná měna."
     },
     "sendBtn": "Poslat",
     "receiveBtn": "Příjmout",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "k",
       "toPlaceholder": "Zadej Adresu %{cur}",
@@ -1011,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Naskenuj nebo pošli mince na tuto adresu"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "Jsi si jistý(á)?",
@@ -1088,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "Fyzické zboží",
     "DIGITAL_GOOD": "Digitální zboží",
     "SERVICE": "Servis",
@@ -1107,21 +1010,6 @@
     "fetchErrorWithMsg": "Při získávání soupisu došlo k chybě: %{msg}",
     "unknownInventory": "Neznámý"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "Upravit",
     "delete": "Smazat",
@@ -1132,14 +1020,11 @@
     "viewPhotos": "Zobrazit %{count} fotografii |||| Zobrazit %{count} fotografie",
     "type": "Typ: %{type}",
     "condition": "Stav: %{condition}",
-    "weight": "Hmotnost: %{weight} g",
     "inventory": "Soupis: %{inventory}",
     "tags": "Tagy",
     "paymentsAccepted": "Platby přijaty",
     "noTags": "Nebyly zadány žádné tagy",
     "buyNow": "KOUPIT NYNÍ",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "OBCHODOVAT NYNÍ",
     "description": "Popis",
     "noDescription": "Nebyl zadán žádný popisek",
@@ -1246,7 +1131,6 @@
     "sectionNames": {
       "general": "Základní",
       "photos": "Fotografie",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "Přílohy",
       "shipping": "Doprava",
       "tags": "Tagy",
@@ -1256,7 +1140,6 @@
       "variants": "Varianty",
       "variantsDetailed": "Varianty (přidej další velikosti, barvy, materiály atd.)",
       "inventory": "Inventář",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "Podmínky vrácení",
       "termsAndConditions": "Všeobecné obchodní podmínky",
       "coupons": "Kupóny",
@@ -1277,7 +1160,6 @@
     "helperSKUWithVariants": "Pokud jsou k dispozici varianty, lze Skus deklarovat v sekci % {variantInventoryLink}",
     "variantInventoryLink": "Inventář variant",
     "helperCondition": "Celkový stav tvého zápisu",
-    "helperWeight": "Váha předmětu",
     "helperNSFW": "Pokud je záznam NSFW (nevhodný pro práci), označ ano",
     "helperTags": "Přidej mnoho tagů. Zadej název tagu, stiskni klávesu Enter, opakuj.",
     "helperCategories": "Zanořování kategorií není podporováno (např. Obuv > Boty v současné době nefunguje). Zadej název kategorie, stiskni Enter, opakuj.",
@@ -1292,7 +1174,6 @@
     "visibility": "Viditelnost",
     "price": "Cena",
     "condition": "Stav",
-    "weight": "Hmotnost",
     "sku": "SKU",
     "description": "Popis",
     "uploading": "Nahrávání...",
@@ -1329,6 +1210,34 @@
       "helperPriceModifier": "Obchoduj za tržní cenu nebo zadej modifikátor ceny (+/-)",
       "lblReceive": "Příjmout"
     },
+    "shippingOptions": {
+      "optionHeading": "Možnost dodání #%{listPosition}",
+      "shippingDestinations": "Destinace",
+      "regionsPlaceholder": "Zadej země...",
+      "nameLabel": "Volitelný název",
+      "namePlaceholder": "např. doprava do USA, mezinárodní, atd",
+      "typeLabel": "Typ",
+      "shippingTypes": {
+        "FIXED_PRICE": "Fixní cena",
+        "LOCAL_PICKUP": "Lokální vyzvednutí"
+      },
+      "btnAddShippingOption": "Přidat možnost dopravy",
+      "btnDeleteShippingOption": "Smazat",
+      "clearAll": "Vymaž vše",
+      "services": {
+        "nameLabel": "Servis",
+        "namePlaceholder": "např. Standardní, Expresní, Přes noc",
+        "estimatedDeliveryLabel": "Odhadovaná Dodací lhůta",
+        "estimatedDeliveryPlaceholder": "např. 5-7 dní",
+        "priceLabel": "Cena (první položka)",
+        "additionalItemPriceLabel": "Cena (další položka)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ Přidat službu"
+      },
+      "toolTip": {
+        "delete": "Smazat"
+      }
+    },
     "coupons": {
       "titleLabel": "Titulek",
       "couponCodeLabel": "Kód kupónu",
@@ -1349,8 +1258,6 @@
       "titleLabel": "Titulek",
       "titlePlaceholder": "např. Velikost, Barva, Materiál atd",
       "choicesLabel": "Možnosti",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "např. Malý, Střední, Velký atd",
       "toolTip": {
         "delete": "Smazat"
@@ -1374,21 +1281,7 @@
       "surcharge": "Příplatek",
       "totalPrice": "Celková cena",
       "sku": "SKU",
-      "quantity": "Množství",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "Množství"
     },
     "confirmCloseDialog": {
       "title": "Máš neuložené změny",
@@ -1404,7 +1297,6 @@
       "tooManyPhotosTitle": "Příliš mnoho fotografií",
       "tooManyPhotosBody": "Některé nebo všechny tvé fotografie nemohly být nahrány, protože bys překročil maximální povolenou částku.",
       "unableToLoadImages": "Nepovedlo se nám nahrát tvůj obrázek. |||| Nepovedlo se nám nahrát tvé obrázky.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "Při nahrávání tvého obrázku došlo k chybě. |||| Při nahrávání tvých obrázků došlo k chybě."
     }
   },
@@ -1500,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "Data pro tento záznam se změnila.",
     "returnToListing": "Vrátit se na záznam",
-    "returnToCart": "Return To Cart",
     "optional": "volitelné",
     "shippingTitle": "Doprava",
     "cryptoCurrencyTitle": "Měna",
@@ -1599,8 +1490,7 @@
       "firstItem": "První položka",
       "additionalItems": "Každá další položka",
       "options": "Možnosti",
-      "subtotal": "Mezisoučet",
-      "subtotalEx": "Mezisoučet (%{quantity})",
+      "subtotal": "Mezisoučet (%{quantity})",
       "shippingTotal": "Celkem za dopravu",
       "total": "Celkem",
       "cryptoIconsAmount": "(%{amount})",
@@ -1748,13 +1638,9 @@
       "enterMessagePlaceholder": "Vlož zprávu...",
       "enterMessageNoMoreModPlaceholder": "Zadej zprávu... (moderátor vydal rozhodnutí a již neuvidí žádné nové chatové zprávy)",
       "modCannotChat": "Vydal jsi rozhodnutí a nemůžeš posílat další zprávy.",
-      "addImage": "Add Image",
-      "loadMessagesError": "Při načítání tvých zpráv nastala chyba. ",
+      "loadMessagesError": "Při načítání tvých zpráv nastala chyba. %{retryLink}",
       "retryLink": "zkusit znovu",
-      "btnSend": "Poslat",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "Poslat"
     },
     "contractTab": {
       "heading": "Smlouva (JSON)",
@@ -2110,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "Zásady vrácení překračují maximální povolenou délku.",
     "termsAndConditionsTooLong": "Podmínky překračují maximální povolenou délku.",
-    "provideShippingOption": "Pro fyzické zboží je vyžadována alespoň jedna možnost dopravy. Nakonfigurujte jej prosím v nastavení vašeho obchodu.",
+    "provideShippingOption": "Pro fyzické zboží je vyžadována alespoň jedna možnost dopravy.",
     "tooManyCoupons": "Nemůžeš mít více než %{maxCouponCount} kupónů.",
     "couponsPriceTooLarge": "Částka slevy nemůže být stejná nebo vyšší než cena uvedená na produktu."
   },
@@ -2180,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "Pokud je tvůj typ poplatku pevný nebo pevný plus procento, musíš pro svůj poplatek nastavit platnou měnu.",
-    "fixedFeeAsNumber": "Pokud je tvůj typ poplatku fixní nebo fixní plus procento, musíš pro tvůj pevný poplatek nastavit platnou částku. Pokud obsahuje desetinné místo, měla by se jako oddělovač použít tečka, například „0.00“.",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "Pokud je tvůj typ poplatku fixní nebo fixní plus procento, musíš pro tvůj pevný poplatek nastavit platnou částku. Pokud obsahuje desetinné místo, měla by se jako oddělovač použít tečka, například „0.00“."
   },
   "skuModelErrors": {
     "provideQuantity": "Uveď množství.",
@@ -3042,9 +2927,6 @@
     "BMX": "BitMart Token",
     "BNANA": "Chimpion",
     "BNB": "Binance Coin",
-    "BNBMBZ": "Mobazha Token",
-    "BNBUSDC": "USD Coin",
-    "BNBUSDT": "Tether",
     "BNC": "Bionic",
     "BND": "Blocknode",
     "BNK": "Bankera",
@@ -3243,12 +3125,6 @@
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
     "CFUN": "CFun",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
     "CHAT": "ChatCoin",
@@ -4275,10 +4151,7 @@
     "MARX": "MarxCoin",
     "MAS": "MidasProtocol",
     "MASH": "MASTERNET",
-    "MATIC": "Polygon",
-    "MATICMBZ": "Mobazha Token",
-    "MATICUSDC": "USD Coin",
-    "MATICUSDT": "Tether",
+    "MATIC": "Matic Network",
     "MAX": "Maxcoin",
     "MAY": "Theresa May Coin",
     "MAZA": "MAZA",
@@ -4289,7 +4162,6 @@
     "MBL": "MovieBloc",
     "MBN": "Membrana",
     "MBRS": "Embers",
-    "MBZ": "Mobazha Token",
     "MCAP": "MCAP",
     "MCASH": "Mcashchain",
     "MCC": "Moving Cloud Coin",
