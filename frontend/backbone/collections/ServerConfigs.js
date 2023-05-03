@@ -1,12 +1,10 @@
-/* eslint-disable class-methods-use-this */
-import BaseCollection from './BaseCollection';
-import process from 'process';
-import { ipc } from '../../src/utils/ipcRenderer.js';
+import { platform, homedir } from 'os';
 import app from '../app';
+import { Collection } from 'backbone';
 import LocalStorageSync from '../utils/lib/backboneLocalStorage';
 import ServerConfig from '../models/ServerConfig';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   localStorage() {
     return new LocalStorageSync('__serverConfigs');
   }
@@ -16,9 +14,7 @@ export default class extends BaseCollection {
   }
 
   model(attrs, options) {
-    return function(attrs, options) {
-      return new ServerConfig(attrs, options);
-    }(attrs, options);
+    return new ServerConfig(attrs, options);
   }
 
   constructor(models, options) {
@@ -37,18 +33,18 @@ export default class extends BaseCollection {
   }
 
   set activeServer(md) {
-    if (!(md instanceof ServerConfig)) {
+    if (!md instanceof ServerConfig) {
       throw new Error('Please provide a model as a ServerConfig instance.');
     }
 
     if (this.models.indexOf(md) === -1) {
-      throw new Error('The provided model is not in this collection and must be to'
-        + ' set it as the active config.');
+      throw new Error('The provided model is not in this collection and must be to' +
+        ' set it as the active config.');
     }
 
     if (!md.id) {
-      throw new Error('The provided model must have an id in order to be set as the'
-        + ' active config.');
+      throw new Error('The provided model must have an id in order to be set as the' +
+        ' active config.');
     }
 
     if (this._active !== md.id) {
@@ -70,10 +66,38 @@ export default class extends BaseCollection {
     }
   }
 
+  get homedir() {
+    if (!this._homedir) {
+      this._homedir = homedir();
+    }
+
+    return this._homedir;
+  }
+
+  get walletCurrencyToDataDir() {
+    return {
+      BTC: {
+        win32: `${this.homedir}/OpenBazaar2.0`,
+        darwin: `${this.homedir}/Library/Application Support/OpenBazaar2.0`,
+        linux: `${this.homedir}/.openbazaar2.0`,
+      },
+      BCH: {
+        win32: `${this.homedir}/OpenBazaar2.0-bitcoincash`,
+        darwin: `${this.homedir}/Library/Application Support/OpenBazaar2.0-bitcoincash`,
+        linux: `${this.homedir}/.openbazaar2.0-bitcoincash`,
+      },
+      ZEC: {
+        win32: `${this.homedir}/OpenBazaar2.0-zcash`,
+        darwin: `${this.homedir}/Library/Application Support/OpenBazaar2.0-zcash`,
+        linux: `${this.homedir}/.openbazaar2.0-zcash`,
+      },
+    };
+  }
+
   migrate() {
     let builtInCount = 0;
 
-    this.forEach((serverConfig) => {
+    this.forEach(serverConfig => {
       // Migrate any old "built in" configurations containing the 'default' flag to
       // use the new 'builtIn' flag.
       const isDefault = serverConfig.get('default');
@@ -84,31 +108,47 @@ export default class extends BaseCollection {
 
         if (!configSave) {
           // developer error or wonky data
-          console.error('There was an error migrating the server config, '
-            + `${serverConfig.get('name')}, from the 'default' to the 'built-in' style.`);
+          console.error('There was an error migrating the server config, ' +
+            `${serverConfig.get('name')}, from the 'default' to the 'built-in' style.`);
         }
       }
 
       if (serverConfig.get('builtIn')) {
-        if (serverConfig.get('port') === 4002 && import.meta.env.VITE_TESTNET !== 'true') {
+        if (serverConfig.get('port') == 4002) {
           const configSave = serverConfig.save({ port: 5102 });
 
           if (!configSave) {
             // developer error or wonky data
-            console.error('There was an error migrating the server config, '
-              + `${serverConfig.get('name')}, from the port 4002 to 5102.`);
-          }
-        } else if (serverConfig.get('port') === 5102 && import.meta.env.VITE_TESTNET === 'true') {
-          const configSave = serverConfig.save({ port: 4002 });
-
-          if (!configSave) {
-            // developer error or wonky data
-            console.error('There was an error migrating the server config, '
-              + `${serverConfig.get('name')}, from the port 5102 to 4002.`);
+            console.error('There was an error migrating the server config, ' +
+              `${serverConfig.get('name')}, from the port 4002 to the 5102.`);
           }
         }
 
-        builtInCount += 1;
+        builtInCount++;
+      }
+
+      // Migrate a walletCurrency to a dataDir.
+      const walletCurrency = serverConfig.get('walletCurrency');
+
+      if (walletCurrency) {
+        serverConfig.unset('walletCurrency');
+
+        if (typeof walletCurrency === 'string') {
+          const walletCurPaths = this.walletCurrencyToDataDir[walletCurrency];
+
+          if (walletCurPaths) {
+            const dataDir = walletCurPaths[platform()];
+            if (dataDir) {
+              const configSave = serverConfig.save({ dataDir });
+
+              if (!configSave) {
+                // developer error or wonky data
+                console.error('There was an error migrating the dataDir for server ' +
+                  `config ${serverConfig.get('name')}.`);
+              }
+            }
+          }
+        }
       }
     });
 
@@ -124,8 +164,8 @@ export default class extends BaseCollection {
 
       if (!configSave) {
         // developer error or wonky data
-        console.error('There was an error updating the name for built-in server '
-          + `config ${builtIn.get('name')}.`);
+        console.error('There was an error updating the name for built-in server ' +
+          `config ${builtIn.get('name')}.`);
       }
     }
   }
