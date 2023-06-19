@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
-import BaseCollection from '../BaseCollection';
+import { Collection } from 'backbone';
 import app from '../../app';
 import Transaction from '../../models/wallet/Transaction';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   constructor(models = [], options = {}) {
     if (typeof options.coinType !== 'string') {
       throw new Error('Please provide a coinType as a string.');
