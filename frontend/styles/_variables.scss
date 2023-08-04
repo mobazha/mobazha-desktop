@@ -1,35 +1,33 @@
-@use "sass:color";
+// colors
+$primary: hsl(0,0%,100%);
+$secondary: adjust-color($primary, $lightness: -6%);
 
-// colors - Web3电商平台现代配色
-$primary: hsl(220, 15%, 97%);  // 现代科技感的淡蓝灰色
-$secondary: color.adjust($primary, $lightness: -12%);  // 更深的层次感
-
-$text: hsl(0, 0%, 12%);  // 更深的黑色，增强对比度
-$text2: color.adjust($text, $lightness: +25%);
-$text3: color.adjust($text, $lightness: +50%);
-$text4: color.adjust($text, $lightness: +60%);
+$text: hsl(0,0,14.8);
+$text2: adjust-color($text, $lightness: +32%);
+$text3: adjust-color($text, $lightness: +59%);
+$text4: adjust-color($text, $lightness: +65%);
 $textOnEmph: rgb(255, 255, 255);
 $textOnSelection: rgb(255, 255, 255);
 
-$border: hsl(220, 10%, 85%);  // 统一的边框色调
-$border2: color.adjust($primary, $lightness: 100%);
-$border3: color.adjust($text, $lightness: 35%);
-$border4: color.adjust($text, $lightness: 70%);
-$border5: color.adjust($text, $lightness: 90%);
-$focusedBorder: hsl(230, 70%, 50%);  // Web3风格的蓝色焦点
-$emphasis1: hsl(230, 70%, 50%);  // 现代蓝色强调色
-$emphasis1Disabled: color.adjust($emphasis1, $saturation: -50%, $lightness: +40%);
-$emphasis2: color.adjust($emphasis1, $lightness: +15%);
-$emphasisGradient: linear-gradient(135deg, $emphasis2, $emphasis1);  // 斜角渐变更现代
-$selection: hsl(230, 70%, 55%);
-$error: hsl(0, 70%, 55%);  // 现代化的错误色
-$alert: hsl(45, 85%, 55%);  // 现代警告色
-$alert2: hsl(25, 80%, 55%); // 现代橙色
-$alert2Background: hsl(25, 60%, 97%);
-$alert2Gradient: linear-gradient(135deg, hsl(25, 60%, 97%), hsl(25, 40%, 95%));
+$border: adjust-color($primary, $lightness: -14%);
+$border2: adjust-color($primary, $lightness: 100%);
+$border3: adjust-color($text, $lightness: 35%);
+$border4: adjust-color($text, $lightness: 70%);
+$border5: adjust-color($text, $lightness: 90%);
+$focusedBorder: rgb(0, 0, 0);
+$emphasis1: hsl(117, 66, 41);
+$emphasis1Disabled: adjust_color($emphasis1, $saturation: -50%, $lightness: +40%);
+$emphasis2: adjust-color($emphasis1, $lightness: +20%);
+$emphasisGradient: linear-gradient(180deg, $emphasis2, $emphasis1);
+$selection: #5897fb;
+$error: red;
+$alert: #fecf33;
+$alert2: #e9831e; // used for verified moderators and other medium level signals to the user
+$alert2Background: #fffaf6;
+$alert2Gradient: linear-gradient(to top, #fffaf6, #fff4e9);
 
-$overlay: hsla(220, 15%, 20%, 0.15);  // 现代遮罩效果
-$overlayP: hsla(220, 15%, 100%, 0.9);
+$overlay: adjust-color($secondary, $alpha: -0.04);
+$overlayP: hsla(0,0%,100%,0.8); // the primary color with some opacity
 
 // typography
 $baseFontSize: 10px;
@@ -49,8 +47,8 @@ $formElementHeight: 4rem;
 
 // layout
 $pad: 10px;
-$padTn: calc($pad / 4);
-$padSm: calc($pad / 2);
+$padTn: $pad / 4;
+$padSm: $pad / 2;
 $padMd: $pad * 1.5;
 $padMd2: $pad * 1.2;
 $padLg: $pad * 2;
