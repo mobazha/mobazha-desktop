@@ -4,7 +4,6 @@ const is = require('ee-core/utils/is');
 const Log = require('ee-core/log');
 const Conf = require('ee-core/config');
 const CoreWindow = require('ee-core/electron/window');
-const Electron = require('ee-core/electron');
 
 /**
  * 自动升级插件
@@ -46,12 +45,12 @@ class AutoUpdaterAddon {
     const version = electronApp.getVersion();
     Log.info('[addon:autoUpdater] current version: ', version);
   
-    // // 设置下载服务器地址
-    // let server = cfg.options.url;
-    // let lastChar = server.substring(server.length - 1);
-    // server = lastChar === '/' ? server : server + "/";
-    // //Log.info('[addon:autoUpdater] server: ', server);
-    // cfg.options.url = server;
+    // 设置下载服务器地址
+    let server = cfg.options.url;
+    let lastChar = server.substring(server.length - 1);
+    server = lastChar === '/' ? server : server + "/";
+    //Log.info('[addon:autoUpdater] server: ', server);
+    cfg.options.url = server;
   
     // 是否后台自动下载
     autoUpdater.autoDownload = cfg.force ? true : false;
@@ -62,16 +61,15 @@ class AutoUpdaterAddon {
       Log.error('[addon:autoUpdater] setFeedURL error : ', error);
     }
   
-    autoUpdater.on('checking-for-update', (info = {}) => {
-      info.status = status.checking;
-      this.sendStatusToWindow(info);
+    autoUpdater.on('checking-for-update', () => {
+      //sendStatusToWindow('正在检查更新...');
     })
-    autoUpdater.on('update-available', (info = {}) => {
+    autoUpdater.on('update-available', (info) => {
       info.status = status.available;
       info.desc = '有可用更新';
       this.sendStatusToWindow(info);
     })
-    autoUpdater.on('update-not-available', (info = {}) => {
+    autoUpdater.on('update-not-available', (info) => {
       info.status = status.noAvailable;
       info.desc = '没有可用更新';
       this.sendStatusToWindow(info);
@@ -81,14 +79,13 @@ class AutoUpdaterAddon {
         status: status.error,
         desc: err
       }
-      Log.info('[addon:autoUpdater] error: ', err);
       this.sendStatusToWindow(info);
     })
     autoUpdater.on('download-progress', (progressObj) => {
       let percentNumber = parseInt(progressObj.percent);
       let totalSize = this.bytesChange(progressObj.total);
       let transferredSize = this.bytesChange(progressObj.transferred);
-      let text = 'Have downloaded ' + percentNumber + '%';
+      let text = '已下载 ' + percentNumber + '%';
       text = text + ' (' + transferredSize + "/" + totalSize + ')';
   
       let info = {
@@ -101,10 +98,13 @@ class AutoUpdaterAddon {
       Log.info('[addon:autoUpdater] progress: ', text);
       this.sendStatusToWindow(info);
     })
-    autoUpdater.on('update-downloaded', (info = {}) => {
+    autoUpdater.on('update-downloaded', (info) => {
       info.status = status.downloaded;
-      info.desc = 'Download Complete';
+      info.desc = '下载完成';
       this.sendStatusToWindow(info);
+      // quit and update
+      // app.appQuit();
+      autoUpdater.quitAndInstall();
     });
   }
 
@@ -113,14 +113,6 @@ class AutoUpdaterAddon {
    */
   checkUpdate () {
     autoUpdater.checkForUpdates();
-  }
-
-  installUpdate () {
-    Log.info('[addon:autoUpdater] installUpdate, quitAndInstall');
-    // 托盘插件默认会阻止窗口关闭，这里设置允许关闭窗口
-    Electron.extra.closeWindow = true;
-
-    autoUpdater.quitAndInstall();
   }
   
   /**

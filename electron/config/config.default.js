@@ -10,6 +10,27 @@ module.exports = (appInfo) => {
   const config = {};
 
   /**
+   * 应用模式配置
+   */
+  config.developmentMode = {
+    default: 'vue',
+    mode: {
+      vue: {
+        hostname: 'localhost',
+        port: 8080
+      },
+      react: {
+        hostname: 'localhost',
+        port: 3000
+      },
+      html: {
+        hostname: 'localhost',
+        indexPage: 'index.html'
+      },
+    }
+  };
+
+  /**
    * 开发者工具
    */
   config.openDevTools = false;
@@ -23,20 +44,20 @@ module.exports = (appInfo) => {
    * 主窗口
    */
   config.windowsOption = {
-    title: 'Mobazha',
-    width: 1200,
-    height: 760,
-    minWidth: 1170,
-    minHeight: 700,
-    center: true,
-    frame: false,
+    title: 'EE框架',
+    width: 980,
+    height: 650,
+    minWidth: 800,
+    minHeight: 650,
     webPreferences: {
       webSecurity: false, // 跨域问题 -> 打开注释
       contextIsolation: false, // false -> 可在渲染进程中使用electron的api，true->需要bridge.js(contextBridge)
       nodeIntegration: true,
       //preload: path.join(appInfo.baseDir, 'preload', 'bridge.js'),
     },
-    icon: path.join(appInfo.home, 'public', 'images', 'logo.png'),
+    frame: true,
+    show: false,
+    icon: path.join(appInfo.home, 'public', 'images', 'logo-32.png'),
   };
 
   /**
@@ -76,8 +97,7 @@ module.exports = (appInfo) => {
     transports: ["polling", "websocket"],
     cors: {
       origin: true,
-    },
-    channel: 'c1'
+    }
   };
 
   /**
@@ -90,7 +110,6 @@ module.exports = (appInfo) => {
       key: '/public/ssl/localhost+1.key',
       cert: '/public/ssl/localhost+1.pem'
     },
-    host: '127.0.0.1',
     port: 7071,
     cors: {
       origin: "*"
@@ -123,7 +142,7 @@ module.exports = (appInfo) => {
    * 硬件加速
    */
   config.hardGpu = {
-    enable: true
+    enable: false
   };
 
   /**
@@ -133,13 +152,6 @@ module.exports = (appInfo) => {
     mainExit: false,
     childExit: true,
     rendererExit: true,
-  };
-
-  /**
-   * jobs
-   */
-  config.jobs = {
-    messageLog: true
   };  
 
   /**
@@ -151,33 +163,34 @@ module.exports = (appInfo) => {
     },
     tray: {
       enable: true,
-      title: 'Mobazha',
-      icon: '/public/images/system-tray.png',
-      macIcon: '/public/images/system-tray-mac.png',
+      title: 'EE程序',
+      icon: '/public/images/tray.png'
     },
     security: {
       enable: true,
     },
     awaken: {
       enable: true,
-      protocol: 'ob',
+      protocol: 'ee',
       args: []
     },
     autoUpdater: {
       enable: true,
-      windows: true, 
-      macOS: true, 
+      windows: false, 
+      macOS: false, 
       linux: false,
       options: {
-        provider: 'github',
-        owner: 'mobazha',
-        repo: 'mobazha-desktop'
+        provider: 'generic', 
+        url: 'http://kodo.qiniu.com/'
       },
-      force: true,
+      force: false,
     },
-    localServer: {
-      enable: true,
+    javaServer: {
+      enable: false,
       port: 18080,
+      jreVersion: 'jre1.8.0_201',
+      opt: '-server -Xms512M -Xmx512M -Xss512k -Dspring.profiles.active=prod -Dserver.port=${port} -Dlogging.file.path="${path}" ',
+      name: 'java-app.jar'
     }
   };
 

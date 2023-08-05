@@ -16,13 +16,6 @@ module.exports = (appInfo) => {
    */
   config.openAppMenu = false;
 
-  /**
-   * jobs
-   */
-  config.jobs = {
-    messageLog: false
-  }; 
-
   return {
     ...config
   };

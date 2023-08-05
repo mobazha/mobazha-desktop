@@ -6,7 +6,6 @@ const Electron = require('ee-core/electron');
 const CoreWindow = require('ee-core/electron/window');
 const Conf = require('ee-core/config');
 const EE = require('ee-core/ee');
-const is = require('ee-core/utils/is');
 
 /**
  * 托盘插件
@@ -31,7 +30,7 @@ class TrayAddon {
     const mainWindow = CoreWindow.getMainWindow();
 
     // 托盘图标
-    let iconPath = path.join(Ps.getHomeDir(), is.macOS() ? cfg.macIcon : cfg.icon);
+    let iconPath = path.join(Ps.getHomeDir(), cfg.icon);
   
     // 托盘菜单功能列表
     let trayMenuTemplate = [
@@ -42,9 +41,7 @@ class TrayAddon {
         }
       },
       {
-        label: 'Quit',
-        type: 'normal',
-        accelerator: 'Command+Q',
+        label: '退出',
         click: function () {
           CoreApp.appQuit();
         }
@@ -65,15 +62,12 @@ class TrayAddon {
     this.tray.setToolTip(cfg.title);
     const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
     this.tray.setContextMenu(contextMenu);
-    this.tray.on('double-click', () => {
-      mainWindow.show()
-    })
 
     // 使用默认浏览器打开链接
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       shell.openExternal(url);
       return { action: 'deny' }
-    })
+    })    
   }
 }
 

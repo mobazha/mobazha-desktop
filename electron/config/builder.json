@@ -1,18 +1,13 @@
 {
-  "productName": "Mobazha",
-  "appId": "com.mogaolei.mobazha",
-  "copyright": "© 2024 Mogaolei Technology Co., Ltd.",
+  "productName": "ee",
+  "appId": "com.electron.ee",
+  "copyright": "© 2023 哆啦好梦 Technology Co., Ltd.",
   "directories": {
     "output": "out"
   },
   "asar": true,
   "files": [
     "**/*",
-    "!MOBAZHA_TEMP",
-    "!bin/",
-    "!doc/",
-    "!electron/",
-
     "!frontend/",
     "!run/",
     "!logs/",
@@ -31,7 +26,7 @@
     "installerHeaderIcon": "build/icons/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "Mobazha"
+    "shortcutName": "EE框架"
   },
   "mac": {
     "icon": "build/icons/icon.icns",
