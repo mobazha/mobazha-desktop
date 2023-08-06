@@ -69,7 +69,7 @@ export function polyT(key, options) {
 }
 
 export function parseEmojis(text, className = '', attrs = {}) {
-  const parsed = twemoji.parse(text, (icon) => (`../imgs/emojis/72X72/${icon}.png`));
+  const parsed = twemoji.parse(text, (icon) => (`../../imgs/emojis/72X72/${icon}.png`));
   const $parsed = $(`<div>${parsed}</div>`);
 
   $parsed.find('img')

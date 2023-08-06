@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { ipc } from '../../src/utils/ipcRenderer.js';
+import { ipc } from '../../../src/utils/ipcRenderer.js';
 import { stripHtml } from './dom';
 
 let unreadNotifCount = 0;
@@ -18,7 +18,7 @@ export function setAppBarBadgeCount(count) {
 
   if (count !== appBarBadgeCount) {
     appBarBadgeCount = count;
-    ipc.send('controller.mainwindow.setBadgeCount', appBarBadgeCount);
+    ipc.send('set-badge-count', appBarBadgeCount);
   }
 }
 
