@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, session } = require('electron');
+const { session } = require('electron');
 const { Controller } = require('ee-core');
 const Log = require('ee-core/log');
 const Addon = require('ee-core/addon');
@@ -16,8 +16,6 @@ class MainWindowController extends Controller {
 
     this.mainWindow = this.app.electron.mainWindow;
     this.closeConfirmed = false;
-
-    global.serverLog = '';
   }
 
   async doMainWindowAction (action, event) {
@@ -60,7 +58,7 @@ class MainWindowController extends Controller {
       }
 
       if (global.authCookie && server.builtIn) {
-        details.requestHeaders.Cookie = `Mobazha_Auth_Cookie=${global.authCookie}`;
+        details.requestHeaders.Cookie = `OpenBazaar_Auth_Cookie=${global.authCookie}`;
       }
 
       callback({ cancel: false, requestHeaders: details.requestHeaders });
@@ -77,35 +75,11 @@ class MainWindowController extends Controller {
     // setBadgeCount is only available on certain environements:
     // https://github.com/electron/electron/blob/master/docs/api/app.md#appsetbadgecountcount-linux-macos
     try {
-      app.setBadgeCount(count);
+      this.app.setBadgeCount(count);
     } catch (err) {
       // pass
       console.log(err);
     }
-  }
-
-  async serverConnectLog(inputMsg) {
-    // Aggreate and make available the localServer and serverConnect
-    // module logs into one cohesive server log.
-    const log = (msg) => {
-      if (typeof msg !== 'string') {
-        throw new Error('Please provide a message as a string.');
-      }
-
-      if (!msg) return;
-
-      // Prevent the logs / msg from getting so large it eats up all the ram
-      // and crashes the client.
-      const message = msg.slice(msg.length - 500000);
-      global.serverLog += message;
-      global.serverLog = global.serverLog.slice(global.serverLog.length - 2000000);
-
-      if (this.mainWindow) {
-        this.mainWindow.webContents.send('server-log', message);
-      }
-    };
-
-    log(inputMsg);
   }
 
   async installUpdate(args, event) {
