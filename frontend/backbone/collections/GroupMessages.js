@@ -1,8 +1,8 @@
 import app from '../app';
-import BaseCollection from './BaseCollection';
+import { Collection } from 'backbone';
 import ChatMessage from '../models/chat/ChatMessage';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   constructor(models = [], options = {}) {
     super(models, options);
     this.guid = options.guid;

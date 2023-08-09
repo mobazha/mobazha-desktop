@@ -1,10 +1,10 @@
-import { guid } from '../utils';
-import BaseCollection from './BaseCollection';
-import Service from '../models/settings/Service';
+import { guid } from '../../utils';
+import { Collection } from 'backbone';
+import OptionalFeature from '../../models/listing/OptionalFeature';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   model(attrs, options) {
-    return new Service({
+    return new OptionalFeature({
       _clientID: attrs._clientID || guid(),
       ...attrs,
     }, options);

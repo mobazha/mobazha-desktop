@@ -60,7 +60,7 @@ export default class extends BaseModel {
     return {
       buyer: this.getContract(attrs).orderOpen.buyerID.peerID,
       vendor: this.getContract(attrs).orderOpen.listings[0].listing.vendorID.peerID,
-      moderator: this.getContract(attrs).paymentSent?.moderator,
+      moderator: this.getContract(attrs).orderOpen.payment.moderator,
     };
   }
 
@@ -105,21 +105,14 @@ export default class extends BaseModel {
 
     try {
       paymentCoin = this.getContract(attrs)
-        .paymentSent
+        .orderOpen
+        .payment
         .coin;
     } catch (e) {
       // pass
     }
 
     return paymentCoin;
-  }
-
-  static getPaymentSent(attrs = {}) {
-    return this.getContract(attrs).paymentSent;
-  }
-
-  get paymentSent() {
-    return this.constructor.getPaymentSent(this.toJSON());
   }
 
   get paymentCoin() {
@@ -147,7 +140,7 @@ export default class extends BaseModel {
       let payment;
 
       try {
-        payment = contract.paymentSent;
+        payment = contract.orderOpen.payment;
       } catch (e) {
         // pass
       }

@@ -1,12 +1,12 @@
 import _ from 'underscore';
-import { ipc } from '../../src/utils/ipcRenderer.js';
+import { ipc } from '../../../src/utils/ipcRenderer.js';
 import * as templateHelpers from './templateHelpers';
 
 const templateCache = {};
 
 let helpers = {};
 
-export default function loadTemplate(templateFile, callback) {
+export default function loadTemplate(templateFile, callback, root = `${__dirname}/../templates/`) {
   if (!templateFile) {
     throw new Error('Please provide a path to the template.');
   }

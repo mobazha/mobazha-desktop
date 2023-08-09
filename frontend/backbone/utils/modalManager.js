@@ -1,25 +1,42 @@
-import _ from 'underscore';
 import app from '../app';
-import Profile from '../models/profile/Profile';
+import { getOpenModals } from '../views/modals/BaseModal';
 import Listing from '../models/listing/Listing';
 import About from '../views/modals/about/About';
+import EditListing from '../views/modals/editListing/EditListing';
 import DebugLog from '../views/modals/DebugLog';
+import ModeratorDetails from '../views/modals/moderatorDetails';
+import Wallet from '../views/modals/wallet/Wallet';
+import Settings from '../views/modals/Settings/Settings';
 
 let aboutModal;
+let settingsModal;
 let debugLogModal;
+let moderatorDetailsModal;
+let _wallet;
 
 export function launchEditListingModal(modalOptions = {}) {
   const model = modalOptions.model;
+  const openModals = getOpenModals();
+
   if (!(model instanceof Listing)) {
     throw new Error('In the modalOptions, please provide an instance of ' +
       'a Listing model.');
   }
 
-  return window.vueApp.launchModal('EditListing', _.omit(modalOptions, 'model'), function() {
-      return {
-        model,
-      };
-    });
+  if (model.isNew()) {
+    const createModal = openModals
+      .find(modal => modal instanceof EditListing && modal.model.isNew());
+    if (createModal) {
+      createModal.bringToTop();
+      return createModal;
+    }
+  }
+
+  const editListingModal = new EditListing(modalOptions)
+    .render()
+    .open();
+
+  return editListingModal;
 }
 
 export function launchAboutModal(modalOptions = {}) {
@@ -41,7 +58,20 @@ export function launchAboutModal(modalOptions = {}) {
 }
 
 export function launchSettingsModal(modalOptions = {}) {
-  return window.vueApp.launchModal('Settings', modalOptions);
+  if (settingsModal) {
+    settingsModal.bringToTop();
+  } else {
+    settingsModal = new Settings({
+      removeOnClose: true,
+      ...modalOptions,
+    })
+      .render()
+      .open();
+
+    settingsModal.on('modal-will-remove', () => (settingsModal = null));
+  }
+
+  return settingsModal;
 }
 
 export function launchDebugLogModal(modalOptions = {}) {
@@ -55,23 +85,32 @@ export function launchDebugLogModal(modalOptions = {}) {
 }
 
 export function launchModeratorDetailsModal(modalOptions = {}) {
-  const model = modalOptions.model;
-  if (!(model instanceof Profile)) {
-    throw new Error('In the modalOptions, please provide an instance of ' +
-      'a Profile model.');
-  }
+  if (moderatorDetailsModal) moderatorDetailsModal.remove();
 
-  return window.vueApp.launchModal('ModeratorDetails', _.omit(modalOptions, 'model'), function() {
-      return {
-        model,
-      };
-    });
+  moderatorDetailsModal = new ModeratorDetails(modalOptions)
+      .render()
+      .open();
+
+  return moderatorDetailsModal;
 }
 
 export function launchWallet(modalOptions = {}) {
-  return window.vueApp.launchModal('Wallet', modalOptions, function() {
-    return {
-      walletBalances: app.walletBalances,
-    };
-  });
+  if (_wallet) {
+    _wallet.open();
+  } else {
+    _wallet = new Wallet({
+      removeOnRoute: false,
+      ...modalOptions,
+    })
+      .render()
+      .open();
+
+    app.router.on('will-route', () => _wallet.close());
+  }
+
+  return _wallet;
+}
+
+export function getWallet() {
+  return _wallet;
 }

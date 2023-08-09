@@ -3,15 +3,7 @@ import _ from 'underscore';
 import app from '../../app';
 import BaseModel from '../BaseModel';
 import ShippingAddresses from '../../collections/ShippingAddresses';
-import ShippingOptions from '../../collections/settings/ShippingOptions'
 import SMTPSettings from './SMTPSettings';
-
-import {
-  decimalToInteger,
-  integerToDecimal,
-  isValidCoinDivisibility,
-  getCoinDivisibility,
-} from '../../utils/currency';
 
 export default class extends BaseModel {
   defaults() {
@@ -25,9 +17,7 @@ export default class extends BaseModel {
       refundPolicy: '',
       blockedNodes: [],
       storeModerators: [],
-      externalPaymentAddresses: {},
       shippingAddresses: new ShippingAddresses(),
-      shippingOptions: new ShippingOptions(),
       smtpSettings: new SMTPSettings(),
     };
   }
@@ -39,7 +29,6 @@ export default class extends BaseModel {
   nested() {
     return {
       shippingAddresses: ShippingAddresses,
-      shippingOptions: ShippingOptions,
       smtpSettings: SMTPSettings,
     };
   }
@@ -70,16 +59,6 @@ export default class extends BaseModel {
       addError('storeModerators', 'The storeModerators is invalid because it is not an array');
     }
 
-    if (!(attrs.shippingOptions instanceof ShippingOptions)) {
-      addError('shippingOptions', 'A nested ShippingOptions collection is required.');
-    }
-
-    // check no duplicate shippingOption name
-    const optionNames = attrs.shippingOptions.map((option) => option.get('name'));
-    if (_.uniq(optionNames).length != optionNames.length) {
-      addError('shippingOptions', 'ShippingOptions names cannot be duplicated.');
-    }
-
     if (Object.keys(errObj).length) return errObj;
 
     return undefined;
@@ -90,29 +69,6 @@ export default class extends BaseModel {
       // we will use PUT unless you explicitly save with POST,
       // e.g. model.save({}, { type: 'POST' })
       options.type = 'PUT';
-    }
-
-    if (method !== 'read' && method !== 'delete' && options.attrs) {
-      (options.attrs.shippingOptions ?? []).forEach(shipOpt => {
-        if (shipOpt.services && shipOpt.services.length) {
-          const coinDiv = getCoinDivisibility(shipOpt.currency);
-
-          shipOpt.services.forEach(service => {
-            service.firstFreight = decimalToInteger(
-              service.firstFreight,
-              coinDiv
-            );
-            service.renewalUnitPrice = decimalToInteger(
-              service.renewalUnitPrice,
-              coinDiv
-            );
-            service.registrationFee = decimalToInteger(
-              service.registrationFee,
-              coinDiv
-            );
-          });
-        }
-      });
     }
 
     return super.sync(method, model, options);
@@ -126,44 +82,6 @@ export default class extends BaseModel {
       // do not allow own node to be in the blocked list
       response.blockedNodes = response.blockedNodes
         .filter((peerID) => peerID !== app.profile.id);
-    }
-
-    if (response.shippingOptions && response.shippingOptions.length) {
-      response.shippingOptions.forEach((shipOpt, shipOptIndex) => {
-        const currencyCode = shipOpt.currency;
-        let coinDiv;
-        try {
-          coinDiv = getCoinDivisibility(currencyCode);
-        } catch (e) {
-          // pass
-        }
-
-        const [isValidCoinDiv] = isValidCoinDivisibility(coinDiv);
-
-        if (!isValidCoinDiv) {
-          console.error('Unable to convert price fields. The coin divisibility is not valid. Currency: ', currencyCode);
-        }
-
-        if (shipOpt.services && shipOpt.services.length) {
-          shipOpt.services.forEach(service => {
-            service.firstFreight = integerToDecimal(
-              service.firstFreight,
-              coinDiv,
-              { fieldName: 'service.firstFreight' }
-            );
-            service.renewalUnitPrice = integerToDecimal(
-              service.renewalUnitPrice,
-              coinDiv,
-              { fieldName: 'service.renewalUnitPrice' }
-            );
-            service.registrationFee = integerToDecimal(
-              service.registrationFee,
-              coinDiv,
-              { fieldName: 'service.registrationFee' }
-            );
-          });
-        }
-      });
     }
 
     return response;

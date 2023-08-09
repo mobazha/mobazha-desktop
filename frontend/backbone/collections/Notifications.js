@@ -1,21 +1,29 @@
 /* eslint-disable class-methods-use-this */
 import _ from 'underscore';
 import moment from 'moment';
-import BaseCollection from './BaseCollection';
+import { Collection } from 'backbone';
 import { capitalize } from '../utils/string';
 import app from '../app';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   url() {
     return app.getServerUrl('ob/notifications');
   }
 
   parse(response) {
-    return response.notifications || [];
+    return response.notifications.map((notif) => {
+      const innerNotif = notif.notification;
+
+      return {
+        id: innerNotif.notificationID,
+        notification: _.omit(innerNotif, 'notificationID'),
+        ...notif,
+      };
+    });
   }
 
   comparator(message) {
-    return -new Date(message.get('timestamp')).getTime();
+    return message.get('timestamp');
   }
 }
 

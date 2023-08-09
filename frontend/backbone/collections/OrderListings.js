@@ -1,12 +1,8 @@
-import BaseCollection from './BaseCollection';
+import { Collection } from 'backbone';
 import Listing from '../models/listing/Listing';
 
-export default class extends BaseCollection {
+export default class extends Collection {
   model(attrs, options) {
     return new Listing(attrs, options);
-  }
-
-  modelId(attrs) {
-    return attrs.hash;
   }
 }

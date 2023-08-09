@@ -2,13 +2,14 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import is from 'is_js';
+import { Collection } from 'backbone';
+import { guid } from '../../utils';
 import { isValidNumber } from '../../utils/number';
 import app from '../../app';
 import BaseModel from '../BaseModel';
-import ListingImages from '../../collections/listing/ListingImages';
+import Image from './Image';
 import VariantOptions from '../../collections/listing/VariantOptions';
 import Skus from '../../collections/listing/Skus';
-import OptionalFeatures from '../../collections/listing/OptionalFeatures';
 
 /*
  * This model has a few inventory related properties that don't directly map to the
@@ -35,6 +36,19 @@ import OptionalFeatures from '../../collections/listing/OptionalFeatures';
  * anything on this model related to those fields.
  */
 
+class ListingImages extends Collection {
+  model(attrs, options) {
+    return new Image({
+      _clientID: attrs._clientID || guid(),
+      ...attrs,
+    }, options);
+  }
+
+  modelId(attrs) {
+    return attrs._clientID;
+  }
+}
+
 export default class extends BaseModel {
   defaults() {
     return {
@@ -44,13 +58,10 @@ export default class extends BaseModel {
       categories: [],
       nsfw: false,
       condition: 'NEW',
-      grams: Number,
       images: new ListingImages(),
       options: new VariantOptions(),
       skus: new Skus(),
-      optionalFeatures: new OptionalFeatures(),
       infiniteInventory: true,
-      altIntroVideoLinks: []
     };
   }
 
@@ -59,7 +70,6 @@ export default class extends BaseModel {
       images: ListingImages,
       options: VariantOptions,
       skus: Skus,
-      optionalFeatures: OptionalFeatures,
     };
   }
 
@@ -83,7 +93,6 @@ export default class extends BaseModel {
       tagLength: 40,
       productIdLength: 40,
       optionCount: 30,
-      optionalFeatureCount: 20,
     };
   }
 
@@ -114,21 +123,14 @@ export default class extends BaseModel {
 
     const max = this.max;
 
-    // 检查是否为RWA Token类型
-    const isRwaToken = attrs.metadata && attrs.metadata.contractType === 'RWA_TOKEN';
-
     if (!attrs.title) {
       addError('title', app.polyglot.t('itemModelErrors.provideTitle'));
     } else if (attrs.title.length > max.titleLength) {
       addError('title', app.polyglot.t('itemModelErrors.titleTooLong'));
     }
 
-    // 只有当condition字段存在时才进行验证
-    if (attrs.condition) {
-      attrs.condition = attrs.condition.toUpperCase();
-      if (this.conditionTypes.indexOf(attrs.condition) === -1) {
-        addError('condition', app.polyglot.t('itemModelErrors.badConditionType'));
-      }
+    if (this.conditionTypes.indexOf(attrs.condition) === -1) {
+      addError('condition', app.polyglot.t('itemModelErrors.badConditionType'));
     }
 
     if (is.not.string(attrs.description)) {
@@ -165,167 +167,119 @@ export default class extends BaseModel {
       addError('categories', app.polyglot.t('itemModelErrors.tooManyCats', { maxCats: max.cats }));
     }
 
-    // 对于RWA Token，使用特殊的验证逻辑
-    if (isRwaToken) {
-      // RWA Token 需要验证数量范围
-      if (attrs.minQuantity !== undefined) {
-        if (!isValidNumber(attrs.minQuantity, {
-          allowNumber: true,
-          allowBigNumber: true,
-          allowString: true,
-        })) {
-          addError('minQuantity', 'Minimum quantity must be a valid number.');
-        } else {
-          const minQuantity = Number(attrs.minQuantity);
-          if (minQuantity < 1) {
-            addError('minQuantity', 'Minimum quantity must be at least 1.');
-          }
-        }
-      }
+    // Quantity and productId are not allowed on the Item in the listing API. Instead they are
+    // accomplished via a "dummy" Sku object. Since that seems a bit klunky, out model will
+    // allow them and the Listing model will do the translation in parse / sync. If this is a
+    // crypto listing then item.cryptoQuantity will be created in liu of item.quantity.
+    if (attrs.productId && attrs.productId.length > this.max.productIdLength) {
+      addError('productId', `The productId cannot exceed ${this.max.productIdLength} characters.`);
+    }
 
-      if (attrs.maxQuantity !== undefined) {
-        if (!isValidNumber(attrs.maxQuantity, {
-          allowNumber: true,
-          allowBigNumber: true,
-          allowString: true,
-        })) {
-          addError('maxQuantity', 'Maximum quantity must be a valid number.');
-        } else {
-          const maxQuantity = Number(attrs.maxQuantity);
-          if (maxQuantity < 1) {
-            addError('maxQuantity', 'Maximum quantity must be at least 1.');
-          }
-        }
+    if (attrs.infiniteInventory) {
+      if (typeof attrs.quantity !== 'undefined') {
+        addError('quantity', 'Quantity should not be set if infiniteInventory is truthy.');
       }
-
-      // 验证数量范围逻辑
-      if (attrs.minQuantity !== undefined && attrs.maxQuantity !== undefined) {
-        const minQuantity = Number(attrs.minQuantity);
-        const maxQuantity = Number(attrs.maxQuantity);
-        if (minQuantity > maxQuantity) {
-          addError('maxQuantity', 'Maximum quantity must be greater than or equal to minimum quantity.');
-        }
+    } else if (attrs.skus && attrs.skus.length) {
+      if (attrs.quantity !== undefined) {
+        addError('quantity', 'Quantity should not be set if providing Skus.');
       }
     } else {
-      // 对于非RWA Token，使用原有的验证逻辑
-      // Quantity and productId are not allowed on the Item in the listing API. Instead they are
-      // accomplished via a "dummy" Sku object. Since that seems a bit klunky, out model will
-      // allow them and the Listing model will do the translation in parse / sync. If this is a
-      // crypto listing then item.cryptoQuantity will be created in liu of item.quantity.
-      if (attrs.productId && attrs.productId.length > this.max.productIdLength) {
-        addError('productId', `The productId cannot exceed ${this.max.productIdLength} characters.`);
+      if (
+        attrs.quantity === 'undefined'
+        || attrs.quantity === null
+        || attrs.quantity === ''
+      ) {
+        addError('quantity', app.polyglot.t('itemModelErrors.provideQuantity'));
+      } else if (
+        !isValidNumber(attrs.quantity, {
+          allowNumber: false,
+          allowBigNumber: true,
+          allowString: false,
+        })
+      ) {
+        addError('quantity', app.polyglot.t('itemModelErrors.provideNumericQuantity'));
+      } else if (attrs.quantity.lt(0)) {
+        addError('quantity', app.polyglot.t('itemModelErrors.quantityMustBePositive'));
+      } else if (!attrs.quantity.isInteger()) {
+        addError('quantity', app.polyglot.t('itemModelErrors.quantityMustBeInteger'));
       }
+    }
 
-      if (attrs.infiniteInventory) {
-        if (typeof attrs.quantity !== 'undefined') {
-          addError('quantity', 'Quantity should not be set if infiniteInventory is truthy.');
-        }
-      } else if (attrs.skus && attrs.skus.length) {
-        if (attrs.quantity !== undefined) {
-          addError('quantity', 'Quantity should not be set if providing Skus.');
-        }
-      } else {
-        if (
-          attrs.quantity === 'undefined'
-          || attrs.quantity === null
-          || attrs.quantity === ''
-        ) {
-          addError('quantity', app.polyglot.t('itemModelErrors.provideQuantity'));
-        } else if (
-          !isValidNumber(attrs.quantity, {
-            allowNumber: false,
-            allowBigNumber: true,
-            allowString: false,
-          })
-        ) {
-          addError('quantity', app.polyglot.t('itemModelErrors.provideNumericQuantity'));
-        } else if (attrs.quantity.lt(0)) {
-          addError('quantity', app.polyglot.t('itemModelErrors.quantityMustBePositive'));
-        } else if (!attrs.quantity.isInteger()) {
-          addError('quantity', app.polyglot.t('itemModelErrors.quantityMustBeInteger'));
-        }
-      }
+    if (attrs.skus && attrs.skus.length && attrs.cryptoQuantity !== undefined) {
+      addError('cryptoQuantity', 'CryptoQuantity should not be set if providing Skus.');
+    }
 
-      if (attrs.skus && attrs.skus.length && attrs.cryptoQuantity !== undefined) {
-        addError('cryptoQuantity', 'CryptoQuantity should not be set if providing Skus.');
-      }
+    let maxCombos = 1;
 
-      let maxCombos = 1;
+    attrs.options.forEach(option => (maxCombos *=
+      (option.get('variants') && option.get('variants').length || 1)));
 
-      attrs.options.forEach(option => (maxCombos *=
-        (option.get('variants') && option.get('variants').length || 1)));
+    if (attrs.skus.length > maxCombos) {
+      addError('skus', 'You have provided more SKUs than variant combinations.');
+    }
 
-      if (attrs.skus.length > maxCombos) {
-        addError('skus', 'You have provided more SKUs than variant combinations.');
-      }
+    // ensure no SKUs with the same selections
+    // http://stackoverflow.com/a/24968449/632806
+    const uniqueSkus = attrs.skus.map((sku) => ({ count: 1, name: JSON.stringify(sku.get('selections')) }))
+      .reduce((a, b) => {
+        a[b.name] = (a[b.name] || 0) + b.count;
+        return a;
+      }, {});
 
-      // ensure no SKUs with the same selections
-      // http://stackoverflow.com/a/24968449/632806
-      const uniqueSkus = attrs.skus.map((sku) => ({ count: 1, name: JSON.stringify(sku.get('selections')) }))
-        .reduce((a, b) => {
-          a[b.name] = (a[b.name] || 0) + b.count;
-          return a;
-        }, {});
+    const duplicateSkus = Object.keys(uniqueSkus).filter((a) => uniqueSkus[a] > 1);
 
-      const duplicateSkus = Object.keys(uniqueSkus).filter((a) => uniqueSkus[a] > 1);
+    duplicateSkus.forEach((dupeSku) => {
+      addError('skus', `Variant combos must be unique. ${dupeSku} is duplicated.`);
+    });
 
-      duplicateSkus.forEach((dupeSku) => {
-        addError('skus', `Variant combos must be unique. ${dupeSku} is duplicated.`);
-      });
+    const optionsNames = attrs.options.map((option) => option.get('name'));
+    attrs.skus.forEach((sku) => {
+      const varSelections = sku.selections;
 
-      const optionsNames = attrs.options.map((option) => option.get('name'));
-      attrs.skus.forEach((sku) => {
-        const varSelections = sku.selections;
+      // ensure that each SKU has a selections with the correct length
+      // (which is the length of the options)
+      if (is.array(varSelections)) {
+        // ensure the selections actually corresponds to a provided option.variant value
+        varSelections.forEach((val) => {
+          const optIndex = optionsNames.indexOf(val.get('option'));
+          if (optIndex === -1) {
+            addError('skus', `Invalid option, variant selections ${JSON.stringify(varSelections)}.`);
+          }
 
-        // ensure that each SKU has a selections with the correct length
-        // (which is the length of the options)
-        if (is.array(varSelections)) {
-          // ensure the selections actually corresponds to a provided option.variant value
-          varSelections.forEach((val) => {
-            const optIndex = optionsNames.indexOf(val.get('option'));
-            if (optIndex === -1) {
-              addError('skus', `Invalid option, variant selections ${JSON.stringify(varSelections)}.`);
-            }
+          if (!attrs.options[optIndex].variants
+            || !attrs.options[optIndex].variants.length) {
+            addError('skus', `Empty variant in option, variant selections ${JSON.stringify(varSelections)}.`);
+          }
 
-            if (!attrs.options[optIndex].variants
-              || !attrs.options[optIndex].variants.length) {
-              addError('skus', `Empty variant in option, variant selections ${JSON.stringify(varSelections)}.`);
-            }
-
-            const variantNames = attrs.options[optIndex].get('variants').map((variant) => variant.get('name'));
-            if (variantNames.indexOf(val.get('variant')) === -1) {
-              addError('skus', `Invalid variant, variant selections ${JSON.stringify(varSelections)}.`);
-            }
-          });
-        }
-      });
-
-      // Ensure no duplicate VariantOption names.
-      attrs.options.forEach((option, index) => {
-        if (optionsNames.indexOf(option.get('name')) !== index) {
-          addError(`options[${option.cid}].name`, app.polyglot.t('itemModelErrors.duplicateOptionName'));
-        }
-
-        // Ensure no duplicate variant names.
-        const variantNames = option.get('variants').map((variant) => variant.get('name'));
-        option.get('variants').forEach((variant, vIndex) => {
-          if (variantNames.indexOf(variant.get('name')) !== vIndex) {
-            const key = `options[${option.cid}].`
-              + `variants[${variant.cid}].name`;
-            addError(key, app.polyglot.t('itemModelErrors.duplicateVariantName', {
-              name: variant.get('name'),
-            }));
+          const variantNames = attrs.options[optIndex].get('variants').map((variant) => variant.get('name'));
+          if (variantNames.indexOf(val.get('variant')) === -1) {
+            addError('skus', `Invalid variant, variant selections ${JSON.stringify(varSelections)}.`);
           }
         });
+      }
+    });
+
+    // Ensure no duplicate VariantOption names.
+    attrs.options.forEach((option, index) => {
+      if (optionsNames.indexOf(option.get('name')) !== index) {
+        addError(`options[${option.cid}].name`, app.polyglot.t('itemModelErrors.duplicateOptionName'));
+      }
+
+      // Ensure no duplicate variant names.
+      const variantNames = option.get('variants').map((variant) => variant.get('name'));
+      option.get('variants').forEach((variant, vIndex) => {
+        if (variantNames.indexOf(variant.get('name')) !== vIndex) {
+          const key = `options[${option.cid}].`
+            + `variants[${variant.cid}].name`;
+          addError(key, app.polyglot.t('itemModelErrors.duplicateVariantName', {
+            name: variant.get('name'),
+          }));
+        }
       });
+    });
 
-      if (attrs.options.length > this.max.optionCount) {
-        addError('options', app.polyglot.t('itemModelErrors.tooManyOptions', { maxOptionCount: this.max.optionCount }));
-      }
-
-      if (attrs.options.length > this.max.optionalFeatureCount) {
-        addError('optionalFeatures', app.polyglot.t('itemModelErrors.tooManyOptionalFeatures', { maxOptionalFeatureCount: this.max.optionalFeatureCount }));
-      }
+    if (attrs.options.length > this.max.optionCount) {
+      addError('options', app.polyglot.t('itemModelErrors.tooManyOptions', { maxOptionCount: this.max.optionCount }));
     }
 
     errObj = this.mergeInNestedErrors(errObj);
