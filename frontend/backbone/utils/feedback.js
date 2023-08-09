@@ -1,9 +1,5 @@
 import app from '../app';
-<<<<<<<< HEAD:frontend/backbone/utils/feedback.js
 import { version } from '../../../package.json';
-========
-import { version } from '../../../../package.json';
->>>>>>>> e50eb6069 (restructure folder for Electron-Egg):frontend/backbone/js/utils/feedback.js
 import { recordEvent, userStats } from './metrics';
 
 
