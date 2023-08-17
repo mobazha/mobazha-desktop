@@ -1,15 +1,7 @@
-import { myGet } from './api';
+import $ from 'jquery';
 
 export default {
   getConversationList(params = {}) {
-    return myGet(window.app.getServerUrl('ob/chatconversations'), params);
-  },
-
-  getMyProfile(params = {}) {
-    return myGet(window.app.getServerUrl('ob/profile'), params);
-  },
-
-  getConversationMessage(params) {
-    return myGet(window.app.getServerUrl(`ob/chatmessages/${params.peerID}`, params));
+    return $.get($.app.getServerUrl('ob/chatconversations'), params);
   },
 };
