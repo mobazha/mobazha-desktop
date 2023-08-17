@@ -1,22 +1,30 @@
 import { createApp } from 'vue';
-import 'element-plus/dist/index.css';
+import { createStore } from 'vuex'
 
-// import './assets/scss/main.scss';
-
-import Chat from './components/Chat.vue';
+import ShoppingCart from './components/ShoppingCart.vue';
 
 import './assets/global.less';
 import components from './components/global';
+import products from './store/products.module'
 import Router from './router/index';
 
-export function mountChat(container, conversationID) {
-  const chat = createApp(Chat, { conversationID });
-  chat.config.productionTip = false;
+export function moutShoppingCart() {
+
+  const shoppingCart = createApp(ShoppingCart)
+  shoppingCart.config.productionTip = false
 
   // components
   for (const i in components) {
-    chat.component(i, components[i]);
+    shoppingCart.component(i, components[i])
   }
 
-  return chat.use(Router).mount(container);
+  const store = createStore({
+    modules: {
+      products
+    }
+  })
+
+  shoppingCart.use(Router).use(store).mount('#shoppingCart')
 }
+
+
