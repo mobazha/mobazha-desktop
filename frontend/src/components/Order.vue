@@ -6,7 +6,9 @@
           <div class="page-head__name">Orders</div>
         </div>
         <div class="page-head__right" v-if="tableData.length > 0">
-          <el-input v-model="params.keyword" placeholder="Search Orders" :prefix-icon="Search" />
+          <div class="search">
+            <el-input class="search-input" v-model="params.keyword" placeholder="Search Orders" :prefix-icon="Search" />
+          </div>
         </div>
       </div>
       <div class="page-body" v-loading="loading">
@@ -110,6 +112,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { reactive } from 'vue';
 import Empty from './Empty';
 import { products } from './products.js';
+
 
 const params = reactive({ keyword: '' });
 const tableData = ref([]);
@@ -336,8 +339,5 @@ function cellStyle({ columnIndex, rowIndex }) {
     width: 20px;
     height: 20px;
   }
-}
-::v-deep() {
-  @import '../assets/scss/module/table.scss';
 }
 </style>
