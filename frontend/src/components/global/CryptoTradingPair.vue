@@ -1,52 +1,29 @@
 <template>
   <div>
     <span :class="ob.className">
-      <CryptoIcon :code="ob.fromCur"/>
-      <span :class="`fromCur ${ob.fromCurClass}`">{{ ob.fromCur }}</span>
-
+      {{ 
+        ob.polyT('cryptoCodeIconPairing', {
+          code: `<span class="fromCur ${ob.fromCurClass || ''}">${ob.fromCur}</span>`,
+          icon: ob.crypto.cryptoIcon({ code: ob.fromCur }),
+        })  
+      }}
       <span :class="`pairingSeparator ion-android-arrow-forward ${ob.arrowIconClass || ''}`"></span>
-      
-      <template v-if="ob.toCur">
-        <CryptoIcon :code="ob.toCur"/>
-        <span :class="`fromCur ${ob.toCurClass}`">{{ ob.toCur }}</span>
-      </template>
+      <div v-if="ob.toCur">
+        {{ 
+          ob.polyT('cryptoCodeIconPairing', {
+            code: `<span class="fromCur ${ob.toCurClass || ''}">${ob.toCur}</span>`,
+            icon: ob.crypto.cryptoIcon({ code: ob.toCur }),
+          }) 
+        }}
+      </div>
     </span>
   </div>
 </template>
 
-<script>
-
-export default {
-  props: {
-    options: {
-      type: Object,
-      default: {
-        className: 'cryptoTradingPairLg',
-        arrowIconClass: '',
-        truncateCurAfter: 8,
-        fromCur: '',
-        toCur: '',
-      },
-    },
-  },
-  data () {
-    return {
-    };
-  },
-  created () {
-  },
-  mounted () {
-  },
-  computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.options,
-      };
-    },
-  },
-  methods: {
-  }
-}
+<script setup>
+const props = defineProps({
+  feeLevel: String,
+})
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>

@@ -1,105 +1,58 @@
 <template>
-  <div class="pageControlsWrapper overflowAuto">
 
-    <div class="floR">
-      <div class="pageControls flexVCent gutterH tx5">
-        <template v-if="countsAvailable">
-          <div v-html="ob.polyT('pageControls.displaying', {
-            displayingCounts: ob.polyT('pageControls.displayingCounts', {
-              start: ob.number.localizeNumber(ob.start),
-              end: ob.number.localizeNumber(ob.end),
-              total: ob.number.localizeNumber(ob.total),
-            }),
-          })">
-          </div>
-        </template>
-        <div class="btnStrip">
-          <button class="btn clrP clrBr pagePrev" @click="onClickPrev" :disabled="disabledPrev">
-            <i class="ion-arrow-left-b"></i>
-          </button>
-          <button class="btn clrP clrBr pageNext" @click="onClickNext" :disabled="disabledNext">
-            <i class="ion-arrow-right-b"></i>
-          </button>
-        </div>
+  <div class="floR">
+    <div class="pageControls flexVCent gutterH tx5">
+
+      <div v-if="countsAvailable">{{
+        ob.polyT('pageControls.displaying', {
+          displayingCounts: ob.polyT('pageControls.displayingCounts', {
+            start: ob.number.localizeNumber(ob.start),
+            end: ob.number.localizeNumber(ob.end),
+            total: ob.number.localizeNumber(ob.total),
+          }),
+        })
+    }}
+      </div>
+
+      <div class="btnStrip">
+        <button class="btn clrP clrBr pagePrev js-pagePrev" :disabled="disabledPrev">
+          <i class="ion-arrow-left-b"></i>
+        </button>
+        <button class="btn clrP clrBr pageNext js-pageNext" :disabled="disabledNext">
+          <i class="ion-arrow-right-b"></i>
+        </button>
       </div>
     </div>
-
   </div>
+
 </template>
 
-<script>
+<script setup>
+const props = defineProps({
+  phase: String,
+})
 
-export default {
-  props: {
-    options: {
-      type: Object,
-      default: {
-        start: 1,
-        end: 0,
-        total: 0,
-      },
-    },
-  },
-  data () {
-    return {
-    };
-  },
-  created () {
-  },
-  mounted () {
-  },
-  computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.options,
-      };
-    },
-    countsAvailable () {
-      const ob = this.ob;
+var countsAvailable = false;
 
-      let countsAvailable = false;
+if (typeof ob.start === 'number' &&
+  typeof ob.end === 'number' &&
+  typeof ob.total === 'number') {
+  countsAvailable = true;
+}
 
-      if (typeof ob.start === 'number' &&
-        typeof ob.end === 'number' &&
-        typeof ob.total === 'number') {
-        countsAvailable = true;
-      }
-      return countsAvailable;
-    },
-    disabledPrev () {
-      const ob = this.ob; 
-      let disabledPrev = true;
+var disabledPrev = true;
+var disabledNext = true;
 
-      if (this.countsAvailable) {
-        if (ob.start > 1) {
-          disabledPrev = false;
-        }
-      }
-      return disabledPrev;
-    },
-    disabledNext () {
-      const ob = this.ob;
-      let disabledNext = true;
+if (countsAvailable) {
+  if (ob.start > 1) {
+    disabledPrev = false;
+  }
 
-      if (this.countsAvailable) {
-        if (ob.end < ob.total) {
-          disabledNext = false;
-        }
-      }
-      return disabledNext;
-    }
-  },
-  methods: {
-    onClickNext () {
-      this.$emit('clickNext');
-    },
-
-    onClickPrev () {
-      this.$emit('clickPrev');
-    },
-
+  if (ob.end < ob.total) {
+    disabledNext = false;
   }
 }
+
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>
