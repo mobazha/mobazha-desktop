@@ -1,13 +1,13 @@
 <template>
-  <div class="moderatorsWrapper fauxModeratorsWrapper">
+  <div>
     <!-- // duplicate the moderator card html to make sure everything aligns -->
 
-    <div class="moderatorCard clrBrInvis clickable" @click="clickDirectPurchase">
+    <div class="moderatorCard clrBrInvis clickable js-directPayment">
       <div class="moderatorCardInner">
         <div class="flexRow gutterH moderatorCardContent">
           <div class="flexNoShrink">
             <div class="btnRadio">
-              <div tabindex="0" :class="`fauxRadioBtn ${active ? 'active' : ''}`"></div>
+              <div tabindex="0" :class="`fauxRadioBtn ${ob.active ? 'active' : ''}`"></div>
             </div>
           </div>
           <div class="moderatorCardMiddle">
@@ -23,32 +23,7 @@
   </div>
 </template>
 
-<script>
-
-
-export default {
-  props: {
-    active: {
-      type: Boolean,
-      default: false,
-	  },
-  },
-  data () {
-    return {
-    };
-  },
-  created () {
-  },
-  mounted () {
-  },
-  computed: {
-  },
-
-  methods: {
-    clickDirectPurchase () {
-      this.$emit('click');
-    },
-  }
-}
+<script setup>
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>
