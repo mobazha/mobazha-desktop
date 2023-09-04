@@ -2,22 +2,12 @@
   <div class="transactions clrS">
     <nav id="pageTabBar" class="barLg clrP clrBr">
       <div class="flexVCent pageTabs">
-        <div class="js-miniProfileContainer">
-          <MiniProfile
-            :bb="function() {
-              return {
-                model: ownProfile,
-              };
-            }" />
-        </div>
+        <div class="js-miniProfileContainer"></div>
         <div class="flexExpand">
           <div class="flexHRight flexVCent gutterH clrT2">
-            <a
-              v-for="(tab, i) in ['sales', 'purchases', 'cases']"
-              :key="i"
+            <a v-for="(tab, i) in ['sales', 'purchases', 'cases']" :key="i"
               :class="`btn tab clrBr ${tab == _tab ? 'clrT active' : ''}`"
-              @click="onTabClick(tab)"
-            >
+              @click="onTabClick(tab)">
               {{ ob.polyT(`transactions.${tab}.heading`) }}
               <span class="clrTEmph1 margLSm">{{ tabCount[tab] }}</span>
             </a>
@@ -28,101 +18,67 @@
 
     <section class="flexRow header">
       <div class="pageContent">
-        <div class="tabContent">
+        <div class="tabContent js-tabContent">
           <!-- insert the tab subview here -->
-          <Tab :key="tabKey"
-            :options="tabOptions.options"
-            :bb="function() {
-              return {
-                collection: tabOptions.collection,
-              };
-            }"
-            @clickRow="openOrder" />
         </div>
       </div>
     </section>
 
-    <Teleport to="#js-vueModal">
-      <OrderDetail
-        v-if="showOrderDetail"
-        :options="{
-          returnText: ob.polyT(`transactions.${modalType}s.returnToFromOrder`),
-        }"
-        :bb="function() {
-          return {
-            model: modalModel,
-          };
-        }"
-        @convoMarkedAsRead="onConvoMarkedAsRead"
-        @close="onOrderDetailClose"
-      />
-    </Teleport>
+    <!-- <div class="js-orderDetail"></div> -->
   </div>
 </template>
 
 <script>
+/* eslint-disable class-methods-use-this */
 import $ from 'jquery';
 import app from '../../../backbone/app';
+import { capitalize } from '../../../backbone/utils/string';
 import { abbrNum, deparam } from '../../../backbone/utils';
 import { getSocket } from '../../../backbone/utils/serverConnect';
 import { recordEvent } from '../../../backbone/utils/metrics';
 import Transactions from '../../../backbone/collections/Transactions';
 import Order from '../../../backbone/models/order/Order';
 import Case from '../../../backbone/models/order/Case';
+import MiniProfile from '../../../backbone/views/MiniProfile';
+import Tab from '../../../backbone/views/transactions/Tab';
 import OrderDetail from '../modals/orderDetail/OrderDetail.vue';
-import Tab from './Tab.vue';
-import MiniProfile from '../MiniProfile.vue';
+
+import _ from 'underscore';
+import { Events } from 'backbone';
+import * as templateHelpers from '../../../backbone/utils/templateHelpers';
 
 export default {
   components: {
     OrderDetail,
-    Tab,
-    MiniProfile,
   },
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
+    cart: Object,
   },
-  data() {
+  data () {
     return {
-      _tab: this.$route.params?.tab || 'purchases',
-      tabKey: 0,
+      _tab: 'purchases',
+      ob: {},
 
       tabCount: {
         sales: 0,
         purchases: 0,
         cases: 0,
       },
-
-      showOrderDetail: false,
-      modalModel: {},
-      modalType: 'sale',
-      willRouteFlagForOrderDetail: false,
     };
   },
-  created() {
-    this.initEventChain();
+  created () {
+    _.extend(this, Events);
+
+    this.ob = { ...templateHelpers};
 
     this.loadData();
   },
-  mounted() {
+  mounted () {
     this.render();
   },
-  watch: {
-    // 监听路由变化，当 tab 参数改变时重新加载数据
-    '$route.params.tab'(newTab, oldTab) {
-      if (newTab !== oldTab) {
-        this.loadData();
-      }
-    }
-  },
   computed: {
-    ownProfile() {
-      return app.profile;
-    },
-    salesDefaultFilter() {
+    salesDefaultFilter () {
       return {
         search: '',
         sortBy: 'UNREAD',
@@ -130,7 +86,7 @@ export default {
       };
     },
 
-    purchasesDefaultFilter() {
+    purchasesDefaultFilter () {
       return {
         search: '',
         sortBy: 'UNREAD',
@@ -138,7 +94,7 @@ export default {
       };
     },
 
-    casesDefaultFilter() {
+    casesDefaultFilter () {
       return {
         search: '',
         sortBy: 'UNREAD',
@@ -146,7 +102,7 @@ export default {
       };
     },
 
-    casesFilterConfig() {
+    casesFilterConfig () {
       return [
         {
           id: 'filterDisputeOpen',
@@ -165,7 +121,7 @@ export default {
       ];
     },
 
-    filterUrlParams() {
+    filterUrlParams () {
       const params = deparam(location.hash.split('?')[1] || '');
 
       if (params.states) {
@@ -179,63 +135,20 @@ export default {
 
       return params;
     },
-    tabOptions() {
-      let _tab = this._tab || 'purchases';
-      return this[`${_tab}TabOptions`];
-    },
-    purchasesTabOptions() {
-      return {
-        collection: this.purchasesCol,
-        options: {
-          type: 'purchases',
-          defaultFilter: {
-            ...this.purchasesDefaultFilter,
-          },
-          initialFilter: {
-            ...this.purchasesDefaultFilter,
-            ...this.filterUrlParams,
-          },
-          filterConfig: this.getSalesPurchasesFilterConfig(false),
-        }
-      };
-    },
-
-    salesTabOptions() {
-      return {
-        collection: this.salesCol,
-        options: {
-          type: 'sales',
-          defaultFilter: {
-            ...this.salesDefaultFilter,
-          },
-          initialFilter: {
-            ...this.salesDefaultFilter,
-            ...this.filterUrlParams,
-          },
-          filterConfig: this.getSalesPurchasesFilterConfig(true),
-        }
-      };
-    },
-
-    casesTabOptions() {
-      return {
-        collection: this.casesCol,
-        options: {
-          type: 'cases',
-          defaultFilter: {
-            ...this.casesDefaultFilter,
-          },
-          initialFilter: {
-            ...this.casesDefaultFilter,
-            ...this.filterUrlParams,
-          },
-          filterConfig: this.casesFilterConfig,
-        }
-      };
-    },
   },
   methods: {
-    loadData() {
+    createChild(ChildView, ...args) {
+      if (typeof ChildView !== 'function') {
+        throw new Error('Please provide a ChildView class.');
+      }
+
+      const childView = new ChildView(...args);
+      // this.registerChild(childView);
+
+      return childView;
+    },
+
+    loadData () {
       let tab = this.$route.params.tab;
       if (tab && ['sales', 'cases', 'purchases'].indexOf(tab) === -1) {
         // this.pageNotFound();
@@ -247,53 +160,56 @@ export default {
       }
 
       this._tab = tab || 'sales';
-      
-      // 更新 tabKey 以强制重新渲染 Tab 组件
-      this.tabKey += 1;
 
       this.tabViewCache = {};
       this.profileDeferreds = {};
       this.profilePosts = [];
+      this.openedOrderModal = null;
 
       const params = deparam(location.hash.split('?')[1] || '');
       const { orderID } = params;
       const { caseID } = params;
 
-      this.purchasesCol = new Transactions([], { type: 'purchases' });
-      this.syncTabHeadCount(this.purchasesCol, (count) => (this.tabCount.purchases = count));
-      // fetch so we get the count for the tabhead
-      this.purchasesCol.fetch();
-
-      this.salesCol = new Transactions([], { type: 'sales' });
-      this.syncTabHeadCount(this.salesCol, (count) => (this.tabCount.sales = count));
-      // fetch so we get the count for the tabhead
-      this.salesCol.fetch();
-
-      this.casesCol = new Transactions([], { type: 'cases' });
-      this.syncTabHeadCount(this.casesCol, (count) => (this.tabCount.cases = count));
-      // fetch so we get the count for the tabhead
-      this.casesCol.fetch();
-
-      this.socket = getSocket();
-
       if (orderID || caseID) {
         // cut off the trailing 's' from the tab
         const type = this._tab.slice(0, this._tab.length - 1);
 
-        this.openOrder(orderID || caseID, type);
+        // If we're opening an order model on init, then we'll
+        // need to pass it in to the Tab view. It may need to bind event
+        // handlers to it.
+        this.openedOrderModal = this.openOrder(orderID || caseID, type);
+        this.listenTo(this.openedOrderModal, 'close', () => { this.openedOrderModal = null; });
       }
+
+      this.purchasesCol = new Transactions([], { type: 'purchases' });
+      this.syncTabHeadCount(this.purchasesCol, (count) => this.tabCount.purchases = count);
+      // fetch so we get the count for the tabhead
+      this.purchasesCol.fetch();
+
+      this.salesCol = new Transactions([], { type: 'sales' });
+      this.syncTabHeadCount(this.salesCol, (count) => this.tabCount.sales = count);
+      // fetch so we get the count for the tabhead
+      this.salesCol.fetch();
+
+      this.casesCol = new Transactions([], { type: 'cases' });
+      this.syncTabHeadCount(this.casesCol, (count) => this.tabCount.cases = count);
+      // fetch so we get the count for the tabhead
+      this.casesCol.fetch();
+
+      this.socket = getSocket();
     },
 
-    onTabClick(tab) {
+    onTabClick (tab) {
       this.selectTab(tab);
       recordEvent('Transactions_TabChange', {
         tab,
       });
     },
 
-    syncTabHeadCount(cl, setCount) {
+    syncTabHeadCount (cl, setCount) {
       if (typeof setCount !== 'function') {
-        throw new Error('Please provide a function that returns a jQuery element ' + 'containing the tab head count to update.');
+        throw new Error('Please provide a function that returns a jQuery element '
+          + 'containing the tab head count to update.');
       }
 
       let count;
@@ -318,55 +234,42 @@ export default {
       });
     },
 
-    // remove it from the url on close of the modal
-    onOrderDetailClose() {
-      this.showOrderDetail = false;
-      if (this.willRouteFlagForOrderDetail) {
-        return;
-      }
+    /**
+     * This function is also passed into the Tab and Table views. They will
+     * be affected should you change the signature or return value.
+     */
+    openOrder (id, type = 'sale', options = {}) {
+      const opts = {
+        modalOptions: {
+          ...options.modalOptions || {},
+        },
+        addToRoute: true,
+      };
 
-      const params = deparam(location.hash.split('?')[1] || '');
-      delete params.orderID;
-      delete params.caseID;
-      app.router.navigate(`${location.hash.split('?')[0]}?${$.param(params)}`);
-    },
-
-    onConvoMarkedAsRead(orderID) {
-      let collection = this.tabOptions.collection;
-
-      const transaction = collection.get(orderID);
-      if (transaction) {
-        transaction.set({
-          unreadChatMessages: 0,
-          read: true,
-        });
-      }
-    },
-
-    markOrderAsRead(orderID) {
-      let collection = this.tabOptions.collection;
-
-      const transaction = collection.get(orderID);
-      if (transaction) {
-          transaction.set('read', true);
-        }
-    },
-
-    openOrder(id, type = 'sale') {
-      this.showOrderDetail = false;
+      let model;
 
       if (type !== 'case') {
-        this.modalModel = new Order({ orderID: id }, { type });
+        model = new Order({ orderID: id }, { type });
       } else {
-        this.modalModel = new Case({ caseID: id });
+        model = new Case({ caseID: id });
       }
-      this.modalType = type;
-      this.showOrderDetail = true;
 
-      this.markOrderAsRead(id);
+      // const orderDetail = new OrderDetail({
+      //   model,
+      //   removeOnClose: true,
+      //   returnText: app.polyglot.t(`transactions.${type}s.returnToFromOrder`),
+      //   ...opts.modalOptions,
+      // });
 
-      let addToRoute = true;
-      if (addToRoute) {
+      // orderDetail.render().open();
+
+      const orderDetail = mountOrderDetail($('.js-orderDetail'), {
+        model,
+        removeOnClose: true,
+        returnText: app.polyglot.t(`transactions.${type}s.returnToFromOrder`),
+      });
+
+      if (opts.addToRoute) {
         // add the order / case id to the url
         const params = deparam(location.hash.split('?')[1] || '');
         delete params.orderID;
@@ -375,17 +278,26 @@ export default {
         app.router.navigate(`${location.hash.split('?')[0]}?${$.param(params)}`);
       }
 
-      this.willRouteFlagForOrderDetail = false;
+      // remove it from the url on close of the modal
+      const onClose = () => {
+        const params = deparam(location.hash.split('?')[1] || '');
+        delete params.orderID;
+        delete params.caseID;
+        app.router.navigate(`${location.hash.split('?')[0]}?${$.param(params)}`);
+      };
+
+      this.listenTo(orderDetail, 'close', onClose);
+
       // Do not alter the url if the user is routing to a new route. The
       // user has already altered the url.
       this.listenTo(app.router, 'will-route', () => {
-        this.willRouteFlagForOrderDetail = true;
+        this.stopListening(orderDetail, 'close', onClose);
       });
 
       // On any changes to the order / case detail model state, we'll update the
       // state in the corresponding model in the respective collection driving
       // the transaction table.
-      this.listenTo(this.modalModel, 'change:state', (md, state) => {
+      this.listenTo(model, 'change:state', (md, state) => {
         let col = this.purchasesCol;
 
         if (type === 'sale') {
@@ -394,15 +306,19 @@ export default {
           col = this.casesCol;
         }
 
-        const collectionMd = col.get(this.modalModel.id);
+        const collectionMd = col.get(model.id);
         if (collectionMd) {
           collectionMd.set('state', state);
         }
       });
+
+      return orderDetail;
     },
 
-    getSalesPurchasesFilterConfig(isSale) {
-      const defaulFilterStates = isSale ? this.salesDefaultFilter.states : this.purchasesDefaultFilter.states;
+    getSalesPurchasesFilterConfig (isSale) {
+      const defaulFilterStates = isSale
+        ? this.salesDefaultFilter.states
+        : this.purchasesDefaultFilter.states;
 
       return [
         {
@@ -422,7 +338,8 @@ export default {
         {
           id: 'filterReady',
           text: app.polyglot.t('transactions.filters.ready'),
-          checked: defaulFilterStates.includes(2) || defaulFilterStates.includes(3) || defaulFilterStates.includes(4),
+          checked: defaulFilterStates.includes(2) || defaulFilterStates.includes(3)
+            || defaulFilterStates.includes(4),
           className: 'filter',
           targetState: [2, 3, 4],
         },
@@ -443,14 +360,16 @@ export default {
         {
           id: 'filterDisputes',
           text: app.polyglot.t('transactions.filters.disputes'),
-          checked: defaulFilterStates.includes(10) || defaulFilterStates.includes(11) || defaulFilterStates.includes(12),
+          checked: defaulFilterStates.includes(10) || defaulFilterStates.includes(11)
+            || defaulFilterStates.includes(12),
           className: 'filter',
           targetState: [10, 11, 12],
         },
         {
           id: 'filterCompleted',
           text: app.polyglot.t('transactions.filters.completed'),
-          checked: defaulFilterStates.includes(6) || defaulFilterStates.includes(7) || defaulFilterStates.includes(8),
+          checked: defaulFilterStates.includes(6) || defaulFilterStates.includes(7)
+            || defaulFilterStates.includes(8),
           className: 'filter',
           targetState: [6, 7, 8],
         },
@@ -464,31 +383,118 @@ export default {
       ];
     },
 
-    selectTab(targ, options = {}) {
+    selectTab (targ, options = {}) {
       const opts = {
         addTabToHistory: true,
         ...options,
       };
 
-      if (this._tab !== targ) {
-        this.tabKey += 1;
+      if (!this[`create${capitalize(targ)}TabView`]) {
+        throw new Error(`${targ} is not a valid tab.`);
+      }
 
+      let tabView = this.tabViewCache[targ];
+
+      if (!this.currentTabView || this.currentTabView !== tabView) {
         if (opts.addTabToHistory) {
           // add tab to history
           app.router.navigate(`transactions/${targ}`);
         }
+
         this._tab = targ;
+
+        if (this.currentTabView) this.currentTabView.$el.detach();
+
+        if (!tabView) {
+          tabView = this[`create${capitalize(targ)}TabView`]();
+          this.tabViewCache[targ] = tabView;
+          tabView.render();
+        }
+
+        this._$tabContent.append(tabView.$el);
+
+        if (typeof tabView.onAttach === 'function') {
+          tabView.onAttach.call(tabView);
+        }
+
+        this.currentTabView = tabView;
       }
     },
 
-    render() {
+    createPurchasesTabView () {
+      const view = this.createChild(Tab, {
+        collection: this.purchasesCol,
+        type: 'purchases',
+        defaultFilter: {
+          ...this.purchasesDefaultFilter,
+        },
+        initialFilter: {
+          ...this.purchasesDefaultFilter,
+          ...this.filterUrlParams,
+        },
+        filterConfig: this.getSalesPurchasesFilterConfig(false),
+        openOrder: this.openOrder.bind(this),
+        openedOrderModal: this.openedOrderModal,
+      });
+
+      return view;
+    },
+
+    createSalesTabView () {
+      const view = this.createChild(Tab, {
+        collection: this.salesCol,
+        type: 'sales',
+        defaultFilter: {
+          ...this.salesDefaultFilter,
+        },
+        initialFilter: {
+          ...this.salesDefaultFilter,
+          ...this.filterUrlParams,
+        },
+        filterConfig: this.getSalesPurchasesFilterConfig(true),
+        openOrder: this.openOrder.bind(this),
+        openedOrderModal: this.openedOrderModal,
+      });
+
+      return view;
+    },
+
+    createCasesTabView () {
+      const view = this.createChild(Tab, {
+        collection: this.casesCol,
+        type: 'cases',
+        defaultFilter: {
+          ...this.casesDefaultFilter,
+        },
+        initialFilter: {
+          ...this.casesDefaultFilter,
+          ...this.filterUrlParams,
+        },
+        filterConfig: this.casesFilterConfig,
+        openOrder: this.openOrder.bind(this),
+        openedOrderModal: this.openedOrderModal,
+      });
+
+      return view;
+    },
+
+    render () {
+      this._$tabContent = $('.js-tabContent');
+
+      if (this.miniProfile) this.miniProfile.remove();
+      this.miniProfile = this.createChild(MiniProfile, {
+        model: app.profile,
+      });
+      $('.js-miniProfileContainer').html(this.miniProfile.render().el);
+
       this.selectTab(this._tab, {
         addTabToHistory: false,
       });
 
       return this;
-    },
-  },
-};
+    }
+
+  }
+}
 </script>
 <style lang="scss" scoped></style>
