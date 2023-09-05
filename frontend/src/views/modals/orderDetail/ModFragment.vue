@@ -1,62 +1,66 @@
 <template>
   <div>
     <div class="flexVCent gutterHSm rowTn">
-      <template v-if="ob.showAvatar">
-        <div class="avatar clrBr2 clrSh1 disc" :style="ob.getAvatarBgImage(ob.avatarHashes || {})"></div>
-      </template>
-      <div>{{ ob.name }}
-        <a class="clrTEm" :href="`#${ob.peerID}`">{{ ob.handle && `@${ob.handle}` || `${ob.peerID.slice(0,
-          ob.maxPeerIDLength)}…` }}</a>
+      <div v-if="modInfo.showAvatar">
+        <div class="avatar clrBr2 clrSh1 disc" :style="ob.getAvatarBgImage(modInfo.avatarHashes || {})"></div>
+      </div>
+      <div>{{ modInfo.name }}
+        <a class="clrTEm" :href="`#${modInfo.peerID}`">{{ modInfo.handle && `@${modInfo.handle}` || `${modInfo.peerID.slice(0,
+          modInfo.maxPeerIDLength)}…` }}</a>
       </div>
     </div>
-    <div ref="verifiedMod" class="js-verifiedMod">
-      <VerifiedMod :key="modKey" :options="modOptions" />
-    </div>
+    <div class="js-verifiedMod"></div>
 
   </div>
 </template>
 
 <script>
-import { getModeratorOptions } from '@/utils/verifiedMod';
+import VerifiedMod, { getModeratorOptions } from '../../../../backbone/views/components/VerifiedMod';
 import app from '../../../../backbone/app';
 
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    bb: Function,
   },
   data () {
     return {
-      _state: {
-        maxPeerIDLength: 8,
+      modInfo: {
         showAvatar: false,
-      },
-      peerID: '',
-      modKey: 0,
+        avatarHashes: [],
+        name: '',
+        peerID: '',
+        handle: '',
+        maxPeerIDLength: 8,
+      }
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
+    this.render();
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.model.toJSON(),
-        ...this._state,
-      };
+  },
+  methods: {
+    loadData (options = {}) {
+
+      this.options = options;
+      this.verifiedModModel = app.verifiedMods.get(this.modInfo.peerID);
+
+      this.listenTo(app.verifiedMods, 'update', () => {
+        const newVerifiedModModel = app.verifiedMods.get(this.modInfo.peerID);
+        if (newVerifiedModModel !== this.verifiedModModel) {
+          this.verifiedModModel = newVerifiedModModel;
+          this.render();
+        }
+      });
     },
 
-    modOptions() {
-      const verifiedMod = app.verifiedMods.get(this.peerID);
+    render () {
+
+      const verifiedMod = app.verifiedMods.get(this.modInfo.peerID);
       const createOptions = getModeratorOptions({
         model: verifiedMod,
       });
@@ -67,32 +71,14 @@ export default {
           name: `<b>${app.verifiedMods.data.name}</b>`,
         });
       }
-      return createOptions;
+
+      if (this.verifiedMod) this.verifiedMod.remove();
+      this.verifiedMod = this.createChild(VerifiedMod, createOptions);
+      this.getCachedEl('.js-verifiedMod').append(this.verifiedMod.render().el);
+
+      return this;
     }
-  },
-  methods: {
-    loadData (options = {}) {
-      this.baseInit({
-        ...options,
-        initialState: {
-          maxPeerIDLength: 8,
-          showAvatar: false,
-          ...options.initialState,
-        },
-      });
 
-      this.peerID = this.model.get('peerID');
-
-      this.verifiedModModel = app.verifiedMods.get(this.peerID);
-
-      this.listenTo(app.verifiedMods, 'update', () => {
-        const newVerifiedModModel = app.verifiedMods.get(this.peerID);
-        if (newVerifiedModModel !== this.verifiedModModel) {
-          this.verifiedModModel = newVerifiedModModel;
-          this.modKey += 1;
-        }
-      });
-    },
   }
 }
 </script>

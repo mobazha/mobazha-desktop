@@ -1,6 +1,6 @@
 <template>
   <div class="convoMessage">
-    <template v-if="!ob.outgoing">
+    <div v-if="!ob.outgoing">
       <div class="gutterH flex rowLg">
         <a :href="`#${ob.peerID}`" :class="`avatar disc clrBr2 clrSh1 flexNoShrink ${!ob.showAvatar ? 'invisible' : ''}`"
           :style="ob.showAvatar ? ob.getAvatarBgImage(ob.avatarHashes) : ''"></a>
@@ -8,33 +8,33 @@
           <div :class="`contentBox msgContentBox clrBr clrP clrSh2 ${ob.showTimestampLine ? 'rowSm' : ''}`">
             <span class="tx5">{{ ob.processedMessage }}</span>
           </div>
-          <template v-if="ob.showTimestampLine">
+          <div v-if="ob.showTimestampLine">
             <div>
               <span class="clrT2 tx6">{{ timeLine }}</span>
             </div>
-          </template>
+          </div>
         </div>
       </div>
-    </template>
+    </div>
 
-    <template v-else>
+    <div v-else>
       <div class="flexHRight gutterH rowLg">
         <div class="posR flexExpand">
           <div
-            :class="`contentBox msgContentBox clrBr clrP clrSh2 ${ob.showAsRead ? 'read' : ''} ${ob.showTimestampLine ? 'rowSm' : ''}`">
+            :class="`contentBox msgContentBox clrBr clrP clrSh2 <% if (ob.showAsRead) print('read') %> ${ob.showTimestampLine ? 'rowSm' : ''}`">
             <span class="tx5">{{ ob.processedMessage }}</span>
           </div>
-          <template v-if="ob.showTimestampLine">
+          <div v-if="ob.showTimestampLine">
             <div>
               <span class="clrT2 tx6">{{ timeLine }}</span>
             </div>
-          </template>
+          </div>
         </div>
-        <a :href="`#${ob.ownGuid}`"
+        <a :href="`#${app.profile.id}`"
           :class="`avatar disc clrBr2 clrSh1 flexNoShrink ${!ob.showAvatar ? 'invisible' : ''}`"
           :style="ob.showAvatar ? ob.getAvatarBgImage(ob.avatarHashes) : ''"></a>
       </div>
-    </template>
+    </div>
 
   </div>
 </template>
@@ -45,60 +45,27 @@ import moment from 'moment';
 import twemoji from 'twemoji';
 import { capitalize } from '../../../../backbone/utils/string';
 import { setTimeagoInterval } from '../../../../backbone/utils';
-import app from '../../../../backbone/app';
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    bb: Function,
+    cart: Object,
   },
   data () {
     return {
-      _state: {
-        showAvatar: true,
-        showTimestampLine: true,
-        showAsRead: false,
-      }
+      showAvatar: true,
+      showTimestampLine: true,
+      showAsRead: false,
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
-  },
-  unmounted() {
-    this.timeAgoInterval.cancel();
+    this.render();
   },
   computed: {
-    ob () {
-      let message = this.model.get('message');
-
-      // Give any links the emphasis color.
-      const $msgHtml = $(`<div>${message}</div>`);
-
-      $msgHtml.find('a').addClass('clrTEm');
-
-      // Convert any unicode emoji characters to images via Twemoji
-      message = twemoji.parse($msgHtml.html(), icon => (`./imgs/emojis/72X72/${icon}.png`));
-      
-      return {
-        ...this.templateHelpers,
-        ...this.model.toJSON(),
-        ...this._state,
-        moment,
-        message,
-        capitalize,
-        ownGuid: app.profile.id,
-      };
-    },
-
     timeLine () {
-      const ob = this.ob;
       return ob.polyT('orderDetail.discussionTab.timeLineAndRole', {
         timeFromNow: moment(ob.timestamp).fromNow(),
         role: ob.polyT(`orderDetail.discussionTab.role${capitalize(ob.role)}`)
@@ -107,20 +74,35 @@ export default {
   },
   methods: {
     loadData (options = {}) {
-      if (!this.model) {
+      if (!options.model) {
         throw new Error('Please provide a model.');
       }
 
-      this.baseInit({
-        ...options,
-        initialState: {
-          showAvatar: true,
-          showTimestampLine: true,
-          showAsRead: false,
-          ...options.initialState,
-        },
+      this.listenTo(this.model, 'change', () => this.render());
+      this.timeAgoInterval = setTimeagoInterval(this.model.get('timestamp'), () => {
+        const timeAgo = moment(this.model.get('timestamp')).fromNow();
+        if (timeAgo !== this.renderedTimeAgo) this.render();
       });
     },
+
+    remove () {
+      this.timeAgoInterval.cancel();
+      super.remove();
+    },
+
+    render () {
+      let message = this.model.get('message');
+
+      // Give any links the emphasis color.
+      const $msgHtml = $(`<div>${message}</div>`);
+
+      $msgHtml.find('a').addClass('clrTEm');
+
+      // Convert any unicode emoji characters to images via Twemoji
+      message = twemoji.parse($msgHtml.html(), icon => (`../imgs/emojis/72X72/${icon}.png`));
+
+      return this;
+    }
   }
 }
 </script>

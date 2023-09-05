@@ -13,16 +13,8 @@
           <div for="fulfillOrderNote">{{ ob.polyT(`orderDetail.disputeOrderTab.moderatorLabel`) }}</div>
         </div>
         <div class="col7">
-          <div class="js-modContainer">
-            <ModFragment v-if="modProfile"
-              :options="moderatorState"
-              :bb="function() {
-                return {
-                  model: modProfile,
-                };
-              }"
-            />
-          </div>
+          <div class="js-modContainer"></div>
+          <ModFragment :modInfo="moderatorState" />
         </div>
       </div>
       <div class="flexRow gutterH rowHg">
@@ -30,33 +22,26 @@
           <label for="fulfillOrderNote">{{ ob.polyT(`orderDetail.disputeOrderTab.reasonLabel`) }}</label>
         </div>
         <div class="col7">
-          <FormError v-if="ob.errors['claim']" :errors="ob.errors['claim']" />
-          <textarea
-            v-focus
-            rows="6"
-            name="claim"
-            class="clrBr clrP clrSh2 row"
-            id="fulfillOrderNote"
-            :placeholder="ob.polyT(`orderDetail.disputeOrderTab.reasonPlaceholder`)"
-            v-model="claim" />
+          <FormError v-if="errors['claim']" :errors="errors['claim']" />
+          <textarea rows="6" name="claim" class="clrBr clrP clrSh2 row" id="fulfillOrderNote"
+            :placeholder="ob.polyT(`orderDetail.disputeOrderTab.reasonPlaceholder`)" v-model="ob.reason" />
           <p class="clrT2 txSm">{{ ob.polyT(`orderDetail.disputeOrderTab.reasonHelperText`) }}</p>
-          <p v-if="ob.timeoutMessage" class="clrT2 txSm">{{ ob.timeoutMessage }}</p>
+          <p v-if="options.timeoutMessage" class="clrT2 txSm">{{ options.timeoutMessage }}</p>
         </div>
       </div>
     </form>
     <hr class="clrBr" />
     <div class="buttonBar flexHRight flexVCent gutterHLg">
-      <a :disabled="processing" @click="onClickCancel">{{ ob.polyT('orderDetail.disputeOrderTab.btnCancel') }}</a>
+      <a class="js-cancel" :disabled="openingDispute" @click="onClickCancel">{{
+        ob.polyT('orderDetail.disputeOrderTab.btnCancel') }}</a>
       <ProcessingButton
-        :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph ${processing ? 'processing' : ''}`"
+        :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph js-submit ${openingDispute ? 'processing' : ''}`"
         :btnText="ob.polyT(`orderDetail.fulfillOrderTab.btnSubmit`)" @click="onClickSubmit" />
     </div>
   </div>
 </template>
 
 <script>
-import $ from 'jquery';
-import OrderDispute from '../../../../backbone/models/order/OrderDispute';
 import {
   openingDispute,
   openDispute,
@@ -71,71 +56,53 @@ export default {
   components: {
     ModFragment,
   },
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
   },
   data () {
     return {
-      _model: undefined,
-      _modelKey: 0,
+      autoFocusFirstField: true,
 
-      claim: '',
-
-      processing: false,
+      openingDispute: false,
+      reason: '',
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
+    this.render();
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.model.toJSON(),
-        errors: this.model.validationError || {},
-        timeoutMessage: this.options.timeoutMessage,
-      };
-    },
-    model() {
-      let access = this._modelKey;
-
-      return this._model;
+    errors () {
+      return this.model.validationError || {};
     },
     moderatorState() {
       return {
         peerID: this.options.moderator.id,
         showAvatar: true,
+        ...(this.modProfile && this.modProfile.toJSON() || {}),
       };
     },
   },
   methods: {
     loadData (options = {}) {
-      if (!options.orderID) {
-        throw new Error('Please provide the orderID.');
+      if (!this.model) {
+        throw new Error('Please provide a DisputeOrder model.');
       }
 
       checkValidParticipantObject(options.moderator, 'moderator');
-
-      this.baseInit(options);
-
-      this._model = new OrderDispute({ orderID: options.orderID });
-      this._model.on('change', () => this._modelKey += 1);
 
       options.moderator.getProfile()
         .done((modProfile) => {
           this.modProfile = modProfile;
         });
 
-      this.processing = !!openingDispute(this._model.id);
+      this.options = options;
+
       this.listenTo(orderEvents, 'openingDispute', this.onOpeningDispute);
-      this.listenTo(orderEvents, 'openDisputeComplete, openDisputeFail', this.onOpenDisputeAlways);
+      this.listenTo(orderEvents, 'openDisputeComplete, openDisputeFail',
+        this.onOpenDisputeAlways);
     },
 
     onClickBackToSummary () {
@@ -147,34 +114,45 @@ export default {
       this.model.reset();
       // restore the id reset blew away
       this.model.set({ orderID: id });
-
+      this.render();
       this.$emit('clickCancel');
       recordEvent('OrderDetails_DisputeSubmitCancel');
     },
 
     onClickSubmit () {
-      this.model.set({ claim: this.claim }, { validate: true });
+      const formData = this.getFormData();
+      this.model.set(formData);
+      this.model.set({}, { validate: true });
 
       if (!this.model.validationError) {
         recordEvent('OrderDetails_DisputeSubmit');
         openDispute(this.model.id, this.model.toJSON());
       }
 
-      const firstErr = $('.errorList:first');
-      if (firstErr.length) firstErr[0].scrollIntoViewIfNeeded();
+      this.render();
+      const $firstErr = $('.errorList:first');
+      if ($firstErr.length) $firstErr[0].scrollIntoViewIfNeeded();
     },
 
     onOpeningDisputeOrder (e) {
       if (e.id === this.model.id) {
-        this.processing = true;
+        this.getCachedEl('.js-submit').addClass('processing');
+        this.getCachedEl('.js-cancel').addClass('disabled');
       }
     },
 
     onOpenDisputeAlways (e) {
       if (e.id === this.model.id) {
-        this.processing = false;
+        this.getCachedEl('.js-submit').removeClass('processing');
+        this.getCachedEl('.js-cancel').removeClass('disabled');
       }
     },
+
+    render () {
+      this.openingDispute = !!openingDispute(this.model.id);
+
+      return this;
+    }
   }
 }
 </script>

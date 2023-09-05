@@ -7,54 +7,37 @@
       <div class="txCtr txB tx3 flexExpand">{{ ob.polyT(`orderDetail.contractTab.heading`) }}</div>
     </div>
     <hr class="clrBr rowLg" />
-    <div class="js-statusContainer rowLg" v-html="statusMsg"></div>
-    <template v-for="(contract, key) in contracts" :key="key">
-      <Contract refs="contractVws" :options="contractOptions(contract)"/>
-    </template>
+    <div class="js-statusContainer rowLg"></div>
   </div>
 </template>
 
 <script>
-import $ from 'jquery';
 import app from '../../../../../backbone/app';
-import Contract from './Contract.vue';
+import Contract from './Contract';
 
 
 export default {
-  components: {
-    Contract,
-  },
-  props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    bb: Function,
-  },
   data () {
     return {
-      contracts: [],
-
-      statusMsg: '',
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
-    this.loadContracts();
+    this.render();
   },
   computed: {
   },
   methods: {
     loadData (options = {}) {
-      this.baseInit(options);
+      super(options);
 
       if (!this.model) {
         throw new Error('Please provide a model.');
       }
+
+      this.options = options || {};
 
       if (this.model.isCase &&
         (!this.model.get('vendorContract') ||
@@ -62,18 +45,28 @@ export default {
         this.listenTo(this.model, 'otherContractArrived', (md, data) => {
           const rawContract = this.model.get(`raw${data.isBuyer ? 'Buyer' : 'Vendor'}Contract`);
 
-          if (!this.model.bothContractsValid) this.contracts.push(rawContract);
+          if (!this.model.bothContractsValid) this.renderContract(rawContract);
           this.renderStatus();
 
-          if (this.model.bothContractsValid && this.$refs.contractVws) {
-            this.$refs.contractVws.forEach((vw) => { vw.setState({ heading: '' }); });
+          if (this.model.bothContractsValid) {
+            this[`${data.isBuyer ? 'vendor' : 'buyer'}ContractVw`].setState({ heading: '' });
           }
         });
       }
     },
 
+    events () {
+      return {
+        'click .renderjson a': 'onClickRenderjsonLink',
+      };
+    },
+
     onClickBackToSummary () {
-      this.$emit('clickBackToSummary');
+      this.trigger('clickBackToSummary');
+    },
+
+    onClickRenderjsonLink () {
+      return false;
     },
 
     renderStatus () {
@@ -108,14 +101,10 @@ export default {
         }
       }
 
-      this.statusMsg = msg;
+      $('.js-statusContainer').html(msg);
     },
 
-    contractOptions (contract) {
-      if (!this.model.isCase) {
-        return { contract };
-      }
-
+    renderContract (contract) {
       if (!contract) {
         throw new Error('Please provide a contract.');
       }
@@ -128,27 +117,31 @@ export default {
           app.polyglot.t('orderDetail.contractTab.contractHeadingBuyer') :
           app.polyglot.t('orderDetail.contractTab.contractHeadingVendor');
       }
-      
-      return {
-        contract,
-        initialState: {
-          heading,
-          errors: isBuyerContract ?
-            this.model.get('buyerContractValidationErrors') || [] :
-            this.model.get('vendorContractValidationErrors') || [],
-        },
-      };
+
+      const view = this[`${isBuyerContract ? 'buyer' : 'vendor'}ContractVw`] =
+        this.createChild(Contract, {
+          contract,
+          initialState: {
+            heading,
+            errors: isBuyerContract ?
+              this.model.get('buyerContractValidationErrors') || [] :
+              this.model.get('vendorContractValidationErrors') || [],
+          },
+        });
+
+      this.$el.append(view.render().el);
     },
 
-    loadContracts () {
-      this.contracts = [];
-
+    render () {
       this.renderStatus();
 
       if (!this.model.isCase) {
-        this.contracts.push(this.model.get('rawContract'));
+        this.contractVw = this.createChild(Contract, {
+          contract: this.model.get('rawContract'),
+        });
+        this.$el.append(this.contractVw.render().el);
       } else {
-        this.contracts = [
+        const contracts = [
           this.model.get('buyerOpened') ?
             this.model.get('rawBuyerContract') :
             this.model.get('rawVendorContract'),
@@ -159,14 +152,19 @@ export default {
           // both have validation errors.
           if (this.model.get('buyerOpened')) {
             if (this.model.get('vendorContract')) {
-              this.contracts.push(this.model.get('rawVendorContract'));
+              contracts.push(this.model.get('rawVendorContract'));
             }
           } else if (this.model.get('buyerContract')) {
-            this.contracts.push(this.model.get('rawBuyerContract'));
+            contracts.push(this.model.get('rawBuyerContract'));
           }
         }
+
+        contracts.forEach(contract => this.renderContract(contract));
       }
+
+      return this;
     }
+
   }
 }
 </script>

@@ -1,9 +1,9 @@
 <template>
   <div class="actionBar gutterV">
-    <template v-if="ob.showDisputeOrderButton">
+    <div v-if="ob.showDisputeOrderButton">
       <ProcessingButton className="flex btn clrErr clrBrDec1 clrTOnEmph"
         :btnText="ob.polyT('orderDetail.actionBar.disputeOrderBtn')" @click="onClickOpenDispute" />
-    </template>
+    </div>
   </div>
 </template>
 
@@ -12,43 +12,27 @@ import _ from 'underscore';
 
 
 export default {
-  props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-  },
+  mixins: [],
   data () {
     return {
-      _state: {
-        showDisputeOrderButton: false,
-      }
+      showDisputeOrderButton: false,
     };
   },
   created () {
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this._state,
-      };
-    }
   },
   methods: {
     loadData (options = {}) {
-      this.baseInit(options);
-
       if (!options.orderID) {
         throw new Error('Please provide the order id.');
       }
 
       this.orderID = options.orderID;
       this._state = {
-        showDisputeOrderButton: false,
         ...options.initialState || {},
       };
     },
@@ -72,6 +56,7 @@ export default {
 
       if (renderOnChange && !_.isEqual(this._state, newState)) {
         this._state = newState;
+        this.render();
       }
 
       return this;
