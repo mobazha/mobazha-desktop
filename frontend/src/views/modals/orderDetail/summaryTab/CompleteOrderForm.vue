@@ -7,20 +7,21 @@
           <div class="flexVBase rowSm">
             <label class="txB tx5 required flexNoShrink" for="completeOrderReview">{{ ob.polyT('orderDetail.summaryTab.completeOrderForm.reviewLabel') }}</label>
             <div class="flexHRight">
-              <span class="clrT2 tx6">{{ ob.polyT('orderDetail.summaryTab.completeOrderForm.maxReviewChars', { max: ob.constraints.maxReviewCharacters}) }}</span>
+              <span class="clrT2 tx6">{{ ob.polyT('orderDetail.summaryTab.completeOrderForm.maxReviewChars', { max: constraints.maxReviewCharacters}) }}</span>
             </div>
           </div>
-          <FormError v-if="ob.errors.review" :errors="ob.errors.review" />
+          <FormError v-if="errors.review" :errors="errors.review" />
           <textarea rows="8" name="review" class="clrBr clrP clrSh2 rowMd" id="completeOrderReview"
-            placeholder="Write your review here…" :maxlength="ob.constraints.maxReviewCharacters" v-model="formData.review" />
+            placeholder="Write your review here…" :maxlength="constraints.maxReviewCharacters" v-model="rating.review" />
           <div class="flexVCent gutterH">
             <ProcessingButton
               :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph js-completeOrder ${isCompleting ? 'processing' : ''}`"
               :btnText="ob.polyT('orderDetail.summaryTab.completeOrderForm.btnCompleteOrder')"
               @click="onClickCompleteOrder" />
             <div class="gutterHSm">
-              <FormError v-if="ob.errors.anonymous" :errors="ob.errors.anonymous" />
-              <input type="checkbox" v-model="formData.nonAnonymous" id="completeOrderAnon" class="centerLabel" data-var-type="boolean">
+              <FormError v-if="errors.anonymous" :errors="errors.anonymous" />
+              <input type="checkbox" name="anonymous" id="completeOrderAnon" class="centerLabel" data-var-type="boolean"
+                :checked="!rating.anonymous">
               <label for="completeOrderAnon" class="clrT2 tx5b">{{ ob.polyT('orderDetail.summaryTab.completeOrderForm.anonCheckLabel') }}</label>
             </div>
           </div>
@@ -28,28 +29,28 @@
         <div class="col3 ratingsCol">
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.overall') }}</div>
-            <FormError v-if="ob.errors.overall" :errors="ob.errors.overall" />
-            <RatingsStrip v-model:rating="ratingData.overall" :options="{ clickable: true, }" />
+            <FormError v-if="errors.overall" :errors="errors.overall" />
+            <div class="ratingsContainer" data-rating-type="overall"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.quality') }}</div>
-            <FormError v-if="ob.errors.quality" :errors="ob.errors.quality" />
-            <RatingsStrip v-model:rating="ratingData.quality" :options="{ clickable: true, }" />
+            <FormError v-if="errors.quality" :errors="errors.quality" />
+            <div class="ratingsContainer" data-rating-type="quality"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.asAdvertised') }}</div>
-            <FormError v-if="ob.errors.description" :errors="ob.errors.description" />
-            <RatingsStrip v-model:rating="ratingData.description" :options="{ clickable: true, }" />
+            <FormError v-if="errors.description" :errors="errors.description" />
+            <div class="ratingsContainer" data-rating-type="description"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.delivery') }}</div>
-            <FormError v-if="ob.errors.deliverySpeed" :errors="ob.errors.deliverySpeed" />
-            <RatingsStrip v-model:rating="ratingData.deliverySpeed" :options="{ clickable: true, }" />
+            <FormError v-if="errors.deliverySpeed" :errors="errors.deliverySpeed" />
+            <div class="ratingsContainer" data-rating-type="deliverySpeed"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.service') }}</div>
-            <FormError v-if="ob.errors.customerService" :errors="ob.errors.customerService" />
-            <RatingsStrip v-model:rating="ratingData.customerService" :options="{ clickable: true, }" />
+            <FormError v-if="errors.customerService" :errors="errors.customerService" />
+            <div class="ratingsContainer" data-rating-type="customerService"></div>
           </div>
         </div>
       </div>
@@ -60,7 +61,6 @@
 
 <script>
 import $ from 'jquery';
-import OrderCompletion from '../../../../../backbone/models/order/orderCompletion/OrderCompletion';
 import {
   completeOrder,
   completingOrder,
@@ -68,149 +68,122 @@ import {
 } from '../../../../../backbone/utils/order';
 import { recordEvent } from '../../../../../backbone/utils/metrics';
 import Rating from '../../../../../backbone/models/order/orderCompletion/Rating';
+import RatingsStrip from '../../../../../backbone/views/RatingsStrip';
 
-import RatingsStrip from '../../../RatingsStrip.vue';
 
 export default {
-  components: {
-    RatingsStrip,
-  },
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    bb: Function,
+    cart: Object,
   },
   data () {
     return {
-      _model: undefined,
-      _modelKey: 0,
-
-      rating: undefined,
-      ratings: undefined,
-
-      formData: {
-        review: '',
-        nonAnonymous: true,
-      },
-      // If a rating is not set, the RatingStrip view will return 0. We'll
-      // send undefined in that case since it gives us the error message we
-      // prefer.
-      ratingData: {
-        overall: undefined,
-        quality: undefined,
-        description: undefined,
-        deliverySpeed: undefined,
-        customerService: undefined,
-      },
-      isCompleting: false,
+      ob: {},
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
+    this.render();
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.rating.toJSON(),
-        errors: this.rating.validationError || {},
-        constraints: this.rating.constraints || {},
-      };
+    errors () {
+      return this.rating.validationError || {};
     },
-
-    model() {
-      let access = this._modelKey;
-
-      return this._model;
+    constraints () {
+      return this.rating.constraints || {};
     }
   },
   methods: {
     loadData (options = {}) {
-      if (!options.orderID) {
-        throw new Error('Please provide the orderID.');
+      super(options);
+
+      if (!options.model) {
+        throw new Error('Please provide an OrderCompletion model.');
       }
 
-      if (!options.listings) {
-        throw new Error('Please provide the listings.');
+      if (!options.slug) {
+        throw new Error('Please provide the listing slug.');
       }
-
-      this.baseInit(options);
-
-      const completingObject = completingOrder(this.orderID);
-      this._model = new OrderCompletion(
-        completingObject ? completingObject.data : { orderID: this.orderID },
-      );
-      this._model.on('change', () => this._modelKey += 1);
 
       this.ratingStrips = {};
+      this.slug = options.slug;
 
-      this.ratings = this._model.get('ratings');
+      const ratings = this.model.get('ratings');
 
-      if (this.ratings.length) {
-        this.rating = this.ratings.at(0);
+      if (ratings.length) {
+        this.rating = ratings.at(0);
       } else {
         this.rating = new Rating();
+        ratings.push(this.rating);
       }
 
-      const ratingFields = [
-        'overall',
-        'quality',
-        'description',
-        'deliverySpeed',
-        'customerService',
-      ];
-      ratingFields.forEach((type) => {
-        this.ratingData[type] = this.rating.get(type);
-      })
-
-      this.isCompleting = !!completingOrder(this._model.id);
       this.listenTo(orderEvents, 'completingOrder', () => {
-        this.isCompleting = true;
+        this.getCachedEl('.js-completeOrder').addClass('processing');
       });
 
       this.listenTo(orderEvents, 'completeOrderComplete completeOrderFail', () => {
-        this.isCompleting = false;
+        this.getCachedEl('.js-completeOrder').removeClass('processing');
       });
     },
 
     onClickCompleteOrder () {
+      const formData = this.getFormData();
+
       const data = {
-        ...this.formData,
-        anonymous: !this.formData.nonAnonymous,
-        ...this.ratingData,
+        ...formData,
+        anonymous: !formData.anonymous,
+        // If a rating is not set, the RatingStrip view will return 0. We'll
+        // send undefined in that case since it gives us the error message we
+        // prefer.
+        overall: this.ratingStrips.overall.rating || undefined,
+        quality: this.ratingStrips.quality.rating || undefined,
+        description: this.ratingStrips.description.rating || undefined,
+        deliverySpeed: this.ratingStrips.deliverySpeed.rating || undefined,
+        customerService: this.ratingStrips.customerService.rating || undefined,
         slug: this.slug,
       };
 
-      // Use the same ratings for all items from shopping cart
-      this.ratings.reset();
-      let hasError = false;
-      this.listings.forEach(listing => {
-        const rating = new Rating();
-        data.slug = listing.slug;
+      this.rating.set(data);
+      this.rating.set(data, { validate: true });
 
-        rating.set(data);
-        rating.set(data, { validate: true });
-        if (rating.validationError) {
-          hasError = true;
-        } else {
-          this.ratings.push(rating);
-        }
-      })
-
-      if (!hasError) {
-        completeOrder(this.model.id, this.model.toJSON(), this.options.paymentCoin);
+      if (!this.rating.validationError) {
+        completeOrder(this.model.id, this.model.toJSON());
         recordEvent('OrderDetails_CompleteOrder');
       }
 
+      this.render();
       const $firstErr = $('.errorList:first');
       if ($firstErr.length) $firstErr[0].scrollIntoViewIfNeeded();
     },
+
+    render () {
+      this.isCompleting = !!completingOrder(this.model.id);
+
+      $('.ratingsContainer').each((index, element) => {
+        const $el = $(element);
+        const type = $el.data('ratingType');
+
+        if (!type) {
+          throw new Error('Unable to render a ratings strips because it\'s container does not ' +
+            'specify a type.');
+        }
+
+        if (this.ratingStrips[type]) this.ratingStrips[type].remove();
+        this.ratingStrips[type] = this.createChild(RatingsStrip, {
+          initialState: {
+            curRating: this.rating.get(type) || 0,
+            clickable: true,
+          },
+        });
+
+        $el.append(this.ratingStrips[type].render().el);
+      });
+
+      return this;
+    }
+
   }
 }
 </script>
