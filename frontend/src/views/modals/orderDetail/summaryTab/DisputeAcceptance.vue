@@ -1,9 +1,9 @@
 <template>
   <div class="disputeAcceptanceEvent rowLg">
     <h2 class="tx4 margRTn">{{ ob.polyT('orderDetail.summaryTab.disputeAcceptance.heading') }}</h2>
-    <template v-if="ob.timestamp">
+    <div v-if="ob.timestamp">
       <span class="clrT2 tx5b">{{ ob.moment(ob.timestamp).format('lll') }}</span>
-    </template>
+    </div>
     <div class="border clrBr padMd">
       <div class="flexVCent gutterH clrT">
         <div class="avatarCol disc clrBr2 clrSh1 flexNoShrink" :style="ob.getAvatarBgImage(ob.closerAvatarHashes)"></div>
@@ -22,55 +22,43 @@ import _ from 'underscore';
 import moment from 'moment';
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {
-        closerName: '',
-        closerAvatarHashes: {},
-        buyerViewing: false,
-        vendorProcessingError: false,
-      },
-    },
+    cart: Object,
   },
   data () {
     return {
+      closerName: '',
+      closerAvatarHashes: {},
+      buyerViewing: false,
+      vendorProcessingError: false,
+
+      introLine: '',
+      subText: '',
     };
   },
   created () {
-    this.initEventChain();
+    this.loadData(this.$props);
   },
   mounted () {
   },
   computed: {
-    ob() {
-      return {
-        ...this.templateHelpers,
-        ...this.options,
-        moment,
-      };
-    },
-
     introLine () {
-      const ob = this.ob;
-
-      if (ob.closerName) {
-        return ob.polyT('orderDetail.summaryTab.disputeAcceptance.userAcceptedPayout', { name: ob.closerName, });
+      if (this.closerName) {
+        return ob.polyT('orderDetail.summaryTab.disputeAcceptance.userAcceptedPayout', { name: this.closerName, });
       } else {
-        return ob.acceptedByBuyer ?
+        return this.acceptedByBuyer ?
           ob.polyT('orderDetail.summaryTab.disputeAcceptance.genericBuyerAcceptedPayout') :
           ob.polyT('orderDetail.summaryTab.disputeAcceptance.genericVendorAcceptedPayout');
       }
     },
 
     subText () {
-      const ob = this.ob;
-
-      if (!ob.vendorProcessingError) {
+      if (!this.vendorProcessingError) {
         // Since the text indicates the order will be complete after leaving a review and you
         // can't leave a review if the vendor has an error processing the order, we'll omit the
         // text in that case.
-        return ob.buyerViewing ?
+        return this.buyerViewing ?
           ob.polyT('orderDetail.summaryTab.disputeAcceptance.orderCompleteWhenYouReview') :
           ob.polyT('orderDetail.summaryTab.disputeAcceptance.orderCompleteWhenBuyerReviews');
       }
@@ -79,6 +67,10 @@ export default {
   },
   methods: {
     moment,
+    loadData (options = {}) {
+
+    },
+
   }
 }
 </script>

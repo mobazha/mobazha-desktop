@@ -1,9 +1,9 @@
 <template>
-  <div class="disputePayoutEvent rowLg" @click="onDocumentClick">
+  <div class="disputePayoutEvent rowLg">
     <h2 class="tx4 margRTn">{{ ob.polyT('orderDetail.summaryTab.disputePayout.heading') }}</h2>
-    <template v-if="ob.timestamp">
-      <span class="clrT2 tx5b">{{ ob.moment(ob.timestamp).format('lll') }}</span>
-    </template>
+    <div v-if="ob.timestamp">
+      <span class="clrT2 tx5b">{{ moment(ob.timestamp).format('lll') }}</span>
+    </div>
     <div class="border clrBr padMd">
       <div class="flexRow row">
         <div class="col8 gutterV">
@@ -11,37 +11,37 @@
             <div class="avatarCol disc clrBr2 clrSh1 flexNoShrink" :style="ob.getAvatarBgImage(ob.buyerAvatarHashes)">
             </div>
             <div class="flexExpand tx5">
-              <div class="rowTn txB">{{ partyInfo.partyHeadings.buyer }}</div>
-              <div>{{ partyInfo.priceLines.buyer }}</div>
+              <div class="rowTn txB">{{ partyHeadings.buyer }}</div>
+              <div>{{ priceLines.buyer }}</div>
             </div>
           </div>
           <div class="flex gutterH clrT">
             <div class="avatarCol disc clrBr2 clrSh1 flexNoShrink" :style="ob.getAvatarBgImage(ob.vendorAvatarHashes)">
             </div>
             <div class="flexExpand tx5">
-              <div class="rowTn txB">{{ partyInfo.partyHeadings.vendor }}</div>
-              <div>{{ partyInfo.priceLines.vendor }}</div>
+              <div class="rowTn txB">{{ partyHeadings.vendor }}</div>
+              <div>{{ priceLines.vendor }}</div>
             </div>
           </div>
           <div class="flex gutterH clrT">
             <div class="avatarCol disc clrBr2 clrSh1 flexNoShrink" :style="ob.getAvatarBgImage(ob.moderatorAvatarHashes)">
             </div>
             <div class="flexExpand tx5">
-              <div class="rowTn txB">{{ partyInfo.partyHeadings.moderator }}</div>
-              <div>{{ partyInfo.priceLines.moderator }}</div>
+              <div class="rowTn txB">{{ partyHeadings.moderator }}</div>
+              <div>{{ priceLines.moderator }}</div>
             </div>
           </div>
         </div>
         <div class="col4 flexHRight">
           <div class="posR">
-            <template v-if="ob.showAcceptButton">
+            <div v-if="ob.showAcceptButton">
               <ProcessingButton
                 :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph tx5b js-acceptPayout ${acceptInProgress ? 'processing' : ''}`"
                 :disabled="acceptConfirmOn" :btnText="ob.polyT('orderDetail.summaryTab.disputePayout.btnAcceptPayout')"
-                @click.stop="onClickAcceptPayout" />
-            </template>
-            <template v-if="acceptConfirmOn">
-              <div class="confirmBox acceptPayoutConfirm tx5 arrowBoxTop clrBr clrP clrT" @click.stop.prevent>
+                @click="onClickAcceptPayout" />
+            </div>
+            <div v-if="ob.acceptConfirmOn">
+              <div class="confirmBox acceptPayoutConfirm tx5 arrowBoxTop clrBr clrP clrT" @click="onClickAcceptPayoutConfirmedBox">
                 <div class="tx3 txB rowSm">{{ ob.polyT('orderDetail.summaryTab.disputePayout.acceptPayoutConfirm.title') }}</div>
                 <p>{{ ob.polyT('orderDetail.summaryTab.disputePayout.acceptPayoutConfirm.body') }}</p>
                 <hr class="clrBr row" />
@@ -50,7 +50,7 @@
                   <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph" @click="onClickAcceptPayoutConfirmed">{{ ob.polyT('orderDetail.summaryTab.disputePayout.acceptPayoutConfirm.btnConfirm') }}</a>
                 </div>
               </div>
-            </template>
+            </div>
           </div>
         </div>
       </div>
@@ -68,6 +68,7 @@
 </template>
 
 <script>
+import $ from 'jquery';
 import app from '../../../../../backbone/app';
 import moment from 'moment';
 import {
@@ -78,88 +79,42 @@ import {
 import { recordEvent } from '../../../../../backbone/utils/metrics';
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {
-        buyerName: '',
-        buyerAvatarHashes: '',
-        vendorName: '',
-        vendorAvatarHashes: '',
-        moderatorName: '',
-        moderatorAvatarHashes: '',
-        paymentCoin: '',
-      },
-    },
+    cart: Object,
   },
   data () {
     return {
       userCurrency: app.settings.get('localCurrency') || 'USD',
-
+      showAcceptButton: false,
       acceptConfirmOn: false,
-      acceptInProgress: false,
+      paymentCoin: undefined,
+
+      priceLines: {},
+      partyHeadings: {},
+      noteFromHeading: '',
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        showAcceptButton: false,
-        ...this.options,
-        moment,
-      };
-    },
-
-    partyInfo() {
-      let partyInfo = {
-        partyHeadings: {},
-        priceLines: {},
-      };
-
-      const ob = this.ob;
-
-      ['buyer', 'vendor', 'moderator'].forEach((type, index) => {
-        partyInfo.partyHeadings[type] = ob[`${type}Name`] ?
-          ob.polyT(`orderDetail.summaryTab.disputePayout.${type}HeadingWithName`, { name: ob[`${type}Name`] }) :
-          ob.polyT(`orderDetail.summaryTab.disputePayout.${type}Heading`);
-
-        if (!ob.releaseInfo) {
-          return;
-        }
-
-        partyInfo.priceLines[type] = ob.currencyMod.pairedCurrency(
-          ob.releaseInfo[`${type}Amount`],
-          ob.paymentCoin,
-          this.userCurrency
-        );
-      });
-
-      return partyInfo;
-    },
-    
-    noteFromHeading() {
-      const ob = this.ob;
-
-      return ob.moderatorName ?
-        ob.polyT('orderDetail.summaryTab.disputePayout.noteFromHeadingWithName', { name: ob.moderatorName }) :
-        ob.polyT('orderDetail.summaryTab.disputePayout.noteFromHeading');
-    }
   },
   methods: {
+    moment,
+
     loadData (options = {}) {
       if (!options.orderID) {
         throw new Error('Please provide the orderID');
       }
+
       this.orderID = options.orderID;
 
-      this.acceptInProgress = acceptingPayout(this.orderID);
+      this.boundOnDocClick = this.onDocumentClick.bind(this);
+      $(document).on('click', this.boundOnDocClick);
+
       this.listenTo(orderEvents, 'acceptingPayout', e => {
         if (e.id === this.orderID) {
           this.acceptInProgress = true;
@@ -171,6 +126,34 @@ export default {
           this.acceptInProgress = false;
         }
       });
+
+      this.listenTo(orderEvents, 'acceptPayoutComplete', e => {
+        if (e.id === this.orderID) {
+          this.showAcceptButton = false;
+        }
+      });
+
+      this.acceptInProgress = acceptingPayout(this.orderID);
+
+      ['buyer', 'vendor', 'moderator'].forEach((type, index) => {
+        this.partyHeadings[type] = ob[`${type}Name`] ?
+          ob.polyT(`orderDetail.summaryTab.disputePayout.${type}HeadingWithName`, { name: ob[`${type}Name`] }) :
+          ob.polyT(`orderDetail.summaryTab.disputePayout.${type}Heading`);
+
+        if (!ob.releaseInfo) {
+          return;
+        }
+
+        this.priceLines[type] = ob.currencyMod.pairedCurrency(
+          ob.releaseInfo[`${type}Amount`],
+          ob.paymentCoin,
+          ob.userCurrency
+        );
+      });
+
+      this.noteFromHeading = ob.moderatorName ?
+        ob.polyT('orderDetail.summaryTab.disputePayout.noteFromHeadingWithName', { name: ob.moderatorName }) :
+        ob.polyT('orderDetail.summaryTab.disputePayout.noteFromHeading');
     },
 
     onDocumentClick () {
@@ -180,6 +163,13 @@ export default {
     onClickAcceptPayout () {
       recordEvent('OrderDetails_DisputeAcceptClick');
       this.acceptConfirmOn = true;
+      return false;
+    },
+
+    onClickAcceptPayoutConfirmedBox () {
+      // ensure event doesn't bubble so onDocumentClick doesn't
+      // close the confirmBox.
+      return false;
     },
 
     onClickAcceptPayoutConfirmCancel () {
@@ -190,9 +180,12 @@ export default {
     onClickAcceptPayoutConfirmed () {
       recordEvent('OrderDetails_DisputeAcceptConfirm');
       this.acceptConfirmOn = false;
-      acceptPayout(this.orderID, this.options.paymentCoin);
+      acceptPayout(this.orderID);
     },
 
+    remove () {
+      $(document).off('click', this.boundOnDocClick);
+    },
   }
 }
 </script>

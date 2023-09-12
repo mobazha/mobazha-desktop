@@ -1,6 +1,6 @@
 <template>
   <div class="stateProgressBar">
-    <template v-for="(state, index) in ob.states" :key="index">
+    <div v-for="(state, index) in ob.states" :key="index">
       <div :class="`stateSection ${index < ob.currentState ? 'active' : ''}`" :style="`width: ${statesWidth(index)}%`">
         <div class="stateTrack"></div>
         <div class="stateCircle">
@@ -8,13 +8,13 @@
         </div>
         <div class="stateCircleBorderFillIn"></div>
         <div class="stateLabel">{{ state }}</div>
-        <template v-if="ob.disputeState === index + 1">
+        <div v-if="ob.disputeState === index + 1">
           <div class="disputeOpenedBadge clrBr clrP">
             <span class="ion-alert-circled"></span>
           </div>
-        </template>
+        </div>
       </div>
-    </template>
+    </div>
 
   </div>
 </template>
@@ -22,56 +22,33 @@
 <script>
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    barState: {
-      type: Object,
-      default: {
-        states: ['Point 1', 'Point 2'],
-        currentState: 0,
-        disputeState: 0,
-      },
-    }
+    cart: Object,
   },
   data () {
     return {
+      states: ['Point 1', 'Point 2'],
+      currentState: 0,
+      disputeState: 0,
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        states: ['Point 1', 'Point 2'],
-        currentState: 0,
-        disputeState: 0,
-        ...this.barState,
-      };
-    }
+
   },
   methods: {
     statesWidth (index) {
-      const ob = this.ob;
       let width = index === 0 || index === ob.states.length - 1 ?
         0.5 / (ob.states.length - 1) : 1 / (ob.states.length - 1);
       return width * 100;
     },
-    loadData () {
-      const state = {
-        states: ['Point 1', 'Point 2'],
-        currentState: 0,
-        disputeState: 0,
-        ...this.barState
-      };
+    loadData (options = {}) {
+      const state = this.getState();
 
       if (!Array.isArray(state.states)) {
         throw new Error('Please provide an array of states.');

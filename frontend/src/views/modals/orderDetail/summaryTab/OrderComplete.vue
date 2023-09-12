@@ -1,33 +1,33 @@
 <template>
   <div class="orderCompleteEvent rowLg">
     <h2 class="tx4 margRTn">{{ ob.polyT('orderDetail.summaryTab.orderComplete.heading') }}</h2>
-    <span class="clrT2 tx5b">{{ moment(ob.timestamp).format('lll') }}</span>
+    <span class="clrT2 tx5b">{{ ob.moment(dataObject.timestamp).format('lll') }}</span>
     <div class="border clrBr padMd">
       <div class="flex gutterHLg">
         <div class="col9">
           <div class="txB tx5 flexNoShrink rowTn">{{ ob.polyT('orderDetail.summaryTab.orderComplete.reviewLabel', { name: ob.buyerName }) }}</div>
-          <div class="tx5" v-html="ob.parseEmojis(ob.review)"></div>
+          <div class="tx5">{{ ob.parseEmojis(ob.review) }}</div>
         </div>
         <div class="col3 ratingsCol">
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.overall') }}</div>
-            <RatingsStrip :rating="rating.overall" />
+            <div class="ratingsContainer" data-rating-type="overall"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.quality') }}</div>
-            <RatingsStrip :rating="rating.quality" />
+            <div class="ratingsContainer" data-rating-type="quality"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.asAdvertised') }}</div>
-            <RatingsStrip :rating="rating.description" />
+            <div class="ratingsContainer" data-rating-type="description"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.delivery') }}</div>
-            <RatingsStrip :rating="rating.deliverySpeed" />
+            <div class="ratingsContainer" data-rating-type="deliverySpeed"></div>
           </div>
           <div class="row">
             <div class="txB tx5">{{ ob.polyT('ratingLabels.service') }}</div>
-            <RatingsStrip :rating="rating.customerService" />
+            <div class="ratingsContainer" data-rating-type="customerService"></div>
           </div>
         </div>
       </div>
@@ -37,44 +37,66 @@
 </template>
 
 <script>
+import $ from 'jquery';
 import moment from 'moment';
-import RatingsStrip from '../../../RatingsStrip.vue';
+import RatingsStrip from '../../../../../backbone/views/RatingsStrip';
+
 
 export default {
-  components: {
-    RatingsStrip,
-  },
+  mixins: [],
   props: {
-    dataObject: {
-      type: Object,
-      default: {
-        timestamp: undefined,
-      },
-    },
+    cart: Object,
   },
   data () {
     return {
+      ob: {},
     };
   },
   created () {
+    this.loadData(this.$props);
   },
   mounted () {
+    this.render();
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-        ...this.rating,
-        timestamp: this.dataObject.timestamp,
-      };
-    },
-
-    rating() {
-      return this.dataObject.ratings[0];
-    },
   },
   methods: {
     moment,
+
+    loadData (options = {}) {
+      super(options);
+
+      if (!options.dataObject) {
+        throw new Error('Please provide a buyerOrderCompletion data object.');
+      }
+
+      this.dataObject = options.dataObject;
+      this.ratingStrips = {};
+    },
+
+    render () {
+      const rating = this.dataObject.ratings[0];
+      $('.ratingsContainer').each((index, element) => {
+        const $el = $(element);
+        const type = $el.data('ratingType');
+
+        if (!type) {
+          throw new Error('Unable to render the ratings strips because it\'s container does not ' +
+            'specify a type.');
+        }
+
+        if (this.ratingStrips[type]) this.ratingStrips[type].remove();
+        this.ratingStrips[type] = this.createChild(RatingsStrip, {
+          initialState: {
+            curRating: rating[type] || 0,
+          },
+        });
+
+        $el.append(this.ratingStrips[type].render().el);
+      });
+
+      return this;
+    }
   }
 }
 </script>

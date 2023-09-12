@@ -6,26 +6,26 @@
     </div>
     <div class="innerContent border clrBr padMd">
       <div class="flexCol flexCent gutterVSm">
-        <p :class="messageClass" v-html="message"></p>
+        <p :class="messageClass">{{ message }} <span :class="`toolTip clrT ${tipClass}`" :data-tip="tip"><i class="ion-help-circled"></i></span></p>
         <div class="flexCent gutterH">
-          <template v-if="ob.showDisputeBtn">
+          <div v-if="ob.showDisputeBtn">
             <button class="btn tx5b clrErr clrBrDec1 clrTOnEmph " @click="onClickDisputeOrder">{{ ob.polyT('orderDetail.summaryTab.timeoutInfo.btnDisputeOrder') }}</button>
-          </template>
-          <template v-if="ob.ownPeerID === ob.vendor && ob.isPaymentClaimable">
+          </div>
+          <div v-if="ob.ownPeerID === ob.vendor && ob.isPaymentClaimable">
             <ProcessingButton
-              :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph tx5b js-claimPayment ${isClaimingPayment ? 'processing' : ''}`"
+              :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph tx5b js-claimPayment ${ob.isClaimingPayment ? 'processing' : ''}`"
               :btnText="ob.polyT('orderDetail.summaryTab.timeoutInfo.btnClaimPayment')"
               @click="onClickClaimPayment"/>
-          </template>
-          <template v-if="ob.showDiscussBtn">
+          </div>
+          <div v-if="ob.showDiscussBtn">
             <button class="btn tx5b clrP clrBr " @click="onClickDiscussOrder">{{ ob.polyT('orderDetail.summaryTab.timeoutInfo.btnDiscussOrder') }}</button>
-          </template>
-          <template v-if="ob.showResolveDisputeBtn">
+          </div>
+          <div v-if="ob.showResolveDisputeBtn">
             <ProcessingButton
               :className="`btn clrBAttGrad clrBrDec1 clrTOnEmph tx5b js-resolveDispute ${ob.isResolvingDispute ? 'processing' : ''}`"
               :btnText="ob.polyT('orderDetail.summaryTab.timeoutInfo.btnResolveDispute')"
               @click="onClickResolveDispute"/>
-          </template>
+          </div>
         </div>
       </div>
     </div>
@@ -42,61 +42,39 @@ import { recordEvent } from '../../../../../backbone/utils/metrics';
 
 
 export default {
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {
-        awaitingBlockHeight: false,
-        isFundingConfirmed: false,
-        isDisputed: false,
-        hasDisputeEscrowExpired: false,
-        canBuyerComplete: false,
-        isPaymentClaimable: false,
-        isPaymentFinalized: false,
-        showDisputeBtn: false,
-        showDiscussBtn: false,
-        invalidContractData: false,
-        dataUnavailable: false,
-      },
-    },
+    cart: Object,
   },
   data () {
     return {
-      isClaimingPayment: false,
+      awaitingBlockHeight: false,
+      isFundingConfirmed: false,
+      isDisputed: false,
+      hasDisputeEscrowExpired: false,
+      canBuyerComplete: false,
+      isPaymentClaimable: false,
+      isPaymentFinalized: false,
+      showDisputeBtn: false,
+      showDiscussBtn: false,
+      showResolveDisputeBtn: false,
+      isClaimingPayment: releasingEscrow(options.orderID),
+      invalidContractData: false,
+      dataUnavailable: false,
 
       message: '',
       messageClass: 'txCtr',
+      tip: '',
+      tipClass: '',
     };
   },
   created () {
-    this.initEventChain();
-
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
   },
   computed: {
-    ob(){
-      return {
-        ...this.templateHelpers,
-        awaitingBlockHeight: false,
-        isFundingConfirmed: false,
-        isDisputed: false,
-        hasDisputeEscrowExpired: false,
-        canBuyerComplete: false,
-        isPaymentClaimable: false,
-        isPaymentFinalized: false,
-        showDisputeBtn: false,
-        showDiscussBtn: false,
-        showResolveDisputeBtn: false,
-        invalidContractData: false,
-        dataUnavailable: false,
-        ...this.options,
-        ...this._state,
-      };
-    },
-    isCase() {
-      const ob = this.ob;
+    isCase () {
       return ob.ownPeerID !== ob.buyer && ob.ownPeerID !== ob.vendor;
     },
   },
@@ -106,25 +84,17 @@ export default {
         throw new Error('Please provide an orderID');
       }
 
-      this.baseInit({
-        initialState: {
-          showResolveDisputeBtn: false,
-          ...options.initialState,
-        },
-      });
-
       this.orderID = options.orderID;
 
-      this.isClaimingPayment = releasingEscrow(this.orderID);
       this.listenTo(orderEvents, 'releasingEscrow', e => {
         if (e.id === this.orderID) {
-          this.isClaimingPayment = true;
+          this.setState({ isClaimingPayment: true });
         }
       });
 
       this.listenTo(orderEvents, 'releaseEscrowComplete releaseEscrowFail', e => {
         if (e.id === this.orderID) {
-          this.isClaimingPayment = false;
+          this.setState({ isClaimingPayment: false });
         }
       });
 
@@ -142,8 +112,6 @@ export default {
       let messageClass = 'txCtr';
       let tip;
       let tipClass = '';
-
-      const ob = this.ob;
 
       if (ob.invalidContractData) {
         if (ob.moderator) {
@@ -167,7 +135,7 @@ export default {
 
         messageClass = 'txCtr clrTErr';
         tipClass = 'hide';
-      } else if (!this.isCase) {
+      } else if (!isCase) {
         tip = ob.ownPeerID === ob.buyer ?
           ob.polyT('orderDetail.summaryTab.timeoutInfo.tipClaimAfterTimeoutBuyer') :
           ob.polyT('orderDetail.summaryTab.timeoutInfo.tipClaimAfterTimeoutVendor');
@@ -241,8 +209,10 @@ export default {
         tipClass = 'hide';
       }
 
-      this.message = message + `<span class="toolTip clrT ${tipClass}" data-tip="${tip}"><i class="ion-help-circled"></i></span>`;
+      this.message = message;
       this.messageClass = messageClass;
+      this.tip = tip;
+      this.tipClass = tipClass;
     },
 
     onClickDisputeOrder () {
