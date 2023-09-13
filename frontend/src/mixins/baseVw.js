@@ -4,17 +4,9 @@ import bigNumber from 'bignumber.js';
 import DOMPurify from 'dompurify'
 import { Events } from 'backbone';
 
-import { isPromise } from '../../backbone/utils/object';
 import { setDeepValue } from '../../backbone/utils/object';
 
 export default {
-  computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-      };
-    },
-  },
   data () {
     return {
       _childViews: [],
@@ -26,15 +18,6 @@ export default {
   methods: {
     initEventChain() {
       _.extend(this, Events);
-    },
-
-    baseInit(options = {}) {
-      _.extend(this, options);
-      this._childViews = [];
-      this._unregisterFromParent = true;
-      this._removed = false;
-      this._state = {};
-      this.setState((options.initialState || {}), { renderOnChange: false });
     },
 
     _getCheckboxGroupData($fields) {
@@ -76,9 +59,9 @@ export default {
     getFormData(selector) {
       const $formFields = selector instanceof $
         ? selector : $(selector
-          || this.$el.querySelectorAll(`select[name], input[name],
+          || `select[name], input[name],
           textarea[name]:not([class*="trumbowyg"]),
-          div[contenteditable][name]`));
+          div[contenteditable][name]`);
       const data = {};
   
       $formFields.each((index, field) => {
@@ -153,21 +136,20 @@ export default {
         throw new Error('Please provide a selector');
       }
   
-      if (!(typeof selector === 'string')) {
+      if (!(typeof selector === 'string'
+        || _.isElement(selector) || selector instanceof $)) {
         throw new Error('The selector must be a string, DOM element or jQuery object.');
       }
-
-      if (_.isElement('rootTag')) {
-        throw new Error('The scroll container with \'rootTag\' selector name must be provided.');
+  
+      let $el;
+  
+      if (typeof selector === 'string') {
+        $el = this.getCachedEl(selector);
+      } else if (!(selector instanceof $)) {
+        $el = $(selector);
       }
   
-      this.$scrollTo(selector, 500, {
-        offset: -10,
-        container: '.rootTag', //设置滚动容器
-        easing: 'ease-out', //动画效果
-        x: false, //是否在x轴滚动
-        y: true, //是否在y轴滚动
-      });
+      $el[0].scrollIntoView();
     },
   
     /**
@@ -273,18 +255,25 @@ export default {
      */
     setState(state = {}, options = {}) {
       const opts = {
+        renderOnChange: true,
         replace: false,
         ...options,
       };
- 
+      let newState;
+  
       if (typeof state !== 'object') {
         throw new Error('The state must be provided as an object.');
       }
   
       if (opts.replace) {
-        this._state = state;
+        this._state = {};
       } else {
-        _.extend(this._state, state);
+        newState = _.extend({}, this._state, state);
+      }
+  
+      if (!_.isEqual(this._state, newState)) {
+        this._state = newState;
+        if (opts.renderOnChange) this.render();
       }
   
       return this;
@@ -317,33 +306,6 @@ export default {
   
     isRemoved() {
       return this._removed;
-    },
-
-    close(bypassConfirmation = false) {
-      // Unless bypassConfirmation is true, if you implement a confirmClose function
-      // in your modal, it will be called before potentially closing. If it returns a promise,
-      // the modal will close when the promise resolves. If it returns a truthy (other than a
-      // promise) the modal will close immediately.
-      //
-      // If you are returning a Promise, you almost certainly want to show some type of dialog
-      // to indicate that something is happening (most likely a confirm close dialog).
-      if (!bypassConfirmation && typeof this.confirmClose === 'function') {
-        const closeConfirmed = this.confirmClose.call(this);
-        if (isPromise(closeConfirmed)) {
-          // Routing to a new page while the confirm close process is active could produce
-          // weird things, so we'll block page navigation.
-          app.pageNav.navigable = false;
-          closeConfirmed.done(() => this.close(true)).always(() => (app.pageNav.navigable = true));
-        } else {
-          if (closeConfirmed) this.close(true);
-        }
-
-        return this;
-      }
-
-      this.$emit('close');
-
-      return this;
-    },
+    }
   },
 };
