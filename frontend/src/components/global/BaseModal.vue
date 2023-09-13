@@ -1,6 +1,6 @@
 <template>
   <div :class="modelContentClass" @keydown.esc="clickEsc">
-    <span :class="`${closeButtonClass} jsModalClose`" @click="close" v-show="showCloseButton" :data-tip="closeButtonTip || ''">
+    <span :class="`${closeButtonClass} jsModalClose`" @click="clickClose" v-show="showCloseButton" :data-tip="closeButtonTip || ''">
       <i :class="innerButtonClass"></i>
     </span>
     <slot name="component"></slot>
@@ -19,7 +19,7 @@ export default {
     }
   },
   created() {
-    _.extend(this.$data, this.modalInfo);
+    _.extend(this.$data, this.$props.modalInfo);
   },
   data () {
     return {
@@ -30,7 +30,7 @@ export default {
       showCloseButton: true,
       closeButtonClass: 'cornerTR iconBtn clrP clrBr clrSh3 toolTipNoWrap modalCloseBtn',
       innerButtonClass: 'ion-ios-close-empty',
-      closeButtonTip: app.polyglot.t('pageNav.toolTip.close'),
+      closeButtonTip: window.app?.polyglot.t('pageNav.toolTip.close'),
       modelContentClass: 'modalContent',
       removeOnClose: false,
       removeOnRoute: true,
@@ -38,18 +38,22 @@ export default {
   },
   watch: {
     $route (to, from) {
-      if (this.removeOnRoute && (to.path !== from.path)) {
-        this.close();
+      if (this.removeOnRoute) {
+        app.router.closeVueModal();
       }
     }
   },
   methods: {
-    close() {
-      this.$emit('close');
+    clickClose() {
+      if (this.removeOnClose) {
+        app.router.closeVueModal();
+      } else {
+
+      }
     },
     clickEsc() {
       if (this.dismissOnEscPress) {
-        this.close();
+        this.clickClose();
       }
     },
   }
