@@ -1,43 +1,32 @@
 <template>
-  <div :class="className">
-    <h2 class="tabHeading txUnb">{{ ob.polyT(`transactions.${ob.type}.heading`) }}</h2>
+  <div :class="`${type} tx5`">
+    <h2 class="tabHeading txUnb">{{ ob.polyT(`transactions.${type}.heading`) }}</h2>
     <div class="searchWrapper rowMd">
-      <input
-        type="text"
-        class="ctrl clrP clrBr clrSh2"
-        @keyup="onKeyUpSearch(filter.search)"
-        :placeholder="ob.polyT(`transactions.placeholderSearch${ob.capitalize(ob.type)}`)"
-        v-model="filter.search"
-      />
+      <input type="text" class="ctrl clrP clrBr clrSh2" @keyup="onKeyUpSearch(filter.search)"
+        :placeholder="ob.polyT(`transactions.placeholderSearch${ob.capitalize(type)}`)" v-model="filter.search">
     </div>
 
-    <Filters
-      :className="className"
-      :filters="setCheckedFilters(filterConfig, filter.states)"
-      @changeFilter="onChangeFilter"/>
+    <Filters />
+    {{ ob.filtersHtml }}
 
     <div class="flexVCent row gutterH">
-      <div class="flexNoShrink gutterHSm js-queryTotalWrapper" v-show="collection.length">
-        <span class="flexNoShrink js-queryTotalLine" v-html="queryTotalLine"></span>
-        <a v-show="!currentFilterIsDefault" @click="onClickResetQuery">{{ ob.polyT(`transactions.resetFilters`) }}</a>
+      <div class="flexNoShrink gutterHSm js-queryTotalWrapper" v-show="showTotalWrapper">
+        <span class="flexNoShrink js-queryTotalLine">{{ queryTotalLine }}</span>
+        <a v-show="currentFilterIsDefault" @click="onClickResetQuery">{{ ob.polyT(`transactions.resetFilters`) }}</a>
       </div>
       <div class="tx6 flexVCent">
         <label class="clrT2 marginLAuto margRSm">{{ ob.polyT('transactions.sort.label') }}</label>
-        <Select2 class="tx6 select2Small js-sortBySelect" :options="{ minimumResultsForSearch: -1, }" v-model="filter.sortBy" style="width: 150px">
-          <option value="UNREAD" :selected="ob.filter.sortBy === 'UNREAD'">{{ ob.polyT('transactions.sort.unread') }}</option>
-          <option value="DATE_ASC" :selected="ob.filter.sortBy === 'DATE_ASC'">{{ ob.polyT('transactions.sort.dateAsc') }}</option>
-          <option value="DATE_DESC" :selected="ob.filter.sortBy === 'DATE_DESC'">{{ ob.polyT('transactions.sort.dateDesc') }}</option>
-        </Select2>
+        <select class="tx6 select2Small" @change="onChangeSortBy(filter.sortBy)" style="width: 150px">
+          <option value="UNREAD" :selected="filter.sortBy === 'UNREAD'">{{ ob.polyT('transactions.sort.unread') }}</option>
+          <option value="DATE_ASC" :selected="filter.sortBy === 'DATE_ASC'">{{ ob.polyT('transactions.sort.dateAsc') }}</option>
+          <option value="DATE_DESC" :selected="filter.sortBy === 'DATE_DESC'">{{ ob.polyT('transactions.sort.dateDesc') }}</option>
+        </select>
+        <div class="select2Small js-sortBySelectDropdownContainer"></div>
       </div>
     </div>
 
-    <TransactionsTable ref="table" :key="filterKey" :options="tableOptions"
-      :bb="function() {
-        return {
-          collection,
-        };
-      }"
-      @clickRow="onClickRow" />
+    <div class="js-tableContainer"></div>
+
   </div>
 </template>
 
@@ -45,118 +34,46 @@
 import _ from 'underscore';
 import $ from 'jquery';
 import app from '../../../backbone/app';
+import loadTemplate from '../../../backbone/utils/loadTemplate';
+import TransactionsTable from './table/Table';
 import { capitalize } from '../../../backbone/utils/string';
-import TransactionsTable from './table/Table.vue';
-import Filters from './Filters.vue';
+import Filters from './Filters.vue'
 
 export default {
   components: {
     Filters,
-    TransactionsTable,
   },
+  mixins: [],
   props: {
-    options: {
-      type: Object,
-      default: {},
-    },
-    bb: Function,
   },
-  data() {
+  data () {
     return {
-      filterKey: 0,
-      
-      // 用于触发 collection 相关计算属性更新的 key
-      collectionUpdateKey: 0,
-
-      defaultFilter: {
-        search: '',
-        sortBy: 'UNREAD',
-        states: [],
-      },
-
-      filter: {
-        search: '',
-        sortBy: 'UNREAD',
-        states: [],
-      },
       showTotalWrapper: false,
+      queryTotalLine: '',
+      filter: {},
     };
   },
-  created() {
+  created () {
     this.initEventChain();
 
-    this.loadData(this.options);
-    
-    // 监听 collection 变化事件
-    if (this.collection) {
-      this.listenTo(this.collection, 'add remove reset update', this.onCollectionChange);
-    }
+    this.loadData(this.$props);
   },
-  mounted() {
-  },
-  unmounted() {
-    clearTimeout(this.searchKeyUpTimer);
-    
-    // 清理 Backbone 事件监听器
-    if (this.stopListening) {
-      this.stopListening();
-    }
+  mounted () {
+    this.render();
   },
   computed: {
-    ob () {
-      return {
-        ...this.templateHelpers,
-          type: this.type,
-          filter: this.filter,
-          capitalize,
-      };
-    },
-    className () {
-      return `${this.type} tx5`;
-    },
-    currentFilterIsDefault() {
-      return _.isEqual(this.defaultFilter, _.omit(this.filter, 'orderID'));
-    },
-    tableOptions() {
-      return {
-        type: this.type,
-        filterParams: this.filter,
-        getProfiles: this.options.getProfiles,
-      };
-    },
-    queryTotalLine() {
-      // 依赖 collectionUpdateKey 来触发重新计算
-      this.collectionUpdateKey;
-      
-      const count = app.polyglot.t(`transactions.${this.type}.countTransactions`, { smart_count: this.collection.length });
-      const countInfo = `<span class="txB">${count}</span>`;
-      return app.polyglot.t(`transactions.${this.type}.countTransactionsFound`, { smart_count: countInfo });
-    }
   },
   watch: {
-    filter: {
-      handler() {
-        this.filterKey += 1;
-      },
-      deep: true,
-    },
-    // 监听 options 变化，当父组件传递新的配置时重新加载数据
-    options: {
-      handler(newOptions, oldOptions) {
-        if (newOptions && newOptions !== oldOptions) {
-          this.loadData(newOptions);
+    filter(newVal, oldVal) {
+      if (!_.isEqual(newVal, oldVal)) {
+        if (this.table) {
+          this.table.filterParams = newVal;
         }
-      },
-      deep: true,
+      }
     }
   },
   methods: {
-    onCollectionChange() {
-      // 更新 key 来触发 collection 相关计算属性重新计算
-      this.collectionUpdateKey += 1;
-    },
-
-    loadData(options = {}) {
+    loadData (options = {}) {
       const opts = {
         defaultFilter: {
           search: '',
@@ -167,8 +84,6 @@ export default {
       };
 
       opts.initialFilter = opts.initialFilter || { ...opts.defaultFilter };
-
-      this.baseInit(opts);
 
       if (!this.collection) {
         throw new Error('Please provide a transactions collection.');
@@ -184,29 +99,53 @@ export default {
         throw new Error('Please provide a filter config object.');
       }
 
+      if (typeof opts.openOrder !== 'function') {
+        throw new Error('Please provide a function to open the order detail modal.');
+      }
+
+      this.options = opts || {};
       this.type = opts.type;
       this.filterConfig = opts.filterConfig;
-      this.filter = { ...opts.initialFilter };
-    },
+      this._filter = { ...opts.initialFilter };
 
-    onClickRow(orderID, type) {
-      this.$emit('clickRow', orderID, type);
-    },
+      this.listenTo(this.collection, 'request', (cl, xhr) => {
+        if (this.table) {
+          this.showTotalWrapper = false;
+        }
 
-    onChangeFilter(filter, checked) {
-      if (checked) {
-        filter.targetState.forEach((targetState) => {
-          if (this.filter.states.indexOf(targetState) == -1) {
-            this.filter.states.push(targetState);
+        setTimeout(() => {
+          if (this.table) {
+            xhr.done(data => {
+              const count = app.polyglot.t(`transactions.${this.type}.countTransactions`, { smart_count: data.queryCount });
+              const countInfo = `<span class="txB">${count}</span>`;
+              this.queryTotalLine = app.polyglot.t(`transactions.${this.type}.countTransactionsFound`, { smart_count: countInfo })
+              this.showTotalWrapper = true;
+            });
           }
         });
-        this.filter.states.sort((a, b) => a - b);
-      } else {
-        this.filter.states = this.filter.states.filter((item) => { return filter.targetState.indexOf(item) == -1; });
-      }
+      });
     },
 
-    onKeyUpSearch(val) {
+    events () {
+      return {
+        'change .filter input': 'onChangeFilter',
+      };
+    },
+
+    onChangeFilter () {
+      let states = [];
+      this.$filterCheckboxes.filter(':checked')
+        .each((index, checkbox) => {
+          states = states.concat($(checkbox).data('state'));
+        });
+
+      this.filter = {
+        ...this.filter,
+        states,
+      };
+    },
+
+    onKeyUpSearch (val) {
       // wait until they stop typing
       clearTimeout(this.searchKeyUpTimer);
 
@@ -218,8 +157,22 @@ export default {
       }, 200);
     },
 
-    onClickResetQuery() {
-      this.filter = { ...this.defaultFilter };
+    onChangeSortBy (val) {
+      this.filter = {
+        ...this.filter,
+        sortBy: val,
+      };
+    },
+
+    onAttach () {
+      if (typeof this.table.onAttach === 'function') {
+        this.table.onAttach.call(this.table);
+      }
+    },
+
+    onClickResetQuery () {
+      this.filter = { ...this.options.defaultFilter };
+      this.render();
     },
 
     /*
@@ -227,15 +180,16 @@ export default {
      * will return a filterConfig list with the checked value set for each
      * filter.
      */
-    setCheckedFilters(filterConfig = [], checkedStates = []) {
+    setCheckedFilters (filterConfig = [], checkedStates = []) {
       const checkedConfig = [];
 
       filterConfig.forEach((filter, index) => {
         if (!filter.targetState || !filter.targetState.length) {
-          throw new Error(`Filter at index ${index} needs a tragetState ` + 'provided as an array.');
+          throw new Error(`Filter at index ${index} needs a tragetState ` +
+            'provided as an array.');
         }
 
-        filter.targetState.forEach((targetState) => {
+        filter.targetState.forEach(targetState => {
           checkedConfig[index] = {
             ...filterConfig[index],
             checked: checkedStates.indexOf(targetState) > -1,
@@ -245,7 +199,55 @@ export default {
 
       return checkedConfig;
     },
-  },
-};
+
+    currentFilterIsDefault () {
+      return _.isEqual(this.options.defaultFilter, _.omit(this.filter, 'orderID'));
+    }
+
+  get $filterCheckboxes () {
+      return this._$filterCheckboxes ||
+        (this._$filterCheckboxes = $('.filter input'));
+    },
+
+    remove () {
+      clearTimeout(this.searchKeyUpTimer);
+      super.remove();
+    },
+
+    render () {
+      loadTemplate('transactions/filters.html', (filterT) => {
+        const filtersHtml = filterT({
+          filters: this.setCheckedFilters(this.filterConfig, this.filter.states),
+        });
+
+        loadTemplate('transactions/tab.html', (t) => {
+          this.$el.html(t({
+            filtersHtml, capitalize,
+          }));
+
+          this._$filterCheckboxes = null;
+
+          $('.js-sortBySelect').select2({
+            minimumResultsForSearch: -1,
+            dropdownParent: $('.js-sortBySelectDropdownContainer'),
+          });
+
+          if (this.table) this.table.remove();
+          this.table = this.createChild(TransactionsTable, {
+            collection: this.collection,
+            initialFilterParams: this.filter,
+            getProfiles: this.options.getProfiles,
+            openOrder: this.options.openOrder,
+            openedOrderModal: this.options.openedOrderModal,
+          });
+          $('.js-tableContainer').html(this.table.render().el);
+        });
+      });
+
+      return this;
+    }
+
+  }
+}
 </script>
 <style lang="scss" scoped></style>

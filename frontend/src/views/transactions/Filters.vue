@@ -1,26 +1,23 @@
 <template>
-  <div :class="`filters rowHg ${ob.className}`">
-    <template v-for="(row, i) in rows" :key="i">
+  <div :class="`filters rowHg`">
+    <div v-for="(row, i) in rows" :key="i">
       <div class="flex gutterH gutterV">
-        <div class="col3" v-for="(filter, j) in row" :key="j">
-          <div :class="`filter clrP clrBr clrSh2 ${filter.className}`">
-            <input type="checkbox"
-              :id="filter.id"
-              :checked="filter.checked"
-              v-bind="filter.attrs"
-              v-model="checkResult[`${i}_${j}`]"
-              @change="onChangeFilter(filter, checkResult[`${i}_${j}`])"
-              >
-            <label class="tx5b" :for="filter.id">{{ filter.text }}</label>
+        <div v-for="(filter, j) in row" :key="j">
+          <div class="col3">
+            <div :class="`filter clrP clrBr clrSh2 ${filter.className}`">
+              <input type="checkbox" :id="filter.id" :checked="filter.checked"
+                :data-state="JSON.stringify(filter.targetState)" v-bind="filter.attrs">
+              <label class="tx5b" :for="filter.id">{{ filter.text }}</label>
+            </div>
           </div>
         </div>
 
         <!-- // If necessary, add in spacers. -->
-        <template v-for="k in (maxPerRow - row.length)" :key="k">
+        <div v-for="k in (maxPerRowFinal - row.length)" :key="k">
           <div class="col3"></div>
-        </template>
+        </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -53,35 +50,23 @@
 
 export default {
   props: {
-    filters: {
-      type: Object,
-      default: {},
-	  },
-    className: {
-      type: String,
-      default: {},
-	  },
-    maxPerRow: {
-      type: Number,
-      default: 4,
-    }
+    maxPerRow: Number,
+    filters: Object,
   },
   data () {
     return {
-      checkResult: {},
     };
   },
-  created () {
-  },
   computed: {
+    maxPerRowFinal () {
+      return ob.maxPerRow || 4;
+    },
     rows () {
-      return this.ob.splitIntoRows(this.filters, this.maxPerRow);
+      return ob.splitIntoRows(this.filters, this.maxPerRowFinal);
     },
   },
   methods: {
-    onChangeFilter(filter, checked) {
-      this.$emit('changeFilter', filter, checked);
-    }
+
   }
 }
 </script>
