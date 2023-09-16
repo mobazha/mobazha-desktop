@@ -1,29 +1,29 @@
 <template>
   <div class="flexVCent gutterH">
     <div class="posR tx5b txU">
-      <template v-if="!ob.isResyncAvailable">
+      <div v-if="!ob.isResyncAvailable">
         <span class="toolTip" :data-tip="ob.polyT('wallet.reloadTransactionsWidget.syncUnavailable')"
           style="text-align: left">
           <a class=" disabled margRSm" @click="onClickResync">{{ ob.polyT('wallet.reloadTransactionsWidget.resyncBtn')
           }}</a><span class="ion-android-warning clrTErr"></span>
         </span>
-      </template>
+      </div>
 
-      <template v-else-if="ob.isSyncing">
+      <div v-else-if="ob.isSyncing">
         <a class="invisible">{{ ob.polyT('wallet.reloadTransactionsWidget.resyncBtn') }}</a>
         <SpinnerSVG className="center spinnerSm" />
-      </template>
+      </div>
 
-      <template v-else>
+      <div v-else>
         <a class="" @click="onClickResync">{{ ob.polyT('wallet.reloadTransactionsWidget.resyncBtn') }}</a>
-      </template>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import app from '../../../../backbone/app';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../SimpleMessage';
 import resyncBlockchain, {
   isResyncAvailable,
   isResyncingBlockchain,
@@ -42,17 +42,12 @@ export default {
   },
   data () {
     return {
-      _state: {
-        coinType: '',
-        isSyncing: false,
-        isResyncAvailable: false,
-      }
     };
   },
   created () {
     this.initEventChain();
 
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
   },
@@ -81,7 +76,7 @@ export default {
         },
       };
 
-      this.baseInit(opts);
+      this.setState(opts.initialState || {});
 
       this.listenTo(resyncEvents, 'resyncing', e => {
         if (e.coinType === this.getState().coinType) {

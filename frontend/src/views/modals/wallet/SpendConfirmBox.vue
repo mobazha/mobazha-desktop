@@ -1,32 +1,30 @@
 <template>
   <div class="spendConfirmBox centeredBelow" @click="onDocumentClick">
-    <template v-if="ob.show">
+    <div v-if="ob.show">
       <div class="confirmBox sendConfirm arrowBoxTop clrBr clrP clrT clrSh1">
         <!-- // invisible heading for spacing purposes -->
         <div v-if="ob.fetchingFee" class="tx3 txB rowSm invisible">{{ ob.polyT('wallet.spendConfirmBox.heading') }}</div>
         <div v-else class="tx3 txB rowSm">{{ ob.polyT(ob.fetchError ? 'wallet.spendConfirmBox.errorHeading' : 'wallet.spendConfirmBox.heading') }}</div>
 
         <div class="posR padSm">
-          <template v-if="ob.fetchingFee">
-            <div class="txCtr">
-              <SpinnerSVG className="spinnerMd" />
-            </div>
-          </template>
+          <div v-if="ob.fetchingFee">
+            <div class="txCtr">{{ ob.spinner({ className: 'spinnerMd' }) }}</div>
+          </div>
 
-          <template v-else-if="ob.fetchFailed">
-            <template v-if="ob.fetchError === ob.ERROR_INSUFFICIENT_FUNDS">
+          <div v-else-if="ob.fetchFailed">
+            <div v-if="ob.fetchError === ob.ERROR_INSUFFICIENT_FUNDS">
               <p class="clrT2"> {{ ob.polyT('wallet.spendConfirmBox.bodyInsufficientFunds') }} </p>
-            </template>
-            <template v-else-if="ob.fetchError === ob.ERROR_DUST_AMOUNT">
+            </div>
+            <div v-else-if="ob.fetchError === ob.ERROR_DUST_AMOUNT">
               <p class="clrT2"> {{ ob.polyT('wallet.spendConfirmBox.bodyDustAmount') }} </p>
-            </template>
-            <template v-else>
+            </div>
+            <div v-else>
               <p class="clrT2">{{ ob.polyT('wallet.spendConfirmBox.bodyGenericError', { err: ob.fetchError || '' }) }}</p>
-              <a @click.stop="onClickRetry">{{ ob.polyT('wallet.spendConfirmBox.btnRetry') }}</a>
-            </template>
-          </template>
+              <a @click="onClickRetry" @click.stop>{{ ob.polyT('wallet.spendConfirmBox.btnRetry') }}</a>
+            </div>
+          </div>
 
-          <template v-else-if="ob.fee instanceof ob.bigNumber">
+          <div v-else-if="ob.fee instanceof ob.bigNumber">
             <p class="clrT2">
               {{
                 ob.polyT('wallet.spendConfirmBox.body', {
@@ -38,27 +36,27 @@
                 })
               }}
             </p>
-          </template>
+          </div>
         </div>
         <hr class="clrBr row" />
 
         <div class="flexHRight flexVCent gutterHLg">
-          <template v-if="ob.fetchingFee">
+          <div v-if="ob.fetchingFee">
             <!-- // invisible button for spacing purposes -->
             <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph invisible">{{ ob.btnSendText }}</a>
-          </template>
+          </div>
 
-          <template v-else-if="!ob.fetchFailed">
-            <a @click.stop="onClickCancel">{{ ob.polyT('wallet.spendConfirmBox.btnCancel') }}</a>
-            <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph " @click.stop="onClickSend">{{ ob.btnSendText }}</a>
-          </template>
+          <div v-else-if="!ob.fetchFailed">
+            <a @click="onClickCancel" @click.stop>{{ ob.polyT('wallet.spendConfirmBox.btnCancel') }}</a>
+            <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph " @click="onClickSend" @click.stop>{{ ob.btnSendText }}</a>
+          </div>
 
-          <template v-else>
-            <a @click.stop="onClickCancel">{{ ob.polyT('wallet.spendConfirmBox.btnClose') }}</a>
-          </template>
+          <div v-else>
+            <a @click="onClickCancel" @click.stop>{{ ob.polyT('wallet.spendConfirmBox.btnClose') }}</a>
+          </div>
         </div>
       </div>
-    </template>
+    </div>
 
   </div>
 </template>
@@ -70,6 +68,7 @@ import {
   ERROR_INSUFFICIENT_FUNDS,
   ERROR_DUST_AMOUNT,
 } from '../../../../backbone/constants';
+import { estimateFee } from '../../../../backbone/utils/fees';
 import { validateNumberType } from '../../../../backbone/utils/number';
 import {
   startPrefixedAjaxEvent,
@@ -87,24 +86,15 @@ export default {
   },
   data () {
     return {
-      _state: {
-        show: false,
-        fetchingFee: false,
-        fetchFailed: false,
-        fetchError: '',
-        fee: false,
-        coinType: '',
-        displayCurrency: app.settings.get('localCurrency') || 'USD',
-        btnSendText: app.polyglot.t('wallet.spendConfirmBox.btnConfirmSend'),
-      }
     };
   },
   created () {
     this.initEventChain();
 
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
@@ -118,8 +108,6 @@ export default {
   },
   methods: {
     loadData (options = {}) {
-      this.baseInit(options);
-
       this._state = {
         show: false,
         fetchingFee: false,
@@ -137,7 +125,7 @@ export default {
     },
 
     onDocumentClick (e) {
-      if (this.getState().show && !($.contains(this.$el, e.target) || e.target === this.$el)) {
+      if (this.getState().show && !($.contains(this.el, e.target) || e.target === this.el)) {
         this.setState({ show: false });
       }
     },
@@ -187,12 +175,62 @@ export default {
       };
 
       this.setState({
-        fetchingFee: false,
-        fee: 0,
+        fetchingFee: true,
         fetchError: '',
         fetchFailed: false,
         coinType,
       });
+
+      startPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin);
+
+      estimateFee(coinType, feeLevel, amount)
+        .done(fee => {
+          let state = {
+            fee,
+            fetchingFee: false,
+          };
+
+          if (
+            app.walletBalances &&
+            app.walletBalances.get(coinType) &&
+            fee
+              .plus(amount)
+              .gt(
+                app.walletBalances
+                  .get(coinType)
+                  .get('confirmed')
+              )
+          ) {
+            state = {
+              // The fetch didn't actually fail, but since the server allows unconfirmed spends and
+              // we don't want to allow that, we'll pretend it failed and simulate the server
+              // ERROR_INSUFFICIENT_FUNDS error.
+              fetchFailed: true,
+              fetchError: 'ERROR_INSUFFICIENT_FUNDS',
+              ...state,
+            };
+            endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
+              errors: 'ERROR_INSUFFICIENT_FUNDS',
+            });
+          } else {
+            endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
+              errors: 'none',
+            });
+          }
+
+          this.setState(state);
+        }).fail(err => {
+          const fetchError = err || '';
+          this.setState({
+            fetchingFee: false,
+            fetchFailed: true,
+            fetchError,
+          });
+
+          endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
+            errors: fetchError || 'unknown error',
+          });
+        });
     },
   }
 }

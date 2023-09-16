@@ -9,8 +9,8 @@
         </div>
         <div class="col9">
           <FormError v-if="ob.errors.address" :errors="ob.errors.address" />
-          <input type="text" class="clrBr clrSh2" :disabled="ob.saveInProgress" v-model="formData.address" id="walletSendTo"
-            ref="walletSendTo"
+          <input type="text" class="clrBr clrSh2" :disabled="ob.saveInProgress" name="address" id="walletSendTo"
+            v-model="ob.address"
             :placeholder="ob.polyT('wallet.sendMoney.toPlaceholder', { cur: ob.polyT(`cryptoCurrencies.${ob.coinType}`, { _: ob.coinType }) })">
         </div>
       </div>
@@ -24,10 +24,11 @@
           <FormError v-if="ob.errors.amount" :errors="ob.errors.amount" />
           <FormError v-if="ob.errors.currency" :errors="ob.errors.currency" />
           <div class="inputSelect" :disabled="ob.saveInProgress">
-            <input type="number" class="clrBr clrP clrSh2" v-model="formData.amount" id="walletSendAmount"  placeholder="0.00" data-var-type="bignumber">
-            <Select2 id="walletSendCurrency" v-model="formData.currency" class="clrBr clrP nestInputRight">
-              <option v-for="(currency, j) in ob.currencies" :key="j" :value="currency.code" :selected="currency.code === formData.currencyCode">{{ currency.code }}</option>
-            </Select2>
+            <input type="text" class="clrBr clrP clrSh2" name="amount" id="walletSendAmount"
+              :value="ob.number.toStandardNotation(ob.amount)" placeholder="0.00" data-var-type="bignumber">
+            <select id="walletSendCurrency" name="currency" class="clrBr clrP nestInputRight">
+              <option v-for="(currency, j) in ob.currencies" :key="j" :value="currency.code" :selected="currency.code === ob.currencyCode">{{ currency.code }}</option>
+            </select>
           </div>
         </div>
       </div>
@@ -39,8 +40,8 @@
         </div>
         <div class="col9">
           <FormError v-if="ob.errors.memo" :errors="ob.errors.memo" />
-          <input type="text" class="clrBr clrSh2" :disabled="ob.saveInProgress" v-model="formData.memo" id="walletSendNote"
-            :placeholder="ob.polyT('wallet.sendMoney.notePlaceholder')">
+          <input type="text" class="clrBr clrSh2" :disabled="ob.saveInProgress" name="memo" id="walletSendNote"
+            v-model="ob.memo" :placeholder="ob.polyT('wallet.sendMoney.notePlaceholder')">
         </div>
       </div>
       <div class="flexVCent">
@@ -50,7 +51,7 @@
             <div class="posR">
               <ProcessingButton
                 :className="`js-btnSend btn clrBAttGrad clrBrDec1 clrTOnEmph ${ob.saveInProgress ? 'processing' : ''}`"
-                :btnText="ob.polyT('wallet.sendMoney.sendBtn')" @click.stop="onClickSend" />
+                :btnText="ob.polyT('wallet.sendMoney.sendBtn')" @click="onClickSend" @click.stop />
               <div class="js-sendConfirmContainer"></div>
               <SpendConfirmBox ref="spendConfirmBox" :options="{ metricsOrigin: 'Wallet',}" @clickSend="onClickConfirmSend" />
             </div>
@@ -62,15 +63,11 @@
 </template>
 
 <script>
-import _ from 'underscore';
-import $ from 'jquery';
-import bigNumber from 'bignumber.js';
-import WAValidator from 'multicoin-address-validator';
 import app from '../../../../backbone/app';
 import { getCurrenciesSortedByCode } from '../../../../backbone/data/currencies';
 import { endAjaxEvent, recordEvent, startAjaxEvent } from '../../../../backbone/utils/metrics';
 import { convertCurrency, getExchangeRate } from '../../../../backbone/utils/currency';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../SimpleMessage';
 import Spend, { spend } from '../../../../backbone/models/wallet/Spend';
 import SpendConfirmBox from './SpendConfirmBox.vue';
 
@@ -88,24 +85,15 @@ export default {
   data () {
     return {
       saveInProgress: false,
-
-      formData: {
-        address: '',
-        amount: 0,
-        currency: '',
-        memo: '',
-      },
-
-      _model: undefined,
-      modelKey: 0,
     };
   },
   created () {
     this.initEventChain();
 
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
   mounted () {
+    $('#walletSendCurrency').select2();
   },
   computed: {
     defaultCur () {
@@ -117,16 +105,11 @@ export default {
         ...this.templateHelpers,
         ...this.model.toJSON(),
         errors: this.model.validationError || {},
-        currencies: getCurrenciesSortedByCode(),
+        currencyCode: this.model.get('currency') || this.defaultCur,
+        currencies: this.currencies || getCurrenciesSortedByCode(),
         saveInProgress: this.saveInProgress,
         coinType: this.coinType,
       };
-    },
-
-    model() {
-      let access = this.modelKey;
-
-      return this._model;
     }
   },
   methods: {
@@ -135,13 +118,9 @@ export default {
         throw new Error('Please provide the coinType as a string.');
       }
 
-      this.baseInit(options);
-
-      this._model = new Spend({ wallet: options.coinType });
-      this._model.on('change', () => this.modelKey += 1);
-
-      this.formData = _.pick(this._model.toJSON(), _.keys(this.formData));
-      this.formData.currency = this.defaultCur;
+      this.setState(options.initialState || {});
+      this.coinType = options.coinType;
+      this.model = new Spend({ wallet: options.coinType });
     },
 
     onClickConfirmSend () {
@@ -157,7 +136,7 @@ export default {
         coinType: this.coinType,
         feeLevel: app.localSettings.get('defaultTransactionFee'),
       }).fail(jqXhr => {
-        let reason = jqXhr.responseJSON && jqXhr.responseJSON.reason || jqXhr.responseText;
+        let reason = jqXhr.responseText || '';
 
         if (reason === 'ERROR_INVALID_ADDRESS') {
           reason = app.polyglot.t('wallet.sendMoney.errorInvalidAddress');
@@ -177,11 +156,7 @@ export default {
     },
 
     onClickSend () {
-      const formData = this.formData;
-      if (!_.isNull(formData.amount)) {
-        formData.amount = bigNumber(formData.amount);
-      }
-
+      const formData = this.getFormData(this.getFormFields());
       this.model.set(formData);
       this.model.set({}, { validate: true });
 
@@ -199,13 +174,23 @@ export default {
       this.clearForm();
     },
 
-    onInputAddress() {
-      if (!WAValidator.validate(this.formData.address, this.coinType)) {
-      }
+    focusAddress () {
+      if (!this.saveInProgress) $('#walletSendTo').focus();
     },
 
-    focusAddress () {
-      if (!this.saveInProgress) this.$refs.walletSendTo.focus();
+    setFormData (data = {}, options = {}) {
+      const opts = {
+        focusAddressInput: true,
+        render: true,
+        ...options,
+      };
+
+      this.clearForm();
+      this.model.set(data);
+
+      setTimeout(() => {
+        if (opts.focusAddressInput) this.focusAddress();
+      });
     },
 
     clearModel () {
@@ -219,8 +204,6 @@ export default {
       this.model.unset('currency');
       this.model.set(this.model.defaults || {});
       this.model.validationError = null;
-
-      this.formData = _.pick(this.model.toJSON(), _.keys(this.formData));
     },
 
     clearForm () {
@@ -231,6 +214,12 @@ export default {
       const amount = convertCurrency(this.model.get('amount'), this.model.get('currency'),
         this.coinType);
       this.$refs.spendConfirmBox.fetchFeeEstimate(amount, this.coinType);
+    },
+
+    getFormFields () {
+      return $(`select[name], input[name], 
+        textarea[name]:not([class*="trumbowyg"]), 
+        div[contenteditable][name]`);
     },
   }
 }
