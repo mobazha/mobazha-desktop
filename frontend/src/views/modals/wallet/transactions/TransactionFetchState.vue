@@ -1,60 +1,59 @@
 <template>
   <div class="transactionFetchState">
-    <template v-if="ob.isFetching">
+    <div v-if="ob.isFetching">
       <div :class="`${ob.transactionsPresent ? 'txCtr' : 'center'}  padLg`">
-        <SpinnerSVG className="spinnerMd" />
+        <SpinnerSVG :className="spinnerMd" />
       </div>
-    </template>
+    </div>
 
-    <template v-else-if="ob.fetchFailed">
+    <div v-else-if="ob.fetchFailed">
       <div :class="`${ob.transactionsPresent ? '' : 'center'} txCtr tx5`">
         <div :class="`txB ${ob.initialFetchErrorMessage ? 'rowTn' : 'row'}`">{{ ob.polyT('wallet.transactions.fetchFailedMsg') }}</div>
         <div v-if="ob.fetchErrorMessage" class="row">{{ ob.fetchErrorMessage }}</div>
-        <a class="btn clrP clrBr clrSh2" @click="onClickRetryFetch">Retry</a>
+        <a class="btn clrP clrBr clrSh2 " @click="onClickRetryFetch">Retry</a>
       </div>
-    </template>
+    </div>
+
   </div>
 </template>
 
 <script>
+
 export default {
   props: {
     options: {
       type: Object,
-      default: {
-        isFetching: false,
-        fetchFailed: false,
-        fetchErrorMessage: '',
-        transactionsPresent: false,
-      },
+      default: {},
     },
   },
-  data() {
+  data () {
     return {
-      isFetching: false,
-      fetchFailed: false,
-      fetchErrorMessage: '',
-      transactionsPresent: false,
     };
   },
-  created() {
+  created () {
+    this.initEventChain();
+
+    this.loadData(this.$props.options);
   },
-  watch: {
+  mounted () {
   },
-  mounted() {},
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
-        ...this.options,
+        ...this._state,
       };
-    },
+    }
   },
   methods: {
-    onClickRetryFetch() {
+    loadData (options = {}) {
+      this.setState(options.initialState || {});
+    },
+
+    onClickRetryFetch () {
       this.$emit('clickRetryFetch');
     },
-  },
-};
+  }
+}
 </script>
 <style lang="scss" scoped></style>

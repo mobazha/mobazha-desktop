@@ -5,63 +5,59 @@
       <PopInMessage
         v-if="showNewTxPopup"
         :class="`popInMessageHolder js-popInMessages ${notFixedMessages ? 'notFixed' : ''}`"
-        :options="{ messageText: ob.polyT('wallet.transactions.newTransactionsPopin', { smart_count: newTransactionsTXs.size }) }"
+        :options="{ messageText: ob.polyT('wallet.transactions.newTransactionsPopin', { smart_count: newTransactionsTXs.size },), }"
         @clickRefresh="refreshTransactions()"
         @clickDismiss="this.showNewTxPopup = false"
       />
       <div v-for="(model, key) in collection.models" :key="key" class="js-transactionListContainer borderStacked clrBr padMdKids">
         <Transaction
-          ref="transaction"
-          :options="{
-            coinType: this.coinType,
-            bumpFeeXhr: (this.bumpFeeXhrs && this.bumpFeeXhrs[model.id]) || undefined,
-          }"
-          :bb="function() {
-            return {
-              model: model,
-            };
-          }"
-          @bumpFeeAttempt="onBumpFeeAttempt"
-          @bumpFeeSuccess="onBumpFeeSuccess"
-        />
+        :options="{
+          model,
+          coinType: this.coinType,
+          bumpFeeXhr: (this.options.bumpFeeXhrs && this.options.bumpFeeXhrs[model.id]) || undefined,
+        }"
+        :bumpFeeSuccess="this.$emit('bumpFeeSuccess', model)"
+        :bumpFeeAttempt="this.$emit('bumpFeeAttempt', model)" />
       </div>
     </div>
     <TransactionFetchState
+      ref="transactionFetchState"
       :options="{
-        isFetching,
-        fetchFailed,
-        fetchErrorMessage,
-        transactionsPresent: !!options.collection.length,
+        initialState: {
+          isFetching,
+          fetchFailed,
+          fetchErrorMessage,
+          transactionsPresent: !!this.collection.length,
+        },
       }"
-      @clickRetryFetch="clickRetryFetch"
-    />
+      :clickRetryFetch="clickRetryFetch"
+      />
     <div class="js-transactionEmptyState"></div>
-    <template v-if="!ob.transactions.length && !isFetching && !ob.fetchFailed">
+    <div v-if="!ob.transactions.length && !isFetching && !ob.fetchFailed">
       <div class="center txCtr tx5 clrT2">
-        {{ ob.polyT('wallet.transactions.noTransactionsPlaceholder', { coinType: ob.polyT(`cryptoCurrencies.${ob.coinType}`, { _: ob.coinType }) }) }}
+        {{ ob.polyT('wallet.transactions.noTransactionsPlaceholder',
+          { coinType: ob.polyT(`cryptoCurrencies.${ob.coinType}`, { _: ob.coinType }) }) }}
       </div>
-    </template>
-    <Teleport to="#js-vueModal">
-      <Settings v-if="showSettings" :options="{ initialTab: 'Advanced', scrollTo: '.js-backupWalletSection', }" @close="closeSettings" />
-    </Teleport>
+    </div>
   </div>
 </template>
 
 <script>
+/* eslint-disable class-methods-use-this */
 import _ from 'underscore';
 import app from '../../../../../backbone/app';
 import { isScrolledIntoView } from '../../../../../backbone/utils/dom';
 import { getSocket, getCurrentConnection } from '../../../../../backbone/utils/serverConnect';
-import { openSimpleMessage } from '../../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../../SimpleMessage';
+import { launchSettingsModal } from '../../../../../backbone/utils/modalManager';
 import Transaction from './Transaction.vue';
 import TransactionFetchState from './TransactionFetchState.vue';
-import Settings from '@/views/modals/settings/Settings.vue';
+
 
 export default {
   components: {
     Transaction,
     TransactionFetchState,
-    Settings,
   },
   props: {
     options: {
@@ -69,70 +65,52 @@ export default {
       default: {},
     },
   },
-  data() {
+  data () {
     return {
       transactionsPerFetch: 25,
-      transactionsFetch: undefined,
 
       transactionViews: [],
       fetchFailed: false,
       fetchErrorMessage: '',
-      isFetching: false,
       newTransactionsTXs: new Set(),
       popInTimeouts: [],
       coinType: '',
+      countAtFirstFetch: false,
 
       showNewTxPopup: false,
-
-      _state: {
-        // If not fetching on init, you may want to pass in the count of transactions
-        // that were returned by the first fetch which is used to determine if all the
-        // pages have been fetched.
-        countAtFirstFetch: undefined,
-        // If there are any existing bump fee attempts that you want shuttled into the
-        // individual transaction views, please provide an indexed object (indexed by txid)
-        // of them here.
-        bumpFeeXhrs: undefined,
-      },
-
-      showSettings: false,
     };
   },
-  created() {
+  created () {
     this.initEventChain();
 
-    this.loadData(this.options);
+    this.loadData(this.$props);
   },
-  mounted() {
-    this.$emit('postInit');
-
-    window.addEventListener('scroll', this.throttledOnScroll);
-  },
-  beforeRouteLeave() {
-    if (this.transactionsFetch) this.transactionsFetch.abort();
-    this.popInTimeouts.forEach((timeout) => clearTimeout(timeout));
-  },
-  unmounted() {
-    window.removeEventListener('scroll', this.throttledOnScroll);
+  mounted () {
+    this.$scrollContainer.off('scroll', this.throttledOnScroll)
+        .on('scroll', this.throttledOnScroll);
   },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
-        transactions: this.collection,
+        transactions: this.collection.toJSON(),
         fetchFailed: this.fetchFailed,
         coinType: this.coinType,
       };
     },
-    allLoaded() {
+    isFetching () {
+      return this.transactionsFetch
+        && this.transactionsFetch.state() === 'pending';
+    },
+    allLoaded () {
       return this.collection.length >= this.countAtFirstFetch;
     },
-    notFixedMessages() {
-      return this.scrollTop < 515;
+    notFixedMessages () {
+      return this.$scrollContainer[0].scrollTop < 515;
     },
   },
   methods: {
-    loadData(options = {}) {
+    loadData (options = {}) {
       const opts = {
         fetchOnInit: true,
         // If not fetching on init, you may want to pass in the count of transactions
@@ -146,16 +124,18 @@ export default {
         ...options,
       };
 
-      this.baseInit(opts);
+      this.setState(opts.initialState || {});
+      this.options = opts;
 
       if (!this.collection) {
         throw new Error('Please provide a Transactions collection.');
       }
 
-      // if (!opts.$scrollContainer || !opts.$scrollContainer.length) {
-      //   throw new Error('Please provide a jQuery object containing the scrollable element '
-      //     + 'this view is in.');
-      // }
+      if (!opts.$scrollContainer || !opts.$scrollContainer.length) {
+        throw new Error('Please provide a jQuery object containing the scrollable element '
+          + 'this view is in.');
+      }
+
       this.coinType = this.collection.options.coinType;
       this.countAtFirstFetch = opts.countAtFirstFetch;
 
@@ -168,7 +148,7 @@ export default {
           if (e.jsonData.walletUpdate && e.jsonData.walletUpdate[this.coinType]) {
             const walletUpdate = e.jsonData.walletUpdate[this.coinType];
             this.collection.models
-              .filter((transaction) => transaction.get('height') > 0)
+              .filter((transaction) => (transaction.get('height') > 0))
               .forEach((transaction) => {
                 const confirmations = walletUpdate.height - transaction.get('height') + 1;
                 transaction.set('confirmations', confirmations);
@@ -177,15 +157,13 @@ export default {
         });
       }
 
-      // this.$scrollContainer = opts.$scrollContainer;
+      this.$scrollContainer = opts.$scrollContainer;
       this.throttledOnScroll = _.throttle(this.onScroll, 100).bind(this);
 
-      this.refreshTransactions();
+      if (opts.fetchOnInit) this.refreshTransactions();
     },
 
-    onScroll(event) {
-      this.scrollTop = event.currentTarget.scrollTop;
-
+    onScroll () {
       if (this.collection.length && !this.allLoaded) {
         // fetch next batch of transactions
         const lastTransaction = this.transactionViews[this.transactionViews.length - 1];
@@ -196,13 +174,16 @@ export default {
       }
     },
 
-    refreshTransactions() {
+    refreshTransactions () {
       this.collection.reset();
       this.fetchTransactions();
     },
 
-    fetchTransactions() {
-      if (this.transactionsFetch && this.transactionsFetch.state() === 'pending') return;
+    fetchTransactions () {
+      if (
+        this.transactionsFetch
+        && this.transactionsFetch.state() === 'pending'
+      ) return;
 
       const fetchParams = {
         limit: this.transactionsPerFetch,
@@ -221,75 +202,82 @@ export default {
         .done((data) => {
           if (this.isRemoved()) return;
 
-          this.isFetching = false;
           this.fetchFailed = false;
           this.fetchErrorMessage = '';
-
-          this.$emit('transactionsUpdate');
 
           if (typeof this.countAtFirstFetch === 'undefined') {
             this.countAtFirstFetch = data.count;
           }
 
           if (this.collection.length) {
+            this.$refs.transactionFetchState.setState({
+              isFetching: false,
+              fetchFailed: this.fetchFailed,
+              fetchErrorMessage: this.fetchErrorMessage,
+            });
+
             const curConn = getCurrentConnection();
 
             if (curConn && curConn.server && !curConn.server.get('backupWalletWarned')) {
               const warning = openSimpleMessage(
                 app.polyglot.t('wallet.transactions.backupWalletWarningTitle'),
                 app.polyglot.t('wallet.transactions.backupWalletWarningBody', {
-                  link: '<a class="js-recoverWalletSeed">' + `${app.polyglot.t('wallet.transactions.recoverySeedLink')}</a>`,
-                })
+                  link: '<a class="js-recoverWalletSeed">'
+                    + `${app.polyglot.t('wallet.transactions.recoverySeedLink')}</a>`,
+                }),
               );
 
               warning.$el.on('click', '.js-recoverWalletSeed', () => {
-                this.showSettings = true;
+                launchSettingsModal({
+                  initialTab: 'Advanced',
+                  scrollTo: '.js-backupWalletSection',
+                });
                 warning.remove();
               });
 
               curConn.server.save({ backupWalletWarned: true });
             }
           }
-        })
-        .fail((xhr) => {
+        }).fail((xhr) => {
           if (this.isRemoved() || xhr.statusText === 'abort') return;
 
-          this.$emit('transactionsUpdate');
-
-          this.isFetching = false;
           this.fetchFailed = true;
           this.fetchErrorMessage = (xhr.responseJSON && xhr.responseJSON.reason) || '';
+
+          if (this.collection.length) {
+            this.$refs.transactionFetchState.setState({
+              isFetching: false,
+              fetchFailed: this.fetchFailed,
+              fetchErrorMessage: this.fetchErrorMessage,
+            });
+          }
         });
 
-      this.isFetching = true;
-      this.transactionsPresent = !!this.collection.length;
+      this.$refs.transactionFetchState.setState({
+        isFetching: true,
+        transactionsPresent: !!this.collection.length,
+      });
 
       this.fetchFailed = false;
       this.fetchErrorMessage = '';
     },
 
-    closeSettings() {
-      this.showSettings = false;
-    },
-
-    showNewTransactionPopup() {
+    showNewTransactionPopup () {
       this.showNewTxPopup = true;
     },
 
-    onBumpFeeAttempt(e) {
-      this.$emit('bumpFeeAttempt', e);
+    remove () {
+      if (this.transactionsFetch) this.transactionsFetch.abort();
+      this.popInTimeouts.forEach((timeout) => clearTimeout(timeout));
+      this.$scrollContainer.off('scroll', this.throttledOnScroll);
     },
 
-    onBumpFeeSuccess(e) {
-      this.$emit('bumpFeeSuccess', e);
-    },
-
-    clickRetryFetch() {
+    clickRetryFetch () {
       // simulate some latency so if it fails again, it looks like it tried.
-      this.isFetching = true;
+      this.$refs.transactionFetchState.setState({ isFetching: true });
       setTimeout(() => this.fetchTransactions(), 250);
     },
-  },
-};
+  }
+}
 </script>
 <style lang="scss" scoped></style>
