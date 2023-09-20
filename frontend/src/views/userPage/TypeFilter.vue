@@ -4,33 +4,37 @@
      the other is also maintained. -->
     <div class="txB rowSm">{{ ob.polyT('userPage.store.typeFilter.heading') }}</div>
     <div class="btnRadio">
-      <input type="radio" name="filterListingType" @change="onChangeType('all')" id="filterListingTypeAll" data-var-type="boolean" :checked="selected === 'all'" />
+      <input type="radio" name="filterListingType" value="all" id="filterListingTypeAll" data-var-type="boolean"
+        :checked="ob.selected === 'all'">
       <label for="filterListingTypeAll">{{ ob.polyT('userPage.store.typeFilter.all') }}</label>
     </div>
 
-    <template v-for="(type, index) in types.slice(0, maxInitiallyVisibleTypes - 1)" :key="index">
+    <div v-for="(type, index) in ob.types.slice(0, ob.maxInitiallyVisibleTypes - 1)" :key="index">
       <div class="btnRadio">
-        <input type="radio" name="filterListingType" @change="onChangeType(type)" :id="`filterListingType${flatType(type)}`" :checked="selected === type" />
+        <input type="radio" name="filterListingType" :value="type" :id="`filterListingType${flatType(type)}`"
+          :checked="ob.selected === type">
         <label :for="`filterListingType${flatType(type)}`">{{ ob.polyT(`formats.${type}`) }}</label>
       </div>
-    </template>
+    </div>
     <!-- // adding 1 to the length to account for the All type we hard-code %> -->
-    <template v-if="types.length + 1 > maxInitiallyVisibleTypes">
-      <div :class="`js-moreTypesWrap moreTypesWrap ${expanded ? 'expanded' : ''}`">
+    <div v-if="(ob.types.length + 1) > ob.maxInitiallyVisibleTypes">
+      <div :class="`js-moreTypesWrap moreTypesWrap ${ob.expanded ? 'expanded' : ''}`">
         <div class="moreTypes">
-          <template v-for="(type, index) in types.slice(maxInitiallyVisibleTypes - 1)" :key="index">
+          <div v-for="(type, index) in ob.types.slice(ob.maxInitiallyVisibleTypes - 1)" :key="index">
             <div class="btnRadio">
-              <input type="radio" name="filterListingType" @change="onChangeType(type)" :id="`filterListingType${flatType(type)}`" :checked="selected === type" />
-              <label :for="`filterListingType${flatType(type)}`">{{ ob.polyT(`formats.${type}`) }}</label>
+              <input type="radio" name="filterListingType" :value="type" :id="`filterListingType${flatType(type)}`"
+                :checked="ob.selected === type">
+              <label :for="`filterListingType${flatType(type)}`">${ob.polyT(`formats.${type}`)}</label>
             </div>
-          </template>
+          </div>
         </div>
-        <a class="clrT tx6 txU showMore" @click="onClickShowMoreLess">{{
-          ob.polyT('userPage.store.typeFilter.showMore', types.length + 1 - maxInitiallyVisibleTypes)
+        <a class=" clrT tx6 txU showMore" @click="onClickShowMoreLess">{{ ob.polyT('userPage.store.typeFilter.showMore',
+          (ob.types.length + 1) - ob.maxInitiallyVisibleTypes) }}</a>
+        <a class=" clrT tx6 txU showLess" @click="onClickShowMoreLess">{{ ob.polyT('userPage.store.typeFilter.showLess')
         }}</a>
-        <a class="clrT tx6 txU showLess" @click="onClickShowMoreLess">{{ ob.polyT('userPage.store.typeFilter.showLess') }}</a>
       </div>
-    </template>
+    </div>
+
   </div>
 </template>
 
@@ -39,49 +43,70 @@
 the other is also maintained.
 */
 
+import $ from 'jquery';
+
 export default {
   props: {
-    types: {
+    options: {
       type: Object,
-      default: [],
-    },
-    selected: {
-      type: String,
-      default: 'all',
-    },
-    maxInitiallyVisibleTypes: {
-      type: Number,
-      default: 6,
+      default: {},
     },
   },
-  data() {
+  data () {
     return {
-      expanded: false,
     };
   },
-  created() {
+  created () {
+    this.initEventChain();
+
+    this.loadData(this.$props.options);
   },
-  mounted() {},
+  mounted () {
+  },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
+        ...this._state,
       };
-    },
+    }
   },
   methods: {
-    flatType(type) {
+    loadData (options = {}) {
+      const opts = {
+        ...options,
+      };
+
+      opts.initialState = {
+        types: [],
+        selected: 'all',
+        expanded: false,
+        maxInitiallyVisibleTypes: 6,
+        ...(options.initialState || {}),
+      };
+
+      this.setState(opts.initialState || {});
+      this.options = opts;
+    },
+    flatType (type) {
       return type.replace(/\s/g, '-');
     },
 
-    onClickShowMoreLess() {
-      this.expanded = !this.expanded;
+    events () {
+      return {
+        'change input[type="radio"]': 'onChangeType',
+      };
     },
 
-    onChangeType(val) {
-      this.$emit('type-change', val);
+    onClickShowMoreLess () {
+      this.setState({ expanded: !this.getState().expanded });
     },
-  },
-};
+
+    onChangeType (e) {
+      this._state.selected = e.target.value;
+      this.$emit('type-change', { value: $(e.target).val() });
+    },
+  }
+}
 </script>
 <style lang="scss" scoped></style>

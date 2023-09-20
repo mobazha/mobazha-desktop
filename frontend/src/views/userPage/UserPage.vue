@@ -1,507 +1,183 @@
 <template>
-  <div :class="`userPage clrS ${isBlockedUser ? 'isBlocked' : ''}`">
-    <template v-if="!showPageNotFound && !showBlockedModal && !showUserLoading">
-      <nav id="pageTabBar" class="barLg clrP clrBr">
-        <div class="flexVCent pageTabs">
-          <MiniProfile :options="{
-            overwriteClickRating: true,
-          }"
-          :bb="function() {
-            return {
-              model: model,
-            };
-          }"
-          @clickRating="clickRating" />
-          <div class="flexExpand">
-            <div class="flexHRight flexVCent gutterH clrT2">
-              <DefineTabHeader v-slot="{tab, count}">
-                <a :class="`btn tab clrBr ${activeTab === tab ? 'clrT active' : ''}`" @click="clickTab(tab)"
-                >{{ ob.polyT(`userPage.mainNav.${tab}`) }}<span v-if="count !== null" class="clrTEmph1 margLSm">{{ abbrNum(count) }}</span></a>
-              </DefineTabHeader>
-              <ReuseTabHeader tab="home" />
-              <!-- // the store tab is only visible to the user if they have vendor set to false -->
-              <ReuseTabHeader v-if="ob.vendor || ob.ownPage" tab="store" :count="listingCount"></ReuseTabHeader>
-              <ReuseTabHeader tab="following" :count="followingCount"></ReuseTabHeader>
-              <ReuseTabHeader tab="followers" :count="followerCount"></ReuseTabHeader>
+  <div class="userPage clrS">
+    <nav id="pageTabBar" class="barLg clrP clrBr">
+      <div class="flexVCent pageTabs">
+        <div class="js-miniProfileContainer"></div>
+        <div class="flexExpand">
+          <div class="flexHRight flexVCent gutterH clrT2">
+            <a class="btn tab clrBr js-tab" @click="clickTab" data-tab="home">{{ ob.polyT('userPage.mainNav.home') }}</a>
+            <!-- // the store tab is only visible to the user if they have vendor set to false -->
+            <a v-if="ob.vendor || ob.ownPage" class="btn tab clrBr js-tab" @click="clickTab" data-tab="store">{{ ob.polyT('userPage.mainNav.store') }}<span class="clrTEmph1 margLSm js-listingsCount">{{ ob.stats.listingCount }}</span></a>
+            <a class="btn tab clrBr js-tab" @click="clickTab" data-tab="following">{{ ob.polyT('userPage.mainNav.following') }}<span class="clrTEmph1 margLSm js-followingCount">{{ ob.followingCount }}</span></a>
+            <a class="btn tab clrBr js-tab" @click="clickTab" data-tab="followers">{{ ob.polyT('userPage.mainNav.followers') }}<span class="clrTEmph1 margLSm js-followerCount">{{ ob.followerCount }}</span></a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="header js-header"
+      :style="headerHash ? `background-image: url(${ob.getServerUrl(`ob/image/${headerHash}`)}), url('../imgs/defaultHeader.png')` : `background-image: url('../imgs/defaultHeader.png')`">
+      <div class="blockedOverlay clrP">
+        <div class="flexCol flexHCent tx4">
+          <i class="ion-eye-disabled tx1"></i>
+          <div>{{ ob.polyT('userPage.blockedUserOverlayText') }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="pageContent js-pageContent">
+      <div class="pageControls flexVBase">
+        <div class="flexExpand">
+          <h1 class="txBg txUnb txUnl txGlow tabTitle js-tabTitle">
+          </h1>
+        </div>
+        <div class="posR">
+          <div v-if="ob.ownPage">
+            <div class="btnStrip floR clrSh2">
+              <a class="btn clrP clrBr" @click="clickCustomize">{{ ob.polyT('userPage.customize') }}</a>
+              <a class="btn clrP clrBr" @click="clickCreateListing">{{ ob.polyT('userPage.createListing') }}</a>
+              <!--
+          <a class="btn clrP clrBr hide js-moreableBtn">{{ ob.polyT('userPage.block') }}</a>
+          <a class="iconBtn clrP clrBr " @click="clickMore" ><i class="ion-android-more-vertical"></i> </a>
+        -->
+            </div>
+          </div>
+
+          <div v-else>
+            <div class="js-socialBtns"></div>
+            <SocialBtns :targetID="model.id" />
+          </div>
+          <div v-if="ob.showStoreWelcomeCallout">
+            <div class="storeWelcomeCallout js-storeWelcomeCallout arrowBoxBottom confirmBox clrP clrBr clrSh1 tx5">
+              <div class="tx3 txB rowSm padSm">{{ ob.polyT('userPage.storeWelcomeCalloutTitle') }}</div>
+              <hr class="clrBr rowMd" />
+              <p class="rowMd">{{ ob.polyT('userPage.storeWelcomeCalloutBody') }}</p>
+              <hr class="clrBr" />
+              <div class="txCtr padSm">
+                <button class="btn clrP clrBr" @click="clickCloseStoreWelcomeCallout">
+                  {{ ob.polyT('userPage.storeWelcomeCalloutBtnClose') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </nav>
-      <div class="header js-header">
-        <img class="bkgImg" :src="headerHash ? ob.getServerUrl(`ob/image/${headerHash}`) : ob.getImagePath('defaultHeader.png')" />
-        <div class="blockedOverlay clrP">
-          <div class="flexCol flexHCent tx4">
-            <i class="ion-eye-disabled tx1"></i>
-            <div>{{ ob.polyT('userPage.blockedUserOverlayText') }}</div>
-          </div>
-        </div>
       </div>
-      <div class="pageContent js-pageContent">
-        <div class="pageControls flexVBase">
-          <div class="flexExpand">
-            <h1 class="txBg txUnb txUnl txGlow tabTitle js-tabTitle"></h1>
-          </div>
-          <div class="posR">
-            <template v-if="ob.ownPage">
-              <div class="btnStrip modern-btn-strip floR clrSh2">
-                <a class="btn clrP clrBr" @click="clickCustomize">{{ ob.polyT('userPage.customize') }}</a>
-                <a class="btn clrP clrBr" @click="clickCreateListing">{{ ob.polyT('userPage.createListing') }}</a>
-                <!--
-            <a class="btn clrP clrBr hide js-moreableBtn">{{ ob.polyT('userPage.block') }}</a>
-            <a class="iconBtn clrP clrBr " @click="clickMore" ><i class="ion-android-more-vertical"></i> </a>
-          -->
-              </div>
-            </template>
-
-            <template v-else>
-              <SocialBtns :options="{ targetID: model.id, }" />
-            </template>
-            <template v-if="ob.showStoreWelcomeCallout">
-              <div class="storeWelcomeCallout js-storeWelcomeCallout arrowBoxBottom confirmBox clrP clrBr clrSh1 tx5">
-                <div class="tx3 txB rowSm padSm">{{ ob.polyT('userPage.storeWelcomeCalloutTitle') }}</div>
-                <hr class="clrBr rowMd" />
-                <p class="rowMd">{{ ob.polyT('userPage.storeWelcomeCalloutBody') }}</p>
-                <hr class="clrBr" />
-                <div class="txCtr padSm">
-                  <button class="btn clrP clrBr" @click="clickCloseStoreWelcomeCallout">
-                    {{ ob.polyT('userPage.storeWelcomeCalloutBtnClose') }}
-                  </button>
-                </div>
-              </div>
-            </template>
-          </div>
-        </div>
-        <div class="tabContent js-userPage-tabContent">
-          <!-- insert the tab subview here -->
-          <Home v-if="activeTab === 'home'" :bb="function() {
-            return {
-              model,
-            }
-          }" />
-          <Store v-else-if="activeTab === 'store'"
-            :bb="storeBB()"
-            @listingsUpdate="onListingsUpdate"
-            />
-          <Follow v-else-if="activeTab === 'followers' || activeTab === 'following'" :key="activeTab"
-            :options="{
-              followType: activeTab,
-              peerID: model.id,
-            }"
-            :bb="() => {
-              return {
-                model,
-                collection: activeTab === 'followers' ? followersCol : followingCol,
-              }
-            }"
-            />
-          <Reputation v-else-if="activeTab === 'reputation'" :bb="function() {
-              return {
-                model,
-              }
-            }" />
-        </div>
+      <div class="tabContent js-tabContent">
+        <!-- insert the tab subview here -->
       </div>
-    </template>
-    <PageNotFound v-else-if="showPageNotFound" />
+    </div>
 
-    <Teleport to="#js-vueModal">
-      <BlockedWarning v-if="showBlockedModal" :options="{ peerID }"
-       @canceled="onBlockWarningCanceled"
-       @unblock="onUnblock"
-      />
-      <Loading v-else-if="showUserLoading"
-        :userName="model.get('name')"
-        :userAvatarHashes="model.get('avatarHashes')"
-        :contentText="loadingContextText"
-        :isProcessing="isLoadingUser"
-        @clickCancel="onClickLoadingCancel" @clickRetry="onClickLoadingRetry"/>
-      <ListingDetail v-else-if="activeTab === 'store' && listing"
-        :key="`${listing.cid}_${listingKey}`"
-        :options="{
-          vendor: {
-            peerID: model.id,
-            name: model.get('name'),
-            handle: model.get('handle'),
-            avatarHashes: model.get('avatarHashes').toJSON(),
-          },
-				}"
-        :bb="function() {
-          return {
-            model: listing,
-          }
-        }"
-        @refresh="listingKey += 1"
-        @close="onListingDetailClose"
-      />
-
-      <EditListing v-if="showEditListing"
-        :bb="() => {
-          return {
-            model: editListingModel,
-          };
-        }"
-        @close="closeEditListingModal"
-      />
-
-      <Settings v-if="showSettings" :options="{ initialTab: 'Page' }" @close="closeSettings" />
-    </Teleport>
-    
   </div>
 </template>
 
 <script>
 import $ from 'jquery';
-import { createReusableTemplate } from '@vueuse/core';
-
 import app from '../../../backbone/app';
+import { followsYou } from '../../../backbone/utils/follow';
 import { abbrNum } from '../../../backbone/utils';
+import { capitalize } from '../../../backbone/utils/string';
 import { isHiRez } from '../../../backbone/utils/responsive';
-import { startAjaxEvent, endAjaxEvent, recordEvent } from '../../../backbone/utils/metrics';
-import { isBlocked, isUnblocking, events as blockEvents } from '../../../backbone/utils/block';
-import { isValidUserRoute }from '../../../backbone/utils/routeCheck'
+import { recordEvent } from '../../../backbone/utils/metrics';
+import { launchEditListingModal, launchSettingsModal } from '../../../backbone/utils/modalManager';
+import { isBlocked, events as blockEvents } from '../../../backbone/utils/block';
 import { getCurrentConnection } from '../../../backbone/utils/serverConnect';
 import Listing from '../../../backbone/models/listing/Listing';
 import Listings from '../../../backbone/collections/Listings';
 import Followers from '../../../backbone/collections/Followers';
+import MiniProfile from '../../../backbone/views/MiniProfile.js';
+import Home from '../../../backbone/views/userPage/Home';
+import Store from '../../../backbone/views/userPage/Store';
+import Follow from '../../../backbone/views/userPage/Follow';
+import Reputation from '../../../backbone/views/userPage/Reputation';
 
-import BlockedWarning from '../modals/BlockedWarning.vue'
-import Loading from '../modals/LoadingUser.vue'
-import MiniProfile from '../MiniProfile.vue';
-import PageNotFound from '../error-pages/PageNotFound.vue'
-
-import Home from './Home.vue';
-import Store from './Store.vue';
-import Follow from './Follow.vue';
-import Reputation from './Reputation.vue';
-import ListingDetail from '../modals/listingDetail/Listing.vue';
-import Settings from '@/views/modals/settings/Settings.vue';
-import EditListing from '@/views/modals/editListing/EditListing.vue';
-
-const [DefineTabHeader, ReuseTabHeader] = createReusableTemplate();
-
-const standardizedHash = (hash) => (hash.endsWith('/') ? hash.slice(0, hash.length - 1) : hash);
 
 export default {
-  components: {
-    DefineTabHeader,
-    ReuseTabHeader,
-
-    PageNotFound,
-    BlockedWarning,
-    Loading,
-    MiniProfile,
-    Home,
-    Store,
-    Follow,
-    Reputation,
-
-    ListingDetail,
-    EditListing,
-    Settings,
-  },
   props: {
     options: {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
-  data() {
+  data () {
     return {
-      handle: '',
-      guild: '',
-      activeTab: 'store',
-      slug: '',
-      showStoreWelcomeCallout: true,
-
-      followingCount: 0,
-      followerCount: 0,
-      listingCount: 0,
-
-      followersCol: undefined,
-      followingCol: undefined,
-
-      profileFetch: undefined,
-      listingFetch: undefined,
-      listing: undefined,
-      showUserLoading: false,
-      showPageNotFound: false,
-      showBlockedModal: false,
-
-      showSettings: false,
-
-      showEditListing: false,
-      editListingModel: {},
-
-      isBlockedUser: false,
-
-      listingKey: 0,
-
-      loadingContextText: '',
-      isLoadingUser: false,
     };
   },
-  beforeRouteUpdate(to) {
-    if (this.activeTab !== to.params.state) {
-      this.activeTab = to.params.state ? to.params.state : 'store';
-    }
-  },
-  created() {
+  created () {
     this.initEventChain();
 
-    let { guid, state, slug } = this.$route.params;
-    if (this.$route.path === '/') {
-      guid = app.profile.id;
-    }
-
-    this.init(guid, state, slug);
-
-    this.followersCol = new Followers([], { peerID: this.model.id, type: 'followers', });
-    this.followingCol = new Followers([], { peerID: this.model.id, type: 'following', });
+    this.loadData(this.$props.options);
   },
-  mounted() {
-    this.setBlockedClass();
-
-    this.curConn = getCurrentConnection();
-
-    if (this.curConn && this.curConn.server) {
-      this.showStoreWelcomeCallout = !this.curConn.server.get('dismissedStoreWelcome');
-    }
-
-    this.listenTo(app.ownFollowing, 'add', this.onOwnFollowingAdd);
-    this.listenTo(app.ownFollowing, 'remove', this.onOwnFollowingRemove);
-
-    this.followersCol.on('update', () => this.followerCount = this.followersCol.length);
-    this.followingCol.on('update', () => this.followingCount = this.followingCol.length);
-
-    this.listenTo(blockEvents, 'blocked unblocked', (data) => {
-      if (data.peerIDs.includes(this.model.id)) {
-        this.setBlockedClass();
-      }
-    });
-  },
-  unmounted() {
-    // The app has been routed to a new route, let's
-    // clean up by aborting all fetches
-    if (this.profileFetch && this.profileFetch.abort) this.profileFetch.abort();
-    if (this.listingFetch) this.listingFetch.abort();
-
-    if (this.followingFetch) this.followingFetch.abort();
+  mounted () {
+    this.render();
   },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
         ...this.model.toJSON(),
         ownPage: this.ownPage,
         showStoreWelcomeCallout: this.showStoreWelcomeCallout,
+        followingCount: abbrNum(this.followingCount),
+        followerCount: abbrNum(this.followerCount),
       };
     },
-    headerHash() {
-      const headerHashes = this.model.get('headerHashes').toJSON();
-      return headerHashes ? (isHiRez() ? headerHashes.large : headerHashes.medium) : '';
+    headerHash () {
+      const ob = this.ob;
+      return ob.headerHashes ? ob.isHiRez() ? ob.headerHashes.large : ob.headerHashes.medium : '';
     },
-    ownPage() {
-      return this.model.id === app.profile.id;
-    }
   },
   methods: {
-    abbrNum,
-    onBlockWarningCanceled(){
-      this.showBlockedModal = false;
+    loadData (options = {}) {
+      this.setState(options.initialState || {});
 
-      const prevHash = standardizedHash(app.router.prevHash);
-      const locationHash = standardizedHash(location.hash);
+      if (!options.model) {
+        throw new Error('Please provide a user model.');
+      }
 
-      if (prevHash === locationHash) {
-        // means there is no previous page - will go to our own node page
-        app.router.navigate(`${app.profile.id}`, { replace: true, trigger: true, });
+      this.options = options;
+      this.ownPage = this.model.id === app.profile.id;
+      this.state = options.state || 'store';
+      this.tabViewCache = {};
+      this.tabViews = { Home, Store, Follow, Reputation };
+
+      const stats = this.model.get('stats');
+      this._followingCount = stats.get('followingCount');
+      this._followerCount = stats.get('followerCount');
+
+      if (!this.ownPage) {
+        if (this._followerCount === 0 && app.ownFollowing.indexOf(this.model.id) > -1) {
+          this._followerCount = 1;
+        }
       } else {
-        app.router.navigate(`${prevHash.slice(1)}`, { replace: true, trigger: true, });
-      }
-    },
-    onUnblock() {
-      this.showBlockedModal = false;
-
-      let { guid, state, slug } = this.$route.params;
-
-      this.init(guid, state, slug);
-    },
-    init(guid, state, slug) {
-      this.listing = undefined;
-      this.listingFetch = undefined;
-
-      const options = this.preLoad(guid, state, slug);
-      this.baseInit(options);
-
-      if (options.showPageNotFound || options.showBlockedModal) {
-        return;
+        this._followingCount = app.ownFollowing.length;
       }
 
-      this.loadData(guid, state, slug);
-    },
-    preLoad(guid, state, slug) {
-      const pageState = state || 'store';
+      this.listenTo(this.model.get('headerHashes'), 'change', () => this.updateHeader());
 
-      if (!isValidUserRoute(guid, pageState, slug)) {
-        return { showPageNotFound: true };
+      this.curConn = getCurrentConnection();
+
+      if (this.curConn && this.curConn.server) {
+        this.showStoreWelcomeCallout = !this.curConn.server.get('dismissedStoreWelcome');
       }
 
-      if (isBlocked(guid) && !isUnblocking(guid)) {
-        return { showPageNotFound: false, showBlockedModal: true, peerID: guid };
-      }
+      this.listenTo(app.ownFollowing, 'add', this.onOwnFollowingAdd);
+      this.listenTo(app.ownFollowing, 'remove', this.onOwnFollowingRemove);
 
-      return {
-        activeTab: pageState,
-        showBlockedModal: false,
-        showPageNotFound: false,
-      };
-    },
-    loadData(guid, state, slug) {
-      this.showUserLoading = true;
-
-      // Hack to pass the handle into this function, which should really only
-      // happen when called from userViaHandle(). If a handle is being passed in,
-      // it will be passed in as { handle: 'charlie' } as the first element of the
-      // ...args argument.
-      let handle;
-      // if (args.length && args[0] && args[0].hasOwnProperty('handle')) {
-      //   functionArgs = functionArgs.slice(1);
-      //   handle = args[0].handle;
-      // }
-
-      startAjaxEvent('UserPageLoad');
-
-      if (guid === app.profile.id) {
-        // don't fetch our own profile, since we have it already
-        this.profileFetch = $.Deferred().resolve();
-      } else {
-        this.profileFetch = this.model.fetch();
-      }
-
-      if (state === 'store') {
-        if (slug) {
-          this.listing = new Listing({
-            slug,
-          }, { guid });
-
-          this.listingFetch = this.listing.fetch();
-        }
-      }
-
-      let userPageFetchError = '';
-      const profileFetch = this.profileFetch;
-      const listingFetch = this.listingFetch;
-
-      this.loadingContextText = app.polyglot.t('userPage.loading.loadingText', {
-          name: `<b>${handle || `${guid.slice(0, 8)}…`}</b>`,
-        }),
-      this.isLoadingUser = true;
-
-      $.whenAll(profileFetch, listingFetch).done(() => {
-        handle = this.model.get('handle');
-        if (handle) {
-          app.router.cacheGuidHandle(guid, handle);
+      this.followsYou = false;
+      followsYou(this.model.id).done((data) => {
+        if (this.miniProfile) {
+          this.miniProfile.setState({ followsYou: data.followsMe });
         }
 
-        this.showUserLoading = false;
+        if (this.followingCount === 0 && !this.ownPage) this.followingCount = 1;
+      });
 
-        // Setting the address bar which will ensure the most up to date handle (or none) is
-        // shown in the address bar.
-        app.router.setAddressBarText();
-
-        const stats = this.model.get('stats');
-        this.followingCount = stats.get('followingCount');
-        this.followerCount = stats.get('followerCount');
-        this.listingCount = stats.get('listingCount');
-
-        if (this.activeTab === 'store' && !this.model.get('vendor') && guid !== app.profile.id) {
-          // the user does not have an active store and this is not our own node
-          if (state) {
-            // You've explicitly tried to navigate to the store tab. Since it's not
-            // available, we'll re-route to page-not-found
-            this.showPageNotFound = true;
-            return;
-          }
-
-          // You've attempted to find a user with no particular tab. Since store is not available
-          // we'll take you to the home tab.
-          app.router.navigate(`${guid}/home/${slug ? slug : ''}`, {trigger: true, replace: true});
-          return;
+      this.listenTo(blockEvents, 'blocked unblocked', (data) => {
+        if (data.peerIDs.includes(this.model.id)) {
+          this.setBlockedClass();
         }
-
-        if (!state) {
-          app.router.navigate(`${guid}/store${slug ? '/'+slug : ''}`, {trigger: true, replace: true});
-          // this.$router.replace(`${guid}/store/${slug ? slug : ''}`);
-          return;
-        }
-      }).fail((...failArgs) => {
-        const jqXhr = failArgs[0];
-        const reason = (jqXhr && jqXhr.responseJSON && jqXhr.responseJSON.reason)
-          || (jqXhr && jqXhr.responseText) || '';
-
-        if (jqXhr === profileFetch && profileFetch.statusText === 'abort') return;
-        if (jqXhr === listingFetch && listingFetch.statusText === 'abort') return;
-
-        if (profileFetch.state() === 'rejected') {
-          userPageFetchError = 'User Not Found';
-        } else if (listingFetch.state() === 'rejected') {
-          userPageFetchError = 'Listing Not Found';
-        }
-
-        userPageFetchError = userPageFetchError
-          ? `${userPageFetchError} - ${reason || 'unknown'}`
-          : reason || 'unknown';
-
-        let contentText = app.polyglot.t('userPage.loading.failTextStore', {
-          store: `<b>${handle || `${guid.slice(0, 8)}…`}</b>`,
-        });
-
-        if (profileFetch.state() === 'resolved' && listingFetch.state() === 'rejected') {
-          const linkText = app.polyglot.t('userPage.loading.failTextListingLink');
-          const listingSlug = slug.length > 25
-            ? `${slug.slice(0, 25)}…` : slug;
-          contentText = app.polyglot.t('userPage.loading.failTextListingWithLink', {
-            listing: `<b>${listingSlug}</b>`,
-            link: `<a href="#${guid}/store">${linkText}</a>`,
-          });
-        }
-
-        this.loadingContextText = contentText;
-        this.isLoadingUser = false;
-      })
-        .always(() => {
-          const dismissedCallout = getCurrentConnection() && getCurrentConnection().server.get('dismissedDiscoverCallout');
-          endAjaxEvent('UserPageLoad', {
-            ownPage: guid === app.profile.id,
-            tab: this.activeTab,
-            dismissedCallout,
-            listing: !!listingFetch,
-            errors: userPageFetchError || 'none',
-          });
-        });
+      });
     },
 
-    onClickLoadingCancel() {
-      const prevHash = standardizedHash(app.router.prevHash);
-      const locationHash = standardizedHash(location.hash);
-
-      if (prevHash === locationHash) {
-        // there is no previous page, let's navigate to our home page
-        app.router.navigate(`${app.profile.id}`, { trigger: true, });
-      } else {
-        // go back to previous page
-        window.history.back();
-      }
-    },
-
-    onClickLoadingRetry() {
-      let { guid, state, slug } = this.$route.params;
-
-      this.init(guid, state, slug);
-    },
-
-    onOwnFollowingAdd(md) {
+    onOwnFollowingAdd (md) {
       if (this.ownPage) {
         this.followingCount += 1;
       } else if (md.id === this.model.id) {
@@ -509,7 +185,7 @@ export default {
       }
     },
 
-    onOwnFollowingRemove(md) {
+    onOwnFollowingRemove (md) {
       if (this.ownPage) {
         this.followingCount -= 1;
       } else if (md.id === this.model.id) {
@@ -517,184 +193,260 @@ export default {
       }
     },
 
-    clickTab(tab) {
+    clickTab (e) {
+      const tab = $(e.target).closest('.js-tab').attr('data-tab');
       recordEvent('UserPage_Tab', { tab });
       this.setTabState(tab);
     },
 
-    clickMore() {
-      $('.js-moreableBtn').toggleClass('hide');
+    clickMore () {
+      this.$moreableBtns.toggleClass('hide');
     },
 
-    clickCustomize() {
+    clickCustomize () {
       recordEvent('Settings_Open', { origin: 'userPage' });
-
-      this.showSettings = true;
+      launchSettingsModal({ initialTab: 'Page' });
     },
 
-    closeSettings(){
-      this.showSettings = false;
-    },
-
-    clickCreateListing() {
+    clickCreateListing () {
       recordEvent('Listing_New', { origin: 'userPage' });
-      this.editListingModel = new Listing({}, { guid: app.profile.id });
+      const listingModel = new Listing({}, { guid: app.profile.id });
 
-      this.showEditListing = true;
+      launchEditListingModal({
+        model: listingModel,
+      });
     },
 
-    closeEditListingModal() {
-      this.showEditListing = false;
-    },
-
-    clickCloseStoreWelcomeCallout() {
+    clickCloseStoreWelcomeCallout () {
       recordEvent('UserPage_CloseStoreWelcome');
       if (this.curConn && this.curConn.server) {
         this.curConn.server.save({ dismissedStoreWelcome: true });
-
-        this.showStoreWelcomeCallout = false;
+        this.getCachedEl('.js-storeWelcomeCallout').remove();
       }
     },
 
-    clickRating() {
+    clickRating () {
       recordEvent('UserPage_ClickReputation');
       this.setTabState('reputation');
+    }
+
+  get followingCount () {
+      return this._followingCount;
+    }
+
+  set followingCount (count) {
+      if (typeof count !== 'number') {
+        throw new Error('Please provide a numeric count.');
+      }
+
+      if (count !== this._followingCount) {
+        this._followingCount = count;
+        this.getCachedEl('.js-followingCount').text(abbrNum(count));
+      }
+    }
+
+  get followerCount () {
+      return this._followerCount;
+    }
+
+  set followerCount (count) {
+      if (typeof count !== 'number') {
+        throw new Error('Please provide a numeric count.');
+      }
+
+      if (count !== this._followerCount) {
+        this._followerCount = count;
+        this.getCachedEl('.js-followerCount').text(abbrNum(count));
+      }
     },
 
-    setBlockedClass() {
-      this.isBlockedUser = isBlocked(this.model.id) && !isUnblocking(this.model.id);
+    setBlockedClass () {
+      this.$el.toggleClass('isBlocked', isBlocked(this.model.id));
     },
 
-    followBB(type) {
-      const collection = new Followers([], { peerID: this.model.id, type, });
-      const model = this.model;
+    updateHeader () {
+      const headerHashes = this.model.get('headerHashes').toJSON();
+      const headerHash = isHiRez() ? headerHashes.large : headerHashes.medium;
 
-      return function() {
-        return {
-          collection,
-          model,
+      if (headerHash) {
+        $('.js-header').attr(
+          'style',
+          `background-image: url(${app.getServerUrl(`ob/image/${headerHash}`)}),
+        url('../imgs/defaultHeader.png')`,
+        );
+      }
+    },
+
+    createFollowersTabView (opts = {}) {
+      const collection = new Followers([], {
+        peerID: this.model.id,
+        type: 'followers',
+      });
+
+      this.listenTo(collection, 'sync', () => {
+        this.followerCount = collection.length;
+      });
+
+      return this.createChild(this.tabViews.Follow, {
+        ...opts,
+        followType: 'followers',
+        peerID: this.model.id,
+        collection,
+      });
+    },
+
+    createFollowingTabView (opts = {}) {
+      const models = app.profile.id === this.model.id
+        ? app.ownFollowing.models : [];
+      const collection = new Followers(models, {
+        peerID: this.model.id,
+        type: 'following',
+        fetchCollection: app.profile.id !== this.model.id,
+      });
+
+      this.listenTo(collection, 'sync', () => {
+        this.followingCount = collection.length;
+      });
+
+      return this.createChild(this.tabViews.Follow, {
+        ...opts,
+        followType: 'following',
+        peerID: this.model.id,
+        collection,
+      });
+    },
+
+    createStoreTabView (opts = {}) {
+      this.listings = new Listings([], { guid: this.model.id });
+
+      let listingsCount = this.model.get('listingCount');
+
+      this.listings.on('update', () => {
+        if (this.listings.length !== listingsCount) {
+          listingsCount = this.listings.length;
+          this.$listingsCount.html(abbrNum(listingsCount));
         }
-      };
+      });
+
+      return this.createChild(this.tabViews.Store, {
+        ...opts,
+        initialFetch: Store.fetchListings(this.listings),
+        collection: this.listings,
+        model: this.model,
+      });
     },
 
-    storeBB() {
-      let collection = new Listings([], { guid: this.model.id });
-      let model = this.model;
-      return function() {
-        return {
-          collection,
-          model,
-        }
-      };
-    },
-
-    onListingsUpdate(listings) {
-      this.listingCount = listings.length;
-    },
-
-    onListingDetailClose() {
-      this.listing = null;
-
-      const guid = this.model.id;
-      app.router.navigate(`${guid}/store`, {trigger: false});
-    },
-
-    setTabState(state) {
+    setTabState (state, options = {}) {
       if (!state) {
         throw new Error('Please provide a state.');
       }
 
-      this.activeTab = state;
-
-      // // add tab to history
-      const listingBaseUrl = this.model.get('handle') ? `@${this.model.get('handle')}` : this.model.id;
-      app.router.navigateUser(`${listingBaseUrl}/${state}`, this.model.id);
+      this.state = state;
+      this.selectTab(state, options);
     },
-  },
-};
-</script>
-<style lang="scss" scoped>
-@use "sass:color";
-@use '@/assets/scss/variables' as *;
 
-.userPage {
-  
-  // 页面标签栏
-  #pageTabBar {
-    background: $overlayP;
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid color.adjust($border, $alpha: -0.6);
-    box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
-    
-    .pageTabs {
-      .tab {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        
-        &:hover {
-          transform: translateY(-1px);
-          color: $emphasis1;
+    selectTab (targ, options = {}) {
+      const opts = {
+        addTabToHistory: true,
+        ...options,
+      };
+
+      if (!this.tabViews[capitalize(targ)] && targ !== 'following' && targ !== 'followers') {
+        throw new Error(`${targ} is not a valid tab.`);
+      }
+
+      let tabView = this.tabViewCache[targ];
+      const tabOptions = {
+        ownPage: this.ownPage,
+        model: this.model,
+        ...opts,
+      };
+
+      // delete any opts that the tab view(s) wouldn't need
+      delete tabOptions.addTabToHistory;
+
+      if (!this.currentTabView || this.currentTabView !== tabView) {
+        const tabName = app.polyglot.t(`userPage.tabTitles.${targ}`);
+        this.$tabTitle.text(tabName);
+
+        if (opts.addTabToHistory) {
+          const listingBaseUrl = this.model.get('handle')
+            ? `@${this.model.get('handle')}` : this.model.id;
+
+          // add tab to history
+          app.router.navigateUser(`${listingBaseUrl}/${targ.toLowerCase()}`, this.model.id);
         }
-        
-        &.active {
-          color: $emphasis1;
-          font-weight: 600;
-          border-bottom: 2px solid $emphasis1;
+
+        $('.js-tab').removeClass('clrT active');
+        $(`.js-tab[data-tab="${targ}"]`).addClass('clrT active');
+
+        if (this.currentTabView) this.currentTabView.$el.detach();
+
+        if (!tabView) {
+          if (this[`create${capitalize(targ)}TabView`]) {
+            tabView = this[`create${capitalize(targ)}TabView`](tabOptions);
+          } else {
+            tabView = this.createChild(this.tabViews[capitalize(targ)], tabOptions);
+          }
+
+          this.tabViewCache[targ] = tabView;
+          tabView.render();
         }
+
+        this.$tabContent.append(tabView.$el);
+        this.currentTabView = tabView;
       }
     }
-  }
-  
-  // 背景图片样式
-.bkgImg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  }
-}
 
-// 确保所有内容框使用统一的现代化样式
-:deep(.contentBox) {
-  background: $overlayP !important;
-  backdrop-filter: blur(8px);
-  border: 1px solid color.adjust($border, $alpha: -0.6);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(100, 115, 135, 0.15);
-  }
-}
+  get $pageContent () {
+      if (!this._$pageContent) {
+        this._$pageContent = $('.js-pageContent');
+      }
+      return this._$pageContent;
+    }
 
-// 优化表单元素和按钮的现代化样式
-:deep(.btn) {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &:hover {
-    transform: translateY(-1px);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-}
+  get $listingsCount () {
+      if (!this._$listingsCount) {
+        this._$listingsCount = $('.js-listingsCount');
+      }
+      return this._$listingsCount;
+    },
 
-// 优化输入框样式
-:deep(.searchInput) {
-  background: color.adjust($overlayP, $alpha: -0.1) !important;
-  backdrop-filter: blur(8px);
-  border: 1px solid color.adjust($border, $alpha: -0.6);
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &:focus {
-    border-color: $emphasis1;
-    box-shadow: 0 0 0 3px color.adjust($emphasis1, $alpha: -0.9);
-    transform: translateY(-1px);
+    remove () {
+      if (this.followingFetch) this.followingFetch.abort();
+    },
+
+    render () {
+      this.$tabContent = $('.js-tabContent');
+      this.$tabTitle = $('.js-tabTitle');
+      this.$moreableBtns = $('.js-moreableBtn');
+      this._$pageContent = null;
+      this._$listingsCount = null;
+
+      if (this.miniProfile) this.miniProfile.remove();
+      this.miniProfile = this.createChild(MiniProfile, {
+        model: this.model,
+        fetchFollowsYou: false,
+        onClickRating: () => this.setTabState('reputation'),
+        initialState: {
+          followsYou: this.followsYou,
+        },
+      });
+      this.listenTo(this.miniProfile, 'clickRating', this.clickRating);
+      $('.js-miniProfileContainer').html(this.miniProfile.render().el);
+
+      this.tabViewCache = {}; // clear for re-renders
+      this.setTabState(this.state, {
+        addTabToHistory: false,
+        listing: this.options.listing,
+      });
+
+      this.setBlockedClass();
+
+      return this;
+    }
+
   }
 }
-</style>
+</script>
+<style lang="scss" scoped></style>

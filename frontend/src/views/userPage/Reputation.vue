@@ -2,9 +2,9 @@
   <div class="userPageReputation">
     <div class="flexColRows gutterVLg">
       <div class="contentBox flexRow flexVCent gutterH pad clrP clrBr statsBox">
-        <template v-if="!ob.isFetching">
+        <div v-if="!ob.isFetching">
           <div class="col6 txCtr">
-            <div class="repBg" v-html="ob.formatRating(ob.average, '', true)"></div>
+            <div class="repBg">{{ ob.formatRating(ob.average, '', true) }}</div>
             <div class="tx2b">{{ ob.polyT('reputation.averageRating') }}</div>
           </div>
           <div class="rowDivV clrBrBk"></div>
@@ -12,107 +12,118 @@
             <div class="repBg">{{ ob.count }}</div>
             <div class="tx2b">{{ ob.polyT('reputation.totalReviews', { smart_count: ob.count }) }}</div>
           </div>
-        </template>
+        </div>
 
-        <div v-else class="flexHCent">
-          <SpinnerSVG className="spinnerMd" />
+        <div v-else>
+          <div class="flexHCent">
+            <SpinnerSVG className="spinnerMd" />
+          </div>
         </div>
       </div>
-      <template v-if="!ob.isFetching">
-        <div ref="reviewsList" class="js-reviewsList">
-          <Reviews ref="reviews" :key="reviewIDs" :reviewIDs="reviewIDs" :options="{
-            async: true,
-            initialPageSize: 5,
-            pageSize: 5,
-            isFetchingRatings: ob.isFetching,
-          }"/>
-        </div>
-      </template>
+      <div v-if="!ob.isFetching">
+        <div class="js-reviews"></div>
+      </div>
     </div>
+
   </div>
 </template>
 
 <script>
-import { myGet } from '../..//api/api';
+import $ from 'jquery';
 import app from '../../../backbone/app';
-import { openSimpleMessage } from '../../../backbone/views/modals/SimpleMessage';
+import Reviews from '../../../backbone/views/reviews/Reviews';
+import { openSimpleMessage } from '../../../backbone/modals/SimpleMessage';
 import Profile from '../../../backbone/models/profile/Profile';
 
-import Reviews from '../reviews/Reviews.vue';
 
 export default {
-  components: {
-    Reviews,
-  },
   props: {
     options: {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
-  data() {
+  data () {
     return {
-      reviewIDs: [],
-
-      _state: {
-        isFetching: true,
-      }
     };
   },
-  created() {
+  created () {
     this.initEventChain();
 
-    this.loadData(this.options);
+    this.loadData(this.$props.options);
   },
-  mounted() {
-  },
-  unmounted() {
-    if (this.ratingsFetch) this.ratingsFetch.abort();
+  mounted () {
+    this.render();
   },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
         ...this._state,
       };
-    },
+    }
   },
   methods: {
-    loadData(options = {}) {
-      if (!this.model || !(this.model instanceof Profile)) {
+    loadData (options = {}) {
+      if (!options.model || !(options.model instanceof Profile)) {
         throw new Error('Please provide a valid profile model.');
       }
       const opts = {
         ...options,
         initialState: {
           isFetching: true,
-          ...(options.initialState || {}),
+          ...options.initialState || {},
         },
       };
-      this.baseInit(opts);
+      this.setState(opts.initialState || {});
+      this.options = opts;
+
+      // create the reviews here, so they're available for the fetch
+      this.reviews = this.createChild(Reviews, {
+        async: true,
+        initialPageSize: 5,
+        pageSize: 5,
+        initialState: {
+          isFetchingRatings: true,
+        },
+      });
 
       // fetch the ratings immediately. They are asyncronous, and should not be refetched
       // if the view re-renders.
-      this.ratingsFetch = myGet(app.getServerUrl(`ob/ratingindex/${this.model.get('peerID')}`))
-        .done((data) => this.onRatings(data))
-        .fail((jqXhr) => {
-          if (jqXhr.statusText === 'abort') return;
-          const failReason = (jqXhr.responseJSON && jqXhr.responseJSON.reason) || '';
-          openSimpleMessage(app.polyglot.t('listingDetail.errors.fetchRatings'), failReason);
-        });
+      this.ratingsFetch =
+        $.get(app.getServerUrl(`ob/ratingindex/${this.options.model.get('peerID')}`))
+          .done(data => this.onRatings(data))
+          .fail((jqXhr) => {
+            if (jqXhr.statusText === 'abort') return;
+            const failReason = jqXhr.responseJSON && jqXhr.responseJSON.reason || '';
+            openSimpleMessage(
+              app.polyglot.t('listingDetail.errors.fetchRatings'),
+              failReason);
+          });
     },
 
-    onRatings(data) {
+    onRatings (data) {
       const pData = data || {};
       this.setState({
         isFetching: false,
         ...pData,
       });
-
-      this.reviewIDs = pData.ratings || [];
+      this.reviews.reviewIDs = pData.ratings || [];
+      this.reviews.setState({ isFetchingRatings: false });
     },
-  },
-};
+
+    remove () {
+      if (this.ratingsFetch) this.ratingsFetch.abort();
+    },
+
+    render () {
+      this.delegateEvents(this.reviews);
+      this.getCachedEl('.js-reviews').append(this.reviews.render().$el);
+
+      return this;
+    }
+
+  }
+}
 </script>
 <style lang="scss" scoped></style>

@@ -4,55 +4,38 @@
      the other is also maintained. -->
     <div class="txB rowSm">{{ ob.polyT('userPage.store.categoryFilter.heading') }}</div>
     <div class="btnRadio">
-      <input
-        @change="onChangeCategory('all')"
-        type="radio"
-        name="filterShippingCategory"
-        value="all"
-        id="filterShippingCategoryAll"
-        data-var-type="boolean"
-        :checked="selected === 'all'"
-      />
+      <input type="radio" name="filterShippingCategory" value="all" id="filterShippingCategoryAll" data-var-type="boolean"
+        :checked="ob.selected === 'all'">
       <label for="filterShippingCategoryAll">{{ ob.polyT('userPage.store.categoryFilter.all') }}</label>
     </div>
 
-    <template v-for="(cat, index) in categories.slice(0, maxInitiallyVisibleCats - 1)" :key="index">
+    <div v-for="(cat, index) in ob.categories.slice(0, ob.maxInitiallyVisibleCats - 1)" :key="index">
       <div class="btnRadio">
-        <input
-          @change="onChangeCategory(cat)"
-          type="radio"
-          name="filterShippingCategory"
-          :value="formatCategoryString(cat)"
-          :id="`filterShippingCategory${flatCategoryString(cat)}`"
-          :checked="selected === cat"
-        />
-        <label :for="`filterShippingCategory${flatCategoryString(cat)}`" v-html="cat"></label>
+        <input type="radio" name="filterShippingCategory" :value="formatCategoryString(cat)"
+          :id="`filterShippingCategory${flatCategoryString(cat)}`" :checked="ob.selected === cat">
+        <label :for="`filterShippingCategory${flatCategoryString(cat)}`">{{ cat }}</label>
       </div>
-    </template>
+    </div>
     <!-- // adding 1 to the length to account for the All category we hard-code -->
-    <template v-if="categories.length + 1 > maxInitiallyVisibleCats">
-      <div :class="`js-moreCatsWrap moreCatsWrap ${expanded ? 'expanded' : ''}`">
+    <div v-if="(ob.categories.length + 1) > ob.maxInitiallyVisibleCats">
+      <div :class="`js-moreCatsWrap moreCatsWrap ${ob.expanded ? 'expanded' : ''}`">
         <div class="moreCats">
-          <template v-for="(cat, index) in categories.slice(maxInitiallyVisibleCats - 1)" :key="index">
+          <div v-for="(cat, index) in ob.categories.slice(ob.maxInitiallyVisibleCats - 1)" :key="index">
             <div class="btnRadio">
-              <input
-                @change="onChangeCategory(cat)"
-                type="radio"
-                name="filterShippingCategory"
-                :value="cat"
-                :id="`filterShippingCategory${flatCategoryString(cat)}`"
-                :checked="selected === cat"
-              />
-              <label :for="`filterShippingCategory${flatCategoryString(cat)}`" v-html="cat"></label>
+              <input type="radio" name="filterShippingCategory" :value="cat"
+                :id="`filterShippingCategory${flatCategoryString(cat)}`" :checked="ob.selected === cat">
+              <label :for="`filterShippingCategory${flatCategoryString(cat)}`">{{ cat }}</label>
             </div>
-          </template>
+          </div>
         </div>
         <a class="clrT tx6 txU showMore" @click="onClickShowMoreLess">{{
-          ob.polyT('userPage.store.categoryFilter.showMore', categories.length + 1 - maxInitiallyVisibleCats)
+          ob.polyT('userPage.store.categoryFilter.showMore', (ob.categories.length + 1) - ob.maxInitiallyVisibleCats)
         }}</a>
-        <a class="clrT tx6 txU showLess" @click="onClickShowMoreLess">{{ ob.polyT('userPage.store.categoryFilter.showLess') }}</a>
+        <a class="clrT tx6 txU showLess" @click="onClickShowMoreLess">{{
+          ob.polyT('userPage.store.categoryFilter.showLess') }}</a>
       </div>
-    </template>
+    </div>
+
   </div>
 </template>
 
@@ -65,50 +48,71 @@ import $ from 'jquery';
 
 export default {
   props: {
-    categories: {
+    options: {
       type: Object,
-      default: [],
+      default: {},
     },
-    selected: {
-      type: String,
-      default: 'all',
-    },
-    maxInitiallyVisibleCats: {
-      type: Number,
-      default: 6,
-    }
   },
-  data() {
+  data () {
     return {
-      expanded: false,
     };
   },
-  created() {
+  created () {
+    this.initEventChain();
+
+    this.loadData(this.$props.options);
   },
-  mounted() {
+  mounted () {
+    this.render();
   },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
+        ...this._state,
       };
-    },
+    }
   },
   methods: {
-    formatCategoryString(cat) {
+    formatCategoryString (cat) {
       return cat.replace(/&/g, '&amp;');
     },
-    flatCategoryString(cat) {
+    flatCategoryString (cat) {
       // remove spaces
       return cat.replace(/\s/g, '-');
     },
-    onClickShowMoreLess() {
-      this.expanded = !this.expanded;
+    loadData (options = {}) {
+      const opts = {
+        ...options,
+      };
+
+      opts.initialState = {
+        categories: [],
+        selected: 'all',
+        expanded: false,
+        maxInitiallyVisibleCats: 6,
+        ...(options.initialState || {}),
+      };
+
+      this.setState(opts.initialState || {});
+      this.options = opts;
     },
-    onChangeCategory(val) {
-      this.$emit('category-change', val);
+
+    events () {
+      return {
+        'change input[type="radio"]': 'onChangeCategory',
+      };
     },
-  },
-};
+
+    onClickShowMoreLess () {
+      this.setState({ expanded: !this.getState().expanded });
+    },
+
+    onChangeCategory (e) {
+      this._state.selected = e.target.value;
+      this.trigger('category-change', { value: $(e.target).val() });
+    },
+  }
+}
 </script>
 <style lang="scss" scoped></style>
