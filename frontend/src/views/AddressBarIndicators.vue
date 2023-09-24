@@ -1,6 +1,6 @@
 <template>
   <div :class="`addressBarIndicators ${ob.hide ? 'hidePointer' : ''}`">
-    <div class="viewOnWebContainer clrP" v-show="!ob.hide && isDesktopApp">
+    <div class="viewOnWebContainer clrP" v-show="!ob.hide">
       <a class="txU clrTEmph1 lgHtBx" :href="ob.url">
         <div class="viewOnWebText">{{ ob.polyT('editListing.viewListingOnWebLink') }}</div>
         <i class="ion-android-open clrTEmph1"></i>
@@ -34,6 +34,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
@@ -41,9 +42,6 @@ export default {
         ...this.templateHelpers,
         ...this._state,
       };
-    },
-    isDesktopApp() {
-      return import.meta.env.VITE_APP;
     }
   },
   methods: {

@@ -1,5 +1,5 @@
 <template>
-  <div :class="`miniprofile ${isBlockedUser ? 'isBlocked' : ''}`">
+  <div :class="`miniprofile ${isBlocked ? 'isBlocked' : ''}`">
     <div class="flexVCent">
       <div class="flexNoShrink">
         <div class="userIconWrap">
@@ -14,9 +14,9 @@
         <div class="txt5b gutterHSm">
           <span class="clrT"
             v-html="`${ ob.parseEmojis('📍', '', { style: 'width: 10px' }) } ${ ob.location || ob.polyT('userPage.noLocation') }`"></span>
-          <template v-if="ob.followsYou">
+          <div v-if="ob.followsYou">
             <span v-html="`${ob.parseEmojis('👥', '', { style: 'width: 10px' })} ${ob.polyT('userPage.followsYou')}`"></span>
-          </template>
+          </div>
           <a class="ratingStrip" @click="onClickRating"
             v-html="ob.formatRating(ob.stats.averageRating, ob.stats.ratingCount)"></a>
         </div>
@@ -37,24 +37,19 @@ export default {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
   data () {
     return {
       isBlockedUser: false,
-      overwriteClickRating: false,
-
-      _state: {
-        followsYou: false,
-      }
     };
   },
   created () {
     this.initEventChain();
 
-    this.loadData();
+    this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
@@ -65,18 +60,37 @@ export default {
       };
     }
   },
-  watch: {
-  },
   methods: {
-    loadData () {
+    loadData (options = {}) {
+      const opts = {
+        fetchFollowsYou: true,
+        onClickRating:
+          () => app.router.navigate(`ob://${options.model.id}/reputation`, { trigger: true }),
+        ...options,
+      };
+
+      this.baseInit(opts);
+      this.options = opts;
       if (!this.model) {
         throw new Error('Please provide a profile model.');
       }
 
-      if (this.model.id !== app.profile.id) {
-        followsYou(this.model.id).done((data) => {
-          this.setState({ followsYou: data.followsMe });
-        });
+      this._state = {
+        followsYou: false,
+        ...options.initialState || {},
+      };
+
+      this._followsYou = false;
+
+      if (this.model.id === app.profile.id) {
+        this.listenTo(app.profile, 'change:name change:location', () => this.render());
+        this.listenTo(app.profile.get('avatarHashes'), 'change', () => this.render());
+      } else {
+        if (opts.fetchFollowsYou) {
+          followsYou(this.model.id).done((data) => {
+            this.setState({ followsYou: data.followsMe });
+          });
+        }
 
         this.listenTo(app.ownFollowers, 'add', (md) => {
           if (md.id === app.profile.id) {
@@ -91,7 +105,6 @@ export default {
         });
       }
 
-      this.setBlockedClass();
       this.listenTo(blockEvents, 'blocked unblocked', (data) => {
         if (data.peerIDs.includes(this.model.id)) {
           this.setBlockedClass();
@@ -100,16 +113,19 @@ export default {
     },
 
     onClickRating () {
-      if (this.overwriteClickRating) {
-        this.$emit('clickRating')
-      } else {
-        app.router.navigate(`ob://${this.model.id}/reputation`, { trigger: true });
-      }
+      this.options.onClickRating();
     },
 
     setBlockedClass () {
       this.isBlockedUser = isBlocked(this.model.id);
     },
+
+    render () {
+      this.setBlockedClass();
+
+      return this;
+    }
+
   }
 }
 </script>

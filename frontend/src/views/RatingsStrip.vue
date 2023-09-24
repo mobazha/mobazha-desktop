@@ -5,40 +5,35 @@
       // CSS and hover all the previos icons on hover, the icons are
       // displayed in reverse order via flex-direction. This requires index
       // calculations to be computed from the end. -->
-      <template v-for="(val, key) in ob.maxRating" :key="key">
-        <a :class="`ratingIcon js-ratingIcon ${ob.clickable ? 'clickable' : ''} ${rating > ob.maxRating - val ? 'selected' : ''}`"
-          @click="onClickRatingIcon(val)"
+      <div v-for="(i, key) in ob.maxRating" :key="key">
+        <a :class="`ratingIcon ${ob.clickable ? 'clickable' : ''}`" :selected="ob.curRating > ob.maxRating - i"
+          @click="onClickRatingIcon"
           v-html="ob.parseEmojis('⭐', ob.iconClrClass)">
         </a>
-      </template>
+      </div>
     </div>
-    <span :class="`ratingNumbers ${ob.numberClrClass}`">({{ rating }}/{{ ob.maxRating }})</span>
+    <span :class="`ratingNumbers ${ob.numberClrClass}`">({{ ob.curRating }}/{{ ob.maxRating }})</span>
   </div>
 </template>
 
 <script>
+import $ from 'jquery';
 import _ from 'underscore';
 
 export default {
   props: {
     options: {
       type: Object,
-      default: {
-        clickable: false,
-        maxRating: 5,
-      },
-    },
-    rating: {
-      type: Number,
-      default: 0,
+      default: {},
     },
   },
-  emits: ['update:rating'],
   data () {
     return {
     };
   },
   created () {
+    this.initEventChain();
+
     this.loadData(this.options);
   },
   mounted () {
@@ -48,29 +43,34 @@ export default {
       return {
         ...this.templateHelpers,
         ...this._state,
-
-        clickable: false,
-        maxRating: 5,
-        ...this.options,
       };
+    },
+    rating () {
+      return this._state.curRating;
     },
   },
   methods: {
     loadData (options = {}) {
+      this.baseInit(options);
+
       this._state = {
+        curRating: 0,
+        maxRating: 5,
         hoverIndex: 0,
         iconClrClass: '',
         numberClrClass: 'clrT2',
+        clickable: false,
         ...options.initialState || {},
       };
     },
 
-    onClickRatingIcon (val) {
+    onClickRatingIcon (e) {
       // Important!!! In order to simulate a previous sibling selector in
       // CSS and hover all the previos icons on hover, the icons are
       // displayed in reverse order via flex-direction. This requires index
       // calculations to be computed from the end.
-      this.$emit('update:rating', this.ob.maxRating - val + 1);
+      const totalIcons = this.getState().maxRating;
+      this.setState({ curRating: totalIcons - $(e.target).closest('.js-ratingIcon').index() });
     },
   }
 }

@@ -1,17 +1,17 @@
 <template>
   <div class="listBox clrBr clrP clrSh1">
     <div class="listGroup clrP clrBr serverList">
-      <template v-for="(server, j) in ob.servers" :key="j">
+      <div v-for="(server, j) in ob.servers" :key="j">
         <component :is="ob.connectedServer === server.id ? 'span' : 'a'" class="listItem js-navListItem"
           @click="onServerClick" :data-server-id="server.id">
           <span>
-            <template v-if="ob.connectedServer === server.id">
+            <div v-if="ob.connectedServer === server.id">
               <span class="connectedIcon ion-ios-checkmark-empty clrTEmph1 tx1"></span>
-            </template>
+            </div>
             {{ server.name }}
           </span>
         </component>
-      </template>
+      </div>
     </div>
     <div class="listGroup clrP clrBr">
       <a class="listItem js-navListItem" @click="onNewServerClick">
@@ -29,7 +29,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import app from '../../backbone/app';
-import serverConnect, { events as serverConnectEvents, getCurrentConnection } from '../../backbone/utils/serverConnect';
+import serverConnect,
+{ events as serverConnectEvents, getCurrentConnection } from '../../backbone/utils/serverConnect';
 
 export default {
   props: {
@@ -37,7 +38,6 @@ export default {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
   data () {
     return {
@@ -61,7 +61,7 @@ export default {
   },
   methods: {
     loadData (options = {}) {
-      if (!this.collection) {
+      if (!options.collection) {
         throw new Error('Please provide a server configurations collection.');
       }
 
@@ -128,6 +128,7 @@ export default {
 
       if (!_.isEqual(this._state, newState)) {
         this._state = newState;
+        this.render();
       }
 
       return this;

@@ -1,13 +1,13 @@
 <template>
   <div class="statusMessageWrap">
     <div :class="`statusMessage statusMessage-${ob.type}`">
-      <template v-if="ob.type === 'warning'">
+      <div v-if="ob.type === 'warning'">
         <span class="icon ion-alert-circled"></span>
-      </template>
+      </div>
 
-      <template v-else-if="ob.type === 'confirmed'">
+      <div v-else-if="ob.type === 'confirmed'">
         <span class="icon ion-ios-checkmark-empty"></span>
-      </template>
+      </div>
       <div v-html="ob.msg" />
     </div>
 
@@ -34,6 +34,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
