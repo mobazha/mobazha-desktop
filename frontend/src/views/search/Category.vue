@@ -3,7 +3,7 @@
     <a class="clrT " @click="clickSeeAll">
       <h2>{{ ob.title }}</h2>
     </a>
-    <template v-if="ob.viewType === 'cryptoList'">
+    <div v-if="ob.viewType === 'cryptoList'">
       <div class="flexVCent txB clrBr clrP gutterH cryptoListViewHeader">
         <div class="tradeFromCol">{{ ob.polyT('search.cryptoListViewHeader.colTradeFrom') }}</div>
         <div class="tradeArrowCol"></div>
@@ -16,28 +16,15 @@
           {{ ob.polyT('search.cryptoListViewHeader.colInventory') }} <span class="toolTip txCtr" :data-tip="ob.polyT('search.cryptoListViewHeader.tipInventory')"><i class="ion-information-circled clrT2"></i></span>
         </div> -->
       </div>
-    </template>
-    <div :class="`listingsGrid ${ob.viewTypeClass} flex js-resultsGrid`">
-      <template v-for="model in catCol" :key="model.cid">
-        <ListingCard
-          :options="cardViewOptions(model)"
-          :bb="function() {
-            return {
-              model,
-            };
-          }"
-        />
-      </template>
     </div>
+    <div :class="`listingsGrid ${ob.viewTypeClass} flex js-resultsGrid`"></div>
     <div class="flexCent rowLg">
       <button class="btn clrP clrT clrBr clrSh1 " @click="clickSeeAll">{{ ob.polyT('search.categories.seeAllBtn') }}</button>
     </div>
     <hr class="clrBr row categoryRow">
-    <template v-if="ob.loading">
-      <div class="flexCent loadingSearch clrS">
-        <SpinnerSVG className="spinnerLg" />
-      </div>
-    </template>
+    <div v-if="ob.loading">
+      <div class="flexCent loadingSearch clrS">{{ ob.spinner({ className: 'spinnerLg' }) }}</div>
+    </div>
 
   </div>
 </template>
@@ -46,6 +33,7 @@
 import { capitalize } from '../../../backbone/utils/string';
 import { recordEvent } from '../../../backbone/utils/metrics';
 import { createSearchURL } from '../../../backbone/utils/search';
+import ListingCard from '../components/ListingCard';
 import ResultsCol from '../../../backbone/collections/Results';
 import ProviderMd from '../../../backbone/models/search/SearchProvider';
 
@@ -54,19 +42,11 @@ export default {
   props: {
     options: {
       type: Object,
-      default: {
-        search: {},
-        viewType: '',
-      },
+      default: {},
     },
   },
   data () {
     return {
-      cryptoTitle: '',
-
-      _state: {
-        loading: false,
-      }
     };
   },
   created () {
@@ -75,6 +55,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
@@ -88,9 +69,11 @@ export default {
       };
     }
   },
-  unmounted() {
-    this.removeCardViews();
-    if (this.categoryFetch) this.categoryFetch.abort();
+  watch: {
+    $route() {
+      this.removeCardViews();
+      if (this.categoryFetch) this.categoryFetch.abort();
+    },
   },
   methods: {
     loadData (options = {}) {
@@ -98,13 +81,12 @@ export default {
       if (!options.search.provider || !(options.search.provider instanceof ProviderMd)) {
         throw new Error('Please provide a provider model.');
       }
-      const { initialState = {}, ...restOptions } = options;
       const opts = {
         viewType: 'grid',
-        ...restOptions,
+        ...options,
         initialState: {
           loading: false,
-          ...initialState,
+          ...options.initialState,
         },
       };
       this.baseInit(opts);
@@ -129,17 +111,35 @@ export default {
       this.$emit('seeAllCategory', { q: this._search.q, filters: this._search.filters });
     },
 
-    cardViewOptions (model) {
+    createCardView (model) {
       const vendor = model.get('vendor') || {};
       const base = vendor.handle ? `@${vendor.handle}` : vendor.peerID;
-      return {
+      const options = {
         listingBaseUrl: `${base}/store/`,
         reportsUrl: this._search.provider.reportsUrl || '',
         searchUrl: this._search.provider.listingsUrl,
+        model,
         vendor,
         onStore: false,
         viewType: this.viewType,
       };
+
+      return this.createChild(ListingCard, options);
+    },
+
+    renderCards (collection = []) {
+      const resultsFrag = document.createDocumentFragment();
+
+      collection.forEach((model) => {
+        const cardVw = this.createCardView(model);
+
+        if (cardVw) {
+          this.cardViews.push(cardVw);
+          cardVw.render().$el.appendTo(resultsFrag);
+        }
+      });
+
+      this.getCachedEl('.js-resultsGrid').html(resultsFrag);
     },
 
     loadCategory (options) {
@@ -158,10 +158,10 @@ export default {
         url: createSearchURL(opts),
       })
         .done(() => {
-          this.$emit('fetchComplete');
+          this.trigger('fetchComplete');
         })
         .fail((xhr) => {
-          if (xhr.statusText !== 'abort') this.$emit('searchError', xhr);
+          if (xhr.statusText !== 'abort') this.trigger('searchError', xhr);
         })
         .always(() => {
           this.setState({ loading: false });
@@ -172,6 +172,13 @@ export default {
       this.cardViews.forEach((vw) => vw.remove());
       this.cardViews = [];
     },
+
+    render () {
+      if (this.catCol && this.catCol.length) this.renderCards(this.catCol);
+
+      return this;
+    }
+
   }
 }
 </script>

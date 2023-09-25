@@ -1,46 +1,42 @@
 <template>
   <div class="row flexVBase gutterH">
     <div class="tx5 flexExpand">
-      <template v-if="options.results">
-        <div v-if="options.term" v-html="ob.polyT('search.resultsFound', {
-          term: ob.parseEmojis(options.term),
-          smart_count: ob.number.localizeNumber(options.results.total),
+      <div v-if="ob.results">
+        <div v-if="ob.term" v-html="ob.polyT('search.resultsFound', {
+          term: ob.parseEmojis(ob.term),
+          smart_count: ob.number.localizeNumber(ob.results.total),
         })">
         </div>
 
-        <template v-else>
+        <div v-else>
           <b>
             {{ ob.polyT('search.resultsTotal', {
-              smart_count: ob.number.localizeNumber(options.results.total),
+              smart_count: ob.number.localizeNumber(ob.results.total),
             }) }}
           </b>
-        </template>
+        </div>
         <span class="toolTip" :data-tip="ob.polyT('search.resultsHelper')">
           <i class="ion-information-circled clrT2"></i>
         </span>
-      </template>
+      </div>
     </div>
-    <template v-if="options.sortBy">
+    <div v-if="ob.sortBy">
       <div class="tx5b">
         {{ ob.polyT('search.sortBy') }}
       </div>
       <div class="col4">
-        <Select2 id="sortBy" class="select2Small" v-model="sortBySelected" @change="changeSortBy($event)"
-          :options="{
-            minimumResultsForSearch: Infinity, // disables the search box
-            templateResult: selectEmojis,
-            templateSelection: selectEmojis,
-          }">
-          <option v-for="(val, key) in options.sortBy" :value="key" :selected="selected(val, key)">{{ val.label }}
+        <select id="sortBy" class="select2Small " @change="changeSortBy">
+          <option v-for="(val, key) in ob.sortBy" :key="key" :value="key" :selected="selected(val, key)">{{ val.label }}
           </option>
-        </Select2>
+        </select>
       </div>
-    </template>
+    </div>
 
   </div>
 </template>
 
 <script>
+import $ from 'jquery';
 import { selectEmojis } from '../../../backbone/utils';
 
 
@@ -48,43 +44,61 @@ export default {
   props: {
     options: {
       type: Object,
-      default:  {
-        term: '',
-        results: [],
-        sortBy: [],
-        sortBySelected: '',
-      },
+      default: {},
     },
   },
   data () {
     return {
-      sortBySelected: '',
     };
   },
   created () {
     this.initEventChain();
 
-    this.sortBySelected = this.options.sortBySelected;
+    this.loadData(this.options);
   },
   mounted () {
+    $('#sortBy').select2({
+      minimumResultsForSearch: Infinity, // disables the search box
+      templateResult: selectEmojis,
+      templateSelection: selectEmojis,
+    });
   },
   computed: {
     ob () {
       return {
         ...this.templateHelpers,
+        ...this._state,
       };
     },
   },
   methods: {
-    selectEmojis,
+    loadData (options = {}) {
+      const opts = {
+        ...options,
+        initialState: {
+          ...options.initialState,
+        },
+      };
 
-    changeSortBy (event) {
-      this.$emit('changeSortBy', { sortBy: event.target.value });
+      this.baseInit(opts);
+    },
+
+    changeSortBy (e) {
+      this.trigger('changeSortBy', { sortBy: $(e.target).val() });
     },
 
     selected (val, key) {
-      return this.sortBySelected ? key === this.sortBySelected : val.default;
+      const ob = this.ob;
+
+      let selected = false;
+      if (ob.sortBySelected) {
+        selected = key === ob.sortBySelected;
+      } else {
+        selected = val.default;
+      }
+      return selected;
     }
+
   }
 }
 </script>

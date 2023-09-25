@@ -1,16 +1,17 @@
 <template>
   <div class="suggestions flex gutterH row tx5 noOverflow">
-    <template v-if="ob.suggestions && ob.suggestions.length">
+    <div v-if="ob.suggestions && ob.suggestions.length">
       <span class="clrT2">{{ ob.polyT('search.suggestions') }}</span>
-      <template v-for="(suggestion, j) in ob.suggestions" :key="j">
-        <a class="clrT " @click="onClickSuggestion(suggestion)">{{ suggestion }}</a>
-      </template>
-    </template>
+      <div v-for="(suggestion, j) in ob.suggestions" :key="j">
+        <a class="clrT " @click="onClickSuggestion" :data-suggestion="suggestion">{{ suggestion }}</a>
+      </div>
+    </div>
 
   </div>
 </template>
 
 <script>
+import $ from 'jquery';
 
 export default {
   props: {
@@ -21,9 +22,6 @@ export default {
   },
   data () {
     return {
-      _state: {
-        suggestions: [],
-      }
     };
   },
   created () {
@@ -32,6 +30,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
@@ -43,7 +42,6 @@ export default {
   },
   methods: {
     loadData (options = {}) {
-      const { initialState = {}, ...restOptions } = options;
       const opts = {
         initialState: {
           suggestions: [
@@ -59,9 +57,9 @@ export default {
             'Games',
             'Music',
           ],
-          ...initialState,
+          ...options.initialState || {},
         },
-        ...restOptions,
+        ...options,
       };
 
       this.baseInit(opts);
@@ -72,7 +70,8 @@ export default {
       };
     },
 
-    onClickSuggestion (suggestion) {
+    onClickSuggestion (e) {
+      const suggestion = $(e.target).data('suggestion');
       this.$emit('clickSuggestion', { suggestion });
     },
   }
