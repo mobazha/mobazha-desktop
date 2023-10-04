@@ -160,8 +160,7 @@
     "connectMessaging": {
       "cancelLink": "إلغاء",
       "connectAttemptMsg": "يتصل على %{serverName}. %{cancelLink}"
-    },
-    "user_store": "Store for %{userName}"
+    }
   },
   "notifications": {
     "title": "إشعارات",
@@ -205,30 +204,21 @@
     "torOnTooltip": "شبكة تور مفعلة",
     "discoverCalloutTitle": "اكتشاف",
     "discoverCalloutBody": "تصفح وتسوق ضمن مئات المتاجر على أوبن بازار",
-    "walletConnecting": "Wallet Connecting...",
-    "connectWallet": "Connect Wallet",
-    "disconnectWallet": "Disconnect Wallet",
     "myPage": "صفحتي",
     "customizePage": "تخصيص الصفحة",
     "createListing": "إنشاء قائمة",
-    "tools": "Tools",
     "purchases": "المشتريات",
     "sales": "مبيعات",
     "cases": "الحالات",
     "settings": "إعدادات",
     "help": "مساعدة",
-    "logout": "Logout",
     "toolTip": {
-      "home": "Home",
       "back": "إلى الخلف",
       "forward": "إلى الأمام",
       "refresh": "تحديث",
-      "login": "Login",
       "discover": "اكتشاف",
       "wallet": "المحفظة",
       "notifications": "إشعارات",
-      "shoppingCart": "Shopping Cart",
-      "favorite": "Favorite",
       "nav": "التنقل",
       "close": "أغلق"
     },
@@ -551,7 +541,7 @@
       "placeholderTextColor": "#252525",
       "placeholderHighlightColor": "#2BAD23",
       "placeholderHighlightTextColor": "#FFFFFF",
-      "sectionName": "صفحة",
+      "sectionPage": "صفحة",
       "sectionLinks": "روابط",
       "sectionAbout": "حول",
       "sectionTheme": "الهيئة",
@@ -753,71 +743,6 @@
         "fail": "فشل في حفظ إعدادات المتجر.",
         "error": "حدث خطأ أثناء حفظ إعدادات متجرك."
       },
-      "shippingOption": {
-        "error": "لا يمكن حذف خيار الشحن الوحيد.",
-        "noShippingOption": "هناك قوائم فعلية في المتجر. ينبغي توفير خيار شحن واحد على الأقل."
-      },
-      "shippingOptions": {
-        "optionHeading": "خيارات الشحن #%{listPosition}",
-        "shippingDestinations": "الوجهات",
-        "regionsPlaceholder": "إدخال البلدان ...",
-        "nameLabel": "عنوان الخيار",
-        "namePlaceholder": "مثلا تُشحن الولايات المتحدة الأمريكية، دوليًا، وما إلى ذلك",
-        "typeLabel": "النوع",
-        "shippingTypes": {
-          "FIXED_PRICE": "سعر ثابت",
-          "LOCAL_PICKUP": "أخذ محلي"
-        },
-        "btnAddShippingOption": "إضافة خيار الشحن",
-        "btnDeleteShippingOption": "حذف",
-        "clearAll": "مسح الكل",
-        "services": {
-          "nameLabel": "خدمة",
-          "namePlaceholder": "مثلا عادي، سريع، صباح اليوم التالي",
-          "estimatedDeliveryLabel": "موعد التسليم ,المقدر",
-          "estimatedDeliveryPlaceholder": "مثال. 5-7 أيام",
-          "priceLabel": "السعر (الوزن الأول)",
-          "additionalWeightPriceLabel": "السعر (الوزن الإضافي)",
-  
-          "weightRange": "Weight Range",
-          "firstWeightAndFee": "First Weight/Fee",
-          "renewalUnitWeightAndFee": "Renewal Unit Weight/Unit Price",
-          "fee": "Fee",
-  
-          "pricePlaceholder": "0.00",
-          "addService": "+ اضف خدمة",
-  
-          "notice": "Notice!",
-          "firstRenewalTemplate": "Billed based on the first and renewal weight",
-          "firstRenewalExplanation": "Freight = first weight fee + (package weight - first weight) / unit weight of additional weight * unit price + registration fee",
-          "startWeight": "Start Weight",
-          "endWeight": "End Weight",
-          "firstWeight": "First Weight",
-          "firstFreight": "First Freight",
-          "renewalUnitWeight": "Renewal Unit Weight",
-          "renewalUnitPrice": "Renewal Unit Price",
-          "registrationFee": "Registration Fee",
-          "sameWeightTemplate": "Same price for the same weight class",
-          "sameWeightExplanation": "Freight = fee + registration fee",
-  
-          "action": "Action",
-          "delete": "Delete",
-          "cancel": "Cancel",
-          "submitting": "Submitting...",
-          "confirm": "Confirm"
-        },
-        "modal": {
-          "addService": "اضف خدمة",
-          "template": "Template",
-          "selectTemplate": "Please select a template",
-          "add": "+ Add",
-          "pleaseInput": "Please input",
-          "serviceNameDuplicate": "Service name is duplicated"
-        },
-        "toolTip": {
-          "delete": "حذف"
-        }
-      },
       "errors": {
         "modNotFoundTitle": "المشرف غير متوفر",
         "modsNotFound": "%{guids} لا يمكن العثور عليها بالشبكة. قد يكون معرف النظير غير صالح. |||| %{guids} لا يمكن العثور عليها بالشبكة. قد تكون معرفات النظير غير صالحة.",
@@ -994,12 +919,10 @@
       "transactionsHeader": "العمليات التجارية"
     },
     "coinNav": {
-      "unsupportedCurTip": "This is currently an unsupported currency.",
-      "extEnabled": "External wallet address to receive %{cur} order payment is enabled."
+      "unsupportedCurTip": "This is currently an unsupported currency."
     },
     "sendBtn": "ارسل",
     "receiveBtn": "Receive",
-    "externalBtn": "External",
     "sendMoney": {
       "toLabel": "إلى",
       "toPlaceholder": "ضع عنوان %{cur}",
@@ -1013,27 +936,6 @@
     },
     "receiveMoney": {
       "title": "Scan or send coins to this address"
-    },
-    "external": {
-      "description": "You could provide an external wallet address to receive %{coin} for order payment",
-      "addAddress": "Add External Wallet Address",
-      "inputPlaceHolder": "Please input your wallet address",
-      "invalidAddress": "Not a valid %{coin} wallet address, whch format is like %{addr}",
-      "notice": "* The address must be in %{coin} network.",
-      "enableLabel": "Enable this external wallet address for order payment reception",
-      "add": "Add",
-      "edit": "Edit",
-      "copy": "Copy",
-      "statusAddingAddress": "Adding external order payment reception address for %{coin}…",
-      "statusAddAddressComplete": "External order payment reception address for %{coin} added.",
-      "statusAddressEnabled": "External order payment reception address for %{coin} enabled.",
-      "statusAddressDisabled": "External order payment reception address for %{coin} disabled.",
-      "statusAddAddressFailed": "Unable to add external order payment reception address for %{coin}.",
-      "statusEnableAddressFailed": "Unable to enable external order payment reception address for %{coin}.",
-      "statusDisableAddressFailed": "Unable to disable external order payment reception address for %{coin}.",
-      "addAddressErrorAlertTitle": "Unable to add external wallet address for %{coin}",
-      "enableAddressErrorAlertTitle": "Unable to enable external wallet address for %{coin}",
-      "disableAddressErrorAlertTitle": "Unable to disable external wallet address for %{coin}"
     },
     "spendConfirmBox": {
       "heading": "هل أنت متأكد؟",
@@ -1090,7 +992,6 @@
     }
   },
   "formats": {
-    "ALL": "All",
     "PHYSICAL_GOOD": "بضاعة مادية",
     "DIGITAL_GOOD": "بضاعة رقمية",
     "SERVICE": "خدمة",
@@ -1109,21 +1010,6 @@
     "fetchErrorWithMsg": "حدث خطأ أثناء الوصول إلى المخزون%{msg}",
     "unknownInventory": "غير معروف"
   },
-  "shoppingCart": {
-    "title": "Shopping Cart",
-    "header": {
-      "notice": "Notice:",
-      "notice1": "1. Purchasing non-physical items from shopping cart is not currently supported yet.",
-      "notice2": "2. You can only purchase items from one store at a time."
-    },
-    "deleteConfirm": {
-      "heading": "Are you sure?",
-      "body": "This listing item will be removed from shopping cart.",
-      "btnCancel": "Cancel",
-      "btnDelete": "Yes, remove",
-      "tip": "%{item} has been removed."
-    }
-  },
   "listingDetail": {
     "edit": "تعديل",
     "delete": "حذف",
@@ -1134,14 +1020,11 @@
     "viewPhotos": "عرض %{count} صورة |||| عرض %{count} صور",
     "type": "النوع: %{type}",
     "condition": "الحالة: %{condition}",
-    "weight": "وزن: %{weight} g",
     "inventory": "المخزون: %{inventory}",
     "tags": "وسوم Tags",
     "paymentsAccepted": "الحوالات المقبولة",
     "noTags": "لم يتم ادخال وسوم Tag",
     "buyNow": "اشتري الآن",
-    "addToCart": "Add to Cart",
-    "addToFavorite": "Add to Favorite",
     "buyCryptoNow": "تاجر الان",
     "description": "وصف",
     "noDescription": "لم يتم إدخال أي وصف",
@@ -1248,7 +1131,6 @@
     "sectionNames": {
       "general": "عام",
       "photos": "الصور",
-      "introVideo": "Introduction Video(mp4, <15MB)",
       "attachments": "مرفقات",
       "shipping": "الشحن",
       "tags": "وسوم Tags",
@@ -1258,7 +1140,6 @@
       "variants": "المتغيرات",
       "variantsDetailed": "المتغيرات (إضافة أحجام وألوان ومواد وما إلى ذلك)",
       "inventory": "المخزون",
-      "optionalFeatures": "Optional Features",
       "returnPolicy": "سياسة العائدات",
       "termsAndConditions": "الأحكام والشروط",
       "coupons": "قسائم",
@@ -1279,7 +1160,6 @@
     "helperSKUWithVariants": "عندما تكون المتغيرات موجودة، يمكن إعلان Skus في جزء %{variantInventoryLink} ",
     "variantInventoryLink": "المخزون المتغير",
     "helperCondition": "الحالة العامة لقائمتك",
-    "helperWeight": "وزن السلعة",
     "helperNSFW": "ضع علامة نعم إذا كانت القائمة بها أشياء غير لائقة",
     "helperTags": "إضافة العديد من العلامات. أدخل اسم العلامة، ثم اضغط على إدخال، كرر.",
     "helperCategories": "لا يتم دعم تداخل الفئة (على سبيل المثال ، الأحذية> الأحذية غير متوفرة حاليًا). أدخل اسم الفئة، اضغط على Enter، وكرر.",
@@ -1294,7 +1174,6 @@
     "visibility": "رؤية",
     "price": "السعر",
     "condition": "حالة",
-    "weight": "وزن",
     "sku": "وحدة حفظ الأوراق المالية SKU",
     "description": "وصف",
     "uploading": "تحميل ...",
@@ -1331,6 +1210,34 @@
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Receive"
     },
+    "shippingOptions": {
+      "optionHeading": "خيارات الشحن #%{listPosition}",
+      "shippingDestinations": "الوجهات",
+      "regionsPlaceholder": "إدخال البلدان ...",
+      "nameLabel": "عنوان الخيار",
+      "namePlaceholder": "مثلا تُشحن الولايات المتحدة الأمريكية، دوليًا، وما إلى ذلك",
+      "typeLabel": "النوع",
+      "shippingTypes": {
+        "FIXED_PRICE": "سعر ثابت",
+        "LOCAL_PICKUP": "أخذ محلي"
+      },
+      "btnAddShippingOption": "إضافة خيار الشحن",
+      "btnDeleteShippingOption": "حذف",
+      "clearAll": "مسح الكل",
+      "services": {
+        "nameLabel": "خدمة",
+        "namePlaceholder": "مثلا عادي، سريع، صباح اليوم التالي",
+        "estimatedDeliveryLabel": "موعد التسليم ,المقدر",
+        "estimatedDeliveryPlaceholder": "مثال. 5-7 أيام",
+        "priceLabel": "السعر (البند الأول)",
+        "additionalItemPriceLabel": "السعر (البند الإضافي)",
+        "pricePlaceholder": "0.00",
+        "addService": "+ اضف خدمة"
+      },
+      "toolTip": {
+        "delete": "حذف"
+      }
+    },
     "coupons": {
       "titleLabel": "عنوان",
       "couponCodeLabel": "رمز القسيمة",
@@ -1351,8 +1258,6 @@
       "titleLabel": "عنوان",
       "titlePlaceholder": "مثلا الحجم، اللون، المادة، الخ",
       "choicesLabel": "اختيارات",
-      "variationLabel": "Variation",
-      "variationTip": "Used for variations",
       "choicesPlaceholder": "مثلا صغيرة، متوسطة، كبيرة، الخ",
       "toolTip": {
         "delete": "حذف"
@@ -1376,21 +1281,7 @@
       "surcharge": "Surcharge",
       "totalPrice": "Total Price",
       "sku": "وحدة حفظ الأوراق المالية SKU",
-      "quantity": "كمية",
-      "operation": "Operation",
-      "addMissingSku": "+ Add Missing SKU"
-    },
-    "optionalFeatures": {
-      "btnAddOptionalFeature": "Add Optional Feature",
-      "btnDeleteOptionalFeature": "Delete",
-      "addOptionalFeature": "+ Add Optional Feature",
-      "name": "Name",
-      "surcharge": "Surcharge",
-      "sku": "SKU",
-      "image": "Image",
-      "toolTip": {
-        "delete": "Delete"
-      }
+      "quantity": "كمية"
     },
     "confirmCloseDialog": {
       "title": "لم تحفظ التغييرات",
@@ -1406,7 +1297,6 @@
       "tooManyPhotosTitle": "عدد كبير جدا من الصور",
       "tooManyPhotosBody": "تم منع تحميل بعض أو كل صورك لأنك تجاوزت الحد الأقصى من الكمية المسموح به.",
       "unableToLoadImages": "تعذر تحميل صورتك. |||| تعذر تحميل الصور.",
-      "uploadVideoErrorTitle": "There was an error uploading your video.",
       "uploadImageErrorTitle": "حدث خطأ أثناء تحميل الصورة. |||| حدث خطأ أثناء تحميل الصور."
     }
   },
@@ -1502,7 +1392,6 @@
   "purchase": {
     "purchaseDataChangedPopin": "تم تغيير بيانات هذه القائمة.",
     "returnToListing": "العودة إلى القائمة",
-    "returnToCart": "Return To Cart",
     "optional": "اختياري",
     "shippingTitle": "الشحن",
     "cryptoCurrencyTitle": "العملة",
@@ -1601,8 +1490,7 @@
       "firstItem": "الصنف الأول",
       "additionalItems": "كل صنف إضافي",
       "options": "خيارات",
-      "subtotal": "المجموع",
-      "subtotalEx": "المجموع (%{quantity})",
+      "subtotal": "المجموع (%{quantity})",
       "shippingTotal": "إجمالي الشحن",
       "total": "مجموع",
       "cryptoIconsAmount": "(%{amount})",
@@ -1750,13 +1638,9 @@
       "enterMessagePlaceholder": "أدخل رسالة ...",
       "enterMessageNoMoreModPlaceholder": "أدخل الرسالة... (أصدر المشرف قرارًا ولن يرى أي رسائل دردشة جديدة)",
       "modCannotChat": "لقد أصدرت قرارًا ولا يمكنك إرسال رسائل مرة أخرى.",
-      "addImage": "Add Image",
       "loadMessagesError": "حدث خطأ أثناء تحميل الرسائل ",
       "retryLink": "أعد المحاوله",
-      "btnSend": "ارسل",
-      "addCustomerService": "Add Customer Service",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+      "btnSend": "ارسل"
     },
     "contractTab": {
       "heading": "الإتفاقية (JSON)",
@@ -2112,7 +1996,7 @@
   "listingModelErrors": {
     "returnPolicyTooLong": "تتجاوز سياسة الإرجاع الحد الأقصى المسموح به.",
     "termsAndConditionsTooLong": "تجاوزت الشروط والأحكام الحد الأقصى المسموح به للطول.",
-    "provideShippingOption": "للبضائع والأشياء المادية، مطلوب خيار شحن واحد على الأقل.يرجى تكوينه في إعدادات المتجر الخاص بك",
+    "provideShippingOption": "للبضائع والأشياء المادية، مطلوب خيار شحن واحد على الأقل.",
     "tooManyCoupons": "لا يمكنك الحصول على أكثر من %{maxCouponCount} من القسائم.",
     "couponsPriceTooLarge": "لا يمكن أن يكون مبلغ الخصم مساويا أو أكبر من سعر القائمة."
   },
@@ -2182,8 +2066,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "إذا كان نوع الرسوم الثابتة أو الثابتة بالإضافة إلى النسبة المئوية، يجب عليك تعيين عملة صالحة للرسوم الخاصة بك.",
-    "fixedFeeAsNumber": "إذا كان نوع الرسوم ثابتة أو ثابتة بالإضافة إلى النسبة المئوية، فيجب عليك تحديد نسبة ثابته. إذا تضمنت العلامة العشرية، فيجب توضيحها، على سبيل المثال \"0.00\".",
-    "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
+    "noAmount": "إذا كان نوع الرسوم ثابتة أو ثابتة بالإضافة إلى النسبة المئوية، فيجب عليك تحديد نسبة ثابته. إذا تضمنت العلامة العشرية، فيجب توضيحها، على سبيل المثال \"0.00\"."
   },
   "skuModelErrors": {
     "provideQuantity": "يرجى وضع كمية.",
@@ -3244,12 +3127,6 @@
     "CFC": "CoffeeCoin",
     "CFI": "Cofound.it",
     "CFL": "CryptoFlow",
-
-    "CFX": "Conflux Coin",
-    "CFXMBZ": "Mobazha Token",
-    "CFXUSDC": "USD Coin",
-    "CFXUSDT": "Tether",
-
     "CFUN": "CFun",
     "CGEN": "CommunityGeneration",
     "CHAN": "ChanCoin",
