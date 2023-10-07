@@ -5,14 +5,15 @@
         <h2 class="txUnb">{{ ob.polyT('listingDetail.moreBy', { name: ob.vendor.name }) }}</h2>
       </template>
       <div class="listingsGrid flex js-cardWrapper">
-        <template v-for="listing in ob.listings" :key="listing.slug">
+        <template v-for="listing in ob.listings">
           <ListingCard
-            :options="{
-              listingBaseUrl: `${ob.vendor.peerID}/store/`,
-              vendor: options.vendor,
-              onStore: true,
+            :options="cardViewOptions(listing).options"
+            :bb="function() {
+              return {
+                model:cardViewOptions(listing).model,
+              };
             }"
-            :bb="cardBB(listing)"
+            @listingDetailOpened="onListingDetailOpened"
           />
         </template>
       </div>
@@ -23,43 +24,66 @@
 
 <script>
 import ListingShort from '../../../../backbone/models/listing/ListingShort';
+import ListingCard from '../../components/ListingCard';
+
 
 export default {
   props: {
     options: {
       type: Object,
-      default: {
-        listings: [],
-        vendor: {},
-      },
+      default: {},
     },
   },
   data () {
     return {
+      _state: {
+        listings: [],
+        vendor: {},
+      },
     };
   },
   created () {
+    this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob() {
       return {
         ...this.templateHelpers,
-        ...this.options,
+        ...this._state,
       };
     },
   },
   methods: {
-    cardBB(listing) {
-      const model = new ListingShort(listing);
-      model.set('vendor', this.options.vendor);
+    loadData (options = {}) {
+      this.baseInit({
+        ...options,
+        initialState: {
+          listings: [],
+          vendor: {},
+          ...options.initialState,
+        },
+      });
+    },
 
-      return function() {
-        return {
-          model,
+    cardViewOptions (listing) {
+      const vendor = this.getState().vendor;
+      const model = new ListingShort(listing);
+      model.set('vendor', vendor);
+      return {
+        model,
+        options: {
+          listingBaseUrl: `${vendor.peerID}/store/`,
+          vendor,
+          onStore: true,
         }
-      }
+      };
+    },
+
+    onListingDetailOpened() {
+      this.$emit('listingDetailOpened');
     },
   }
 }

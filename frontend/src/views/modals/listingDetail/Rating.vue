@@ -1,6 +1,7 @@
 <template>
   <div class="ratingStrip">
-    <div v-if="ob.fetched" v-html="ob.formatRating(ob.averageRating, ob.ratingCount)" />
+    <template v-if="ob.fetched" v-html="ob.formatRating(ob.averageRating, ob.ratingCount)">
+    </template>
   </div>
 </template>
 
@@ -10,18 +11,18 @@ export default {
   props: {
     options: {
       type: Object,
-      default: {
-        averageRating: 0,
-        ratingCount: 0,
-        fetched: false,
-      },
+      default: {},
     },
   },
   data () {
     return {
+      averageRating: 0,
+      ratingCount: 0,
+      fetched: false,
     };
   },
   created () {
+    this.loadData(this.options);
   },
   mounted () {
   },
@@ -29,11 +30,18 @@ export default {
     ob () {
       return {
         ...this.templateHelpers,
-        ...this.options,
+        averageRating: this.averageRating,
+        ratingCount: this.ratingCount,
+        fetched: this.fetched,
       };
     }
   },
   methods: {
+    loadData (options = {}) {
+      this.averageRating = options.averageRating || 0;
+      this.ratingCount = options.ratingCount || 0;
+      this.fetched = options.fetched || false;
+    },
   }
 }
 </script>

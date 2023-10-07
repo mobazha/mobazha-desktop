@@ -1,549 +1,291 @@
 <template>
-  <div>
-    <div v-if="!showNsfwWarning && showModal" class="modal listingDetail modalScrollPage" @click="onDocumentClick">
-      <BaseModal @close="close">
-        <template v-slot:component>
-          <div ref="popInMessages" class="popInMessageHolder js-popInMessages"></div>
+  <div class="modal listingDetail modalScrollPage" v-show="showModal" @click="onDocumentClick">
+    <BaseModal>
+      <template v-slot:component>
+        <div class="popInMessageHolder js-popInMessages"></div>
 
-          <div class="topControls withEndBtn flex">
-            <template v-if="vendor">
-              <div class="contentBox clrP clrSh3 clrBr clrT">
-                <div class="padSm gutterHSm overflowAuto margRSm flexVCent">
-                  <a class="clrBr2 clrSh1 disc storeOwnerAvatar flexNoShrink js-storeOwnerAvatar" :style="ob.getAvatarBgImage(vendor.avatarHashes)"></a>
-                  <p class="txUnl tx3 clamp">{{ vendor.name }}</p>
-                  <a class="link flexNoShrink tx6" @click="onClickGoToStore">{{
-                    ob.openedFromStore ? ob.polyT('listingDetail.returnToStore') : ob.polyT('listingDetail.goToStore')
-                  }}</a>
-                </div>
+        <div class="topControls withEndBtn flex">
+          <template v-if="ob.vendor">
+            <div class="contentBox clrP clrSh3 clrBr clrT">
+              <div class="padSm gutterHSm overflowAuto margRSm flexVCent">
+                <a class="clrBr2 clrSh1 disc storeOwnerAvatar flexNoShrink js-storeOwnerAvatar" :style="ob.getAvatarBgImage(ob.vendor.avatarHashes)"></a>
+                <p class="txUnl tx3 clamp">{{ ob.vendor.name }}</p>
+                <a class="link flexNoShrink tx6 " @click="onClickGoToStore">{{ ob.openedFromStore ? ob.polyT('listingDetail.returnToStore') : ob.polyT('listingDetail.goToStore') }}</a>
               </div>
-            </template>
-            <template v-if="ob.ownListing">
-              <div class="flexNoShrink" style="margin-left: auto">
-                <div class="btnStrip clrSh3">
-                  <button class="btn clrP clrBr" @click="onClickEditListing">{{ ob.polyT('listingDetail.edit') }}</button>
-                  <button class="btn clrP clrBr" @click="onClickCloneListing">{{ ob.polyT('listingDetail.clone') }}</button>
-                  <ProcessingButton
-                    :className="`btn js-deleteListing clrP clrBr ${isDeleting ? 'processing' : ''}`"
-                    @click.stop="onClickDeleteListing"
-                    :btnText="ob.polyT('listingDetail.delete')"
-                  />
-                </div>
+            </div>
+          </template>
+          <template v-if="ob.ownListing">
+            <div class="flexNoShrink" style="margin-left: auto">
+              <div class="btnStrip clrSh3">
+                <button class="btn clrP clrBr" @click="onClickEditListing">{{ ob.polyT('listingDetail.edit') }}</button>
+                <button class="btn clrP clrBr" @click="onClickCloneListing">{{ ob.polyT('listingDetail.clone') }}</button>
+                <ProcessingButton
+                  className="btn js-deleteListing clrP clrBr"
+                  @click="onClickDeleteListing"
+                  :btnText="ob.polyT('listingDetail.delete')" />
               </div>
-              <div class="js-deleteConfirmedBox confirmBox deleteConfirm tx5 arrowBoxTop clrBr clrP clrT" v-show="showDeleteConfirmedBox" @click.stop.prevent>
-                <div class="tx3 txB rowSm">{{ ob.polyT('listingDetail.confirmDelete.title') }}</div>
-                <p>{{ ob.polyT('listingDetail.confirmDelete.body') }}</p>
-                <hr class="clrBr row" />
-                <div class="flexHRight flexVCent gutterHLg buttonBar">
-                  <a class="" @click.stop="onClickConfirmCancel">{{ ob.polyT('listingDetail.confirmDelete.btnCancel') }}</a>
-                  <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph" @click.stop="onClickConfirmedDelete">{{
-                    ob.polyT('listingDetail.confirmDelete.btnConfirm')
-                  }}</a>
-                </div>
+            </div>
+            <div class=" confirmBox deleteConfirm tx5 arrowBoxTop clrBr clrP clrT hide" @click="onClickDeleteConfirmBox">
+              <div class="tx3 txB rowSm">{{ ob.polyT('listingDetail.confirmDelete.title') }}</div>
+              <p>{{ ob.polyT('listingDetail.confirmDelete.body') }}</p>
+              <hr class="clrBr row" />
+              <div class="flexHRight flexVCent gutterHLg buttonBar">
+                <a class="" @click="onClickConfirmCancel">{{ ob.polyT('listingDetail.confirmDelete.btnCancel') }}</a>
+                <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph " @click="onClickConfirmedDelete">{{ ob.polyT('listingDetail.confirmDelete.btnConfirm') }}</a>
               </div>
-            </template>
+            </div>
+          </template>
 
-            <template v-else>
-              <div class="flexNoShrink" style="margin-left: auto">
-                <div class="js-socialBtns">
-                  <SocialBtns :options="{ targetID: vendor.peerID }" />
-                </div>
-              </div>
-            </template>
-          </div>
+          <template v-else>
+            <div class="flexNoShrink" style="margin-left: auto">
+              <div class="js-socialBtns"></div>
+            </div>
+          </template>
+        </div>
 
-          <div class="listingContent flexColRow gutterVMd2">
-            <div class="contentBox padLg clrP clrBr clrSh3">
-              <div :class="`${ob.metadata.contractType !== 'CRYPTOCURRENCY' ? 'flex' : 'flexVCent'} gutterHLg`">
-                <template v-if="ob.metadata.contractType !== 'CRYPTOCURRENCY'">
-                  <h2 class="txUnb flexExpand"><div v-html="ob.item.title" /></h2>
-                  <h2 class="txUnb flexNoShrink js-price" v-html="renderPrice(totalPrice)"></h2>
-                </template>
 
-                <template v-else>
-                  <h2 class="flexExpand js-cryptoTitle cryptoTitle">
-                    <CryptoTradingPairWrap :options="cryptoTradingPairOptions" />
-                  </h2>
-                  <CryptoPrice
-                    :options="{
+        <div class="listingContent flexColRow gutterVMd2">
+          <div class="contentBox padLg clrP clrBr clrSh3">
+            <div :class="`${ob.metadata.contractType !== 'CRYPTOCURRENCY' ? 'flex' : 'flexVCent'} gutterHLg`">
+              <template v-if="ob.metadata.contractType !== 'CRYPTOCURRENCY'">
+                <h2 class="txUnb flexExpand">{{ ob.item.title }}</h2>
+                <h2 class="txUnb flexNoShrink js-price">
+                  {{
+                    ob.currencyMod.convertAndFormatCurrency(
+                      ob.price.amount,
+                      ob.price.currencyCode,
+                      ob.displayCurrency
+                    )
+                  }}
+                </h2>
+              </template>
+
+              <template v-else>
+                <h2 class="flexExpand js-cryptoTitle cryptoTitle"></h2>
+                <CryptoPrice :options="{
                       priceAmount: ob.price.amount,
                       priceCurrencyCode: ob.price.currencyCode,
                       displayCurrency: ob.displayCurrency,
                       priceModifier: ob.price.modifier,
                       wrappingTag: 'h2',
                       wrappingClass: 'flexNoShrink txRgt tx3',
-                    }"
-                  />
-                </template>
-              </div>
-              <div class="flex gutterHLg">
-                <div class="mainImageWrapper">
-                  <img
-                    v-if="!introVideoLinks.length"
-                    class="mainImage clrBr"
-                    @click="onClickGotoPhotos"
-                    :src="ob.item.images.length ? ob.getServerUrl(`ob/image/${ob.isHiRez() ? mainImage.large : mainImage.medium}`) : ob.getImagePath('defaultItem.png')"
-                  />
-                  <el-carousel v-else-if="introVideoLinks.length > 1" class="carousel clrBr" :autoplay="false" trigger="click">
-                    <el-carousel-item v-for="link in introVideoLinks" :key="link">
-                      <video-player-item class="introVideoItem" :url="link" />
-                    </el-carousel-item>
-                  </el-carousel>
-                  <video-player-item v-else class="mainImage clrBr" :url="introVideoLinks[0]" />
-                  
-                  <div class="txCtr">
-                    <a class="tx5" @click="onClickGotoPhotos">
-                      <u>{{
-                        ob.polyT('listingDetail.viewPhotos', {
-                          count: imageGallary.length,
-                          smart_count: imageGallary.length,
-                        })
-                      }}</u>
-                    </a>
-                  </div>
+                    }" />
+              </template>
+            </div>
+            <div class="flex gutterHLg">
+              <div class="mainImageWrapper">
+                <div class="mainImage clrBr " @click="onClickGotoPhotos" :style="ob.item.images.length
+                  ? `background-image: url(${ob.getServerUrl(`ob/image/${ob.isHiRez() ? ob.item.images[0].large : ob.item.images[0].medium}`)}), url('../imgs/defaultItem.png')`
+                  : `background-image: url('../imgs/defaultItem.png')`"></div>
+                <div class="txCtr">
+                  <a class="tx5 " @click="onClickGotoPhotos">
+                    <u>{{ ob.polyT('listingDetail.viewPhotos', {
+                      count: ob.item.images.length, smart_count:
+                        ob.item.images.length
+                    }) }}</u>
+                  </a>
                 </div>
-                <div class="flexExpand">
-                  <div class="buyBox clrP clrBr">
-                    <div class="flexColRows flexHCent gutterV">
-                      <template v-for="(item, optionIndex) in ob.item.options" :key="item.name">
-                        <div class="flexVCent gutterHLg">
-                          <div class="col4 h5 txUnl">{{ item.name }}</div>
-                          <div class="col8 txLft">
-                            <el-select
-                              v-model="variantOptions[optionIndex]"
-                              @change="onVariantSelectionChange(optionIndex)"
-                            >
-                              <el-option
-                                v-for="variant in selectableSkuVariants(optionIndex)"
-                                :key="variant"
-                                :label="variant"
-                                :value="variant"
-                              />
-                            </el-select>
-                            <!-- <Select2 v-model="variantOptions[optionIndex]" @change="onVariantSelectionChange(optionIndex)" :name="item.name">
-                              <template v-for="variant in selectableSkuVariants(optionIndex)" :key="variant">
-                                <option :value="variant">{{ variant }}</option>
-                              </template>
-                            </Select2> -->
-                          </div>
+              </div>
+              <div class="flexExpand">
+                <div class="buyBox clrP clrBr">
+                  <div class="flexColRows flexHCent gutterV">
+                    <template v-for="(item, j) in ob.item.options" :key="j">
+                      <div class="flexVCent gutterHLg">
+                        <div class="col4 h5 txUnl">{{ item.name }}</div>
+                        <div class="col8 txLft">
+                          <select class="" @change="onChangeVariantSelect" :name="item.name">
+                            <template v-for="(variant, j) in item.variants" :key="j">
+                              <option :value="variant.name">{{ variant.name }}</option>
+                            </template>
+                          </select>
+                        </div>
+                      </div>
+                    </template>
+
+                    <button
+                      :class="`btnHg clrBAttGrad clrBrDec1 clrTOnEmph js-purchaseBtn ${templateOptions.buyNowClass}`"
+                      @click="startPurchase">
+                      {{ ob.polyT(templateOptions.buyNowTranslationKey) }}
+                    </button>
+                    <button
+                      :class="`btnHg clrBAttGrad clrBrDec1 clrTOnEmph js-addToCartBtn ${templateOptions.buyNowClass}`"
+                      @click="addToCart">
+                      {{ ob.polyT('listingDetail.addToCart') }}
+                    </button>
+
+                    <div class="js-purchaseErrorWrap">
+                      <template v-if="unpurchaseable">
+                        <PurchaseError :tip="templateOptions.tip"></PurchaseError>
+                      </template>
+                    </div>
+
+                    <div class="flexHCent gutterH">
+                      <div class="tx6  rating" @click="clickRating"></div>
+                      <template v-if="ob.shipsFreeToMe">
+                        <div class="txCtr">
+                          <a class="clrE1 clrTOnEmph phraseBox txNoUnd " @click="onClickFreeShippingLabel">{{
+                            ob.polyT('listingDetail.freeShippingBanner') }}</a>
                         </div>
                       </template>
-                      <!-- <div class="flex">
-                        <button
-                          :class="`btnHg clrBAttGrad clrBrDec1 clrTOnEmph js-purchaseBtn flex-1 ${templateOptions.buyNowClass} ${
-                            outdateHash ? 'disabled' : ''
-                          }`"
-                          @click="startPurchase"
-                        >
-                          {{ ob.polyT(templateOptions.buyNowTranslationKey) }}
-                        </button>
-                        <button :class="`btnHg clrBAttGrad clrBrDec1 clrTOnEmph js-addToCartBtn  flex-1 ${templateOptions.buyNowClass}`" @click="addToCart">
-                          {{ ob.polyT('listingDetail.addToCart') }}
-                        </button>
-                      </div> -->
-                      <div class="flex">
-                        <button :class="`warning-btn flex-1 ${templateOptions.buyNowClass}`" type="success" round @click="addToCart">
-                          {{ ob.polyT('listingDetail.addToCart') }}
-                        </button>
-                        <button :class="`success-btn flex-1 ${templateOptions.buyNowClass} ${outdateHash ? 'disabled' : ''}`" @click="startPurchase">
-                          {{ ob.polyT(templateOptions.buyNowTranslationKey) }}
-                        </button>
-                      </div>
-                      <div class="js-purchaseErrorWrap">
-                        <template v-if="outdateHash">
-                          <PurchaseError
-                            @click.stop="onClickReloadOutdated"
-                            :tip="
-                              ob.polyT('listingDetail.errors.outdatedHash', {
-                                reloadLink: `<a class=&quot;js-reloadOutdated&quot; id=&quot;reloadOutdated&quot;>${ob.polyT(
-                                  'listingDetail.errors.reloadOutdatedHash'
-                                )}<a>`,
-                              })
-                            "
-                          ></PurchaseError>
-                        </template>
-                        <template v-else-if="templateOptions.unpurchaseable">
-                          <PurchaseError :tip="templateOptions.tip"></PurchaseError>
-                        </template>
-                      </div>
-                      <div class="flexHCent gutterH">
-                        <div class="tx6 js-rating rating" @click="clickRating">
-                          <Rating :options="ratingData" />
-                        </div>
-                        <template v-if="ob.shipsFreeToMe">
-                          <div class="txCtr">
-                            <a class="clrE1 clrTOnEmph phraseBox txNoUnd" @click="onClickFreeShippingLabel">{{
-                              ob.polyT('listingDetail.freeShippingBanner')
-                            }}</a>
-                          </div>
-                        </template>
-                      </div>
                     </div>
                   </div>
-                  <div class="flexHCent gutterHLg tx5 rowLg">
-                    <div
-                      v-html="
-                        ob.polyT('listingDetail.type', {
-                          type: `<b>${ob.polyT(`formats.${ob.metadata.contractType}`)}</b>`,
-                        })
-                      "
-                    ></div>
-                    <!-- // not showing the inventory for now since it's broken on the server -->
-                    <template v-if="ob.isCrypto && false">
-                      <div
-                        v-html="
-                          ob.polyT('listingDetail.inventory', {
-                            inventory: `<span class=&quot;js-cryptoInventory&quot;></span>`,
-                          })
-                        "
-                      ></div>
-                    </template>
-                    <template v-else-if="ob.metadata.contractType === 'PHYSICAL_GOOD'">
-                      <div
-                        v-html="
-                          ob.polyT('listingDetail.condition', {
-                            condition: `<b>${ob.polyT(`conditionTypes.${ob.item.condition.toUpperCase()}`, { _: ob.item.condition })}</b>`,
-                          })
-                        "
-                      ></div>
-                      <div v-html="ob.polyT('listingDetail.weight', { weight: `<b>${ob.item.grams ? ob.item.grams : 0}</b>` })"></div>
-                    </template>
+                </div>
+                <div class="flexHCent gutterHLg tx5 rowLg">
+                  <div>
+                    {{ ob.polyT('listingDetail.type', {
+                      type: `<b>${ob.polyT(`formats.${ob.metadata.contractType}`)}</b>`
+                    }) }}
                   </div>
-                  <hr class="rowLg" />
-                  <h5 v-if="ob.item.optionalFeatures.length > 0">{{ ob.polyT('editListing.sectionNames.optionalFeatures') }}</h5>
-                  <table class="table" v-if="ob.item.optionalFeatures.length > 0">
-                    <tbody>
-                      <tr>
-                        <th><input type="checkbox" @change="changeCheckAll" :checked="allOptionalFeaturesChecked" /></th>
-                        <th>{{ ob.polyT('editListing.optionalFeatures.name') }}</th>
-                        <th>{{ ob.polyT('editListing.optionalFeatures.surcharge') }}</th>
-                        <th>{{ ob.polyT('editListing.optionalFeatures.sku') }}</th>
-                        <th>{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
-                      </tr>
-                      <template v-for="(optionalFeature, i) in ob.item.optionalFeatures" :key="optionalFeature.name">
-                        <tr>
-                          <td>
-                            <input type="checkbox" v-model="optionalFeaturesCheckBox[i]" />
-                          </td>
-                          <td>{{ optionalFeature.name }}</td>
-                          <td>{{ renderPrice(optionalFeature.surcharge) }}</td>
-                          <td>{{ optionalFeature.skuID }}</td>
-                          <td>
-                            <el-image
-                              v-if="optionalFeature.images?.length"
-                              style="width: 60px; height: 60px"
-                              :src="ob.getServerUrl(`ob/image/${optionalFeature.images[0].small}`)"
-                              fit="cover"
-                              :preview-src-list="[ob.getServerUrl(`ob/image/${ob.isHiRez() ? optionalFeature.images[0].large : optionalFeature.images[0].medium}`)]"
-                            />
-                          </td>
-                        </tr>
-                      </template>
-                    </tbody>
-                  </table>
-                  <h5>{{ ob.polyT('listingDetail.tags') }}</h5>
-                  <div class="tagWrapper rowLg">
-                    <template v-for="tag in ob.item.tags">
-                      <a class="btn tag clrSh2 clrBr" :href="`#search?q=${tag}`" v-html="`#${ob.parseEmojis(tag)}`"></a>
-                    </template>
-                    <template v-if="!ob.item.tags.length">
-                      <i class="clrT2">{{ ob.polyT('listingDetail.noTags') }}</i>
-                    </template>
-                  </div>
-                  <h5>{{ ob.polyT('listingDetail.paymentsAccepted') }}</h5>
-                  <template v-if="ob.hasVerifiedMods">
-                    <div class="verifiedModBox clrBrAlert2 clrBAlert2Grad">
-                      <div class="flexVCent flexHCent gutterHTn rowSm">
-                        <img class="badge" :src="ob.defaultBadge.tiny ? ob.defaultBadge.tiny : ob.getImagePath('verifiedModeratorBadgeDefault.png')" />
-                        <div class="tx5 txB">{{ ob.polyT('verifiedMod.modVerified.titleLong') }}</div>
-                      </div>
-                      <div class="flexColRows gutterVSm tx5b">
-                        <div
-                          v-html="
-                            ob.polyT('verifiedMod.genericDescription', {
-                              name: `<b>${ob.verifiedModsData.name}</b>`,
-                              link: `<a class=&quot;txU noWrap&quot; href=&quot;${ob.verifiedModsData.link}&quot; data-open-external>${ob.polyT(
-                                'verifiedMod.link'
-                              )}</a>`,
-                            })
-                          "
-                        ></div>
-                      </div>
+                  <!-- // not showing the inventory for now since it's broken on the server -->
+                  <template v-if="ob.isCrypto && false">
+                    <div v-html='ob.polyT("listingDetail.inventory", {
+                      inventory: `<span class="js-cryptoInventory"></span>`
+                    })'>
+                    </div>
+                  </template>
+
+                  <template v-else-if="ob.metadata.contractType === 'PHYSICAL_GOOD'">
+                    <div>
+                      {{ ob.polyT('listingDetail.condition', {
+                        condition:
+                          `<b>${ob.polyT(`conditionTypes.${ob.item.condition.toUpperCase()}`, { _: ob.item.condition })}</b>`
+                      }) }}
                     </div>
                   </template>
                 </div>
-              </div>
-            </div>
-
-            <!-- RWA Token 详细信息 -->
-            <div v-if="rwaTokenInfo" class="contentBox rwaTokenInfoSection padLg clrP clrBr clrSh3">
-              <h2 class="txUnb">RWA代币信息</h2>
-              <div class="rwaTokenInfoGrid">
-                <div class="infoItem">
-                  <span class="label">代币名称:</span>
-                  <span class="value">{{ rwaTokenInfo.name }}</span>
+                <hr class="rowLg">
+                <h5>{{ ob.polyT('listingDetail.tags') }}</h5>
+                <div class="tagWrapper rowLg">
+                  <template v-for="tag in ob.item.tags">
+                    <a class="btn tag clrSh2 clrBr" :href="`#search?q=${tag}`" v-html="`#${ob.parseEmojis(tag)}`"></a>
+                  </template>
+                  <template v-if="!ob.item.tags.length">
+                    <i class="clrT2">{{ ob.polyT('listingDetail.noTags') }}</i>
+                  </template>
                 </div>
-                <div class="infoItem">
-                  <span class="label">代币符号:</span>
-                  <span class="value">{{ rwaTokenInfo.symbol }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">代币类型:</span>
-                  <span class="value">
-                    <img :src="getTokenTypeIcon(rwaTokenInfo.code)" :alt="getTokenTypeName(rwaTokenInfo.tokenType)" class="tokenTypeIcon" />
-                    {{ getTokenTypeName(rwaTokenInfo.tokenType) }}
-                  </span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">当前价格:</span>
-                  <span class="value">${{ rwaTokenInfo.currentPrice }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">发行方:</span>
-                  <span class="value">{{ rwaTokenInfo.issuer }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">风险等级:</span>
-                  <span class="value">{{ rwaTokenInfo.metadata?.riskLevel }}</span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">验证状态:</span>
-                  <span class="value verified">
-                    <i class="icon-verified"></i>
-                    {{ rwaTokenInfo.verification?.verifiedBy || '已验证' }}
-                  </span>
-                </div>
-                <div class="infoItem">
-                  <span class="label">合约地址:</span>
-                  <span class="value address">{{ formatAddress(rwaTokenInfo.contractAddress) }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.metadata?.location">
-                  <span class="label">项目位置:</span>
-                  <span class="value">{{ rwaTokenInfo.metadata.location }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.metadata?.annualYield">
-                  <span class="label">年化收益率:</span>
-                  <span class="value">{{ rwaTokenInfo.metadata.annualYield }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.metadata?.minInvestment">
-                  <span class="label">最小投资额:</span>
-                  <span class="value">${{ rwaTokenInfo.metadata.minInvestment }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.metadata?.maxInvestment">
-                  <span class="label">最大投资额:</span>
-                  <span class="value">${{ rwaTokenInfo.metadata.maxInvestment }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.issueDate">
-                  <span class="label">发行日期:</span>
-                  <span class="value">{{ rwaTokenInfo.issueDate }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.maturityDate">
-                  <span class="label">到期日期:</span>
-                  <span class="value">{{ rwaTokenInfo.maturityDate }}</span>
-                </div>
-                <div class="infoItem" v-if="rwaTokenInfo.totalSupply">
-                  <span class="label">总供应量:</span>
-                  <span class="value">{{ formatTokenAmount(rwaTokenInfo.totalSupply, rwaTokenInfo.decimals) }}</span>
-                </div>
-              </div>
-              
-              <!-- 价格历史 -->
-              <div class="priceHistory" v-if="rwaTokenInfo.priceHistory && rwaTokenInfo.priceHistory.length > 0">
-                <h5>价格历史</h5>
-                <div class="priceHistoryChart">
-                  <div v-for="(pricePoint, index) in rwaTokenInfo.priceHistory" :key="index" class="pricePoint">
-                    <span class="date">{{ pricePoint.date }}</span>
-                    <span class="price">${{ pricePoint.price }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- 投资建议 -->
-              <div class="investmentAdvice" v-if="getInvestmentSuggestions(rwaTokenInfo).length > 0">
-                <h5>投资建议</h5>
-                <ul>
-                  <li v-for="(suggestion, index) in getInvestmentSuggestions(rwaTokenInfo)" :key="index">
-                    {{ suggestion }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="contentBox descriptionSection padLg clrP clrBr clrSh3">
-              <h2 class="txUnb">{{ ob.polyT('listingDetail.description') }}</h2>
-              <div v-html="ob.item.description" />
-              <template v-if="!ob.item.description">
-                <i class="clrT2">{{ ob.polyT('listingDetail.noDescription') }}</i>
-              </template>
-            </div>
-
-            <template v-if="imageGallary.length">
-              <div ref="photoSection" class="contentBox clrSh3 photoSection js-photoSection">
-                <div class="flexCent photoSelected">
-                  <!-- <img class="photoSelectedInner" :src="selectedPhoto" /> -->
-                  <el-image
-                    style="width: 100%; height: 100%"
-                    :src="selectedPhoto"
-                    fit="contain"
-                    :preview-src-list="[selectedPhoto]"
-                  />
-                </div>
-                <template v-if="imageGallary.length > 1">
-                  <button class="btn ion-ios-arrow-left photoPrev" @click="onClickPhotoPrev"></button>
-                  <button class="btn ion-ios-arrow-right photoNext" @click="onClickPhotoNext"></button>
-                </template>
-                <template v-if="imageGallary.length > 1">
-                  <div class="photoStrip flex gutterH">
-                    <template v-for="(image, photoIndex) in imageGallary">
-                      <input
-                        type="radio"
-                        name="photoStripThumbnails"
-                        class="js-photoSelect"
-                        :id="`photoStrip${photoIndex}`"
-                        :value="photoIndex"
-                        v-model="activePhotoIndex"
-                        @click="onClickPhotoSelect(photoIndex)"
-                      />
-                      <label
-                        :style="`background-image: url(` + ob.getServerUrl(`ob/image/${ob.isHiRez() ? image.small : image.tiny}`) + `)`"
-                        :for="`photoStrip${photoIndex}`"
-                      ></label>
-                    </template>
+                <h5>{{ ob.polyT('listingDetail.paymentsAccepted') }}</h5>
+                <div class="js-supportedCurrenciesList"></div>
+                <template v-if="ob.hasVerifiedMods">
+                  <div class="verifiedModBox clrBrAlert2 clrBAlert2Grad">
+                    <div class="flexVCent flexHCent gutterHTn rowSm">
+                      <div class="badge"
+                        :style="`background-image: url(${ob.defaultBadge.tiny}), url('../imgs/verifiedModeratorBadgeDefault.png');`">
+                      </div>
+                      <div class="tx5 txB">{{ ob.polyT('verifiedMod.modVerified.titleLong') }}</div>
+                    </div>
+                    <div class="flexColRows gutterVSm tx5b">
+                      <div v-html='ob.polyT("verifiedMod.genericDescription", {
+                        name: `<b>${ob.verifiedModsData.name}</b>`,
+                        link: `<a class="txU noWrap" href="${ob.verifiedModsData.link}" data-open-external>${ob.polyT("verifiedMod.link")}</a>`
+                      })'></div>
+                    </div>
                   </div>
                 </template>
               </div>
-            </template>
-            <div class="reviews js-reviews">
-              <Reviews
-                ref="reviews"
-                :key="reviewIDs"
-                :reviewIDs="reviewIDs"
-                :options="{
-                  async: true,
-                  showListingData: true,
-                  isFetchingRatings: !ratingData.fetched,
-                }"
-              />
-            </div>
-
-            <!-- Attachments are not yet available -->
-            <!--
-
-    <div class="contentBox padLg clrP clrBr clrSh3">
-      <h2 class="txUnb">{{ ob.polyT('listingDetail.attachments') }}</h2>
-      Placeholder for Attachments
-    </div>
-  -->
-
-            <template v-if="ob.shippingOptions.length">
-              <div ref="shippingSection" class="contentBox padLg clrP clrBr clrSh3" id="shippingSection">
-                <h2 class="txUnb">{{ ob.polyT('listingDetail.shipping') }}</h2>
-                <div class="flexVCent gutterHLg tx5">
-                  <!-- this data is not yet available -->
-                  <!--
-          <div>{{ ob.polyT('listingDetail.shipsFrom', { country: `<b>insert translation of the country here</b>` }) }}</div>
-          -->
-                  <div>{{ ob.polyT('listingDetail.shipTo') }}</div>
-                  <div class="col4">
-                    <Select2 v-model="shippingDestination">
-                      <option value="ALL">{{ ob.polyT('listingDetail.allCountries') }}</option>
-                      <template v-for="country in countryData">
-                        <option :value="country.id" :selected="country.id === shippingDestination">{{ country.text }}</option>
-                      </template>
-                    </Select2>
-                  </div>
-                </div>
-                <div class="js-shippingOptions">
-                  <ShippingOptions :options="shippingOptionsInfo" :key="shippingDestination" />
-                </div>
-              </div>
-            </template>
-            <div class="contentBox padLg clrP clrBr clrSh3">
-              <h2 class="txUnb">{{ ob.polyT('listingDetail.refundPolicy') }}</h2>
-              <div v-html="ob.refundPolicy" />
-              <template v-if="!ob.refundPolicy">
-                <i class="clrT2">{{ ob.polyT('listingDetail.noRefundPolicy') }}</i>
-              </template>
-            </div>
-
-            <div class="contentBox padLg clrP clrBr clrSh3">
-              <h2 class="txUnb">{{ ob.polyT('listingDetail.termsAndConditions') }}</h2>
-              <div v-html="ob.termsAndConditions" />
-              <template v-if="!ob.termsAndConditions">
-                <i class="clrT2">{{ ob.polyT('listingDetail.noTermsAndConditions') }}</i>
-              </template>
-            </div>
-
-            <div class="js-moreListings">
-              <MoreListings
-                :options="{
-                  vendor,
-                  listings: moreListingsData,
-                }"
-              />
             </div>
           </div>
-        </template>
-      </BaseModal>
-    </div>
-    <Teleport to="#js-vueModal">
-      <NsfwWarning v-if="showNsfwWarning" @canceled="close" @close="onNsfwWarningClose" />
-      <Purchase
-        ref="purchaseModal"
-        v-else-if="showPurchase"
-        :options="{ itemsInfo: [{ quantity: '1', variants: selectedVariants, optionalFeatures: selectedOptionalFeatures }], vendor, origin: 'Listing' }"
-        :bb="
-          function () {
-            return {
-              itemsToPurchase,
-            };
-          }
-        "
-        @clickReloadOutdated="onPurchaseReloadOutdated"
-        @close="onPurchaseClose"
-      />
-      <EditListing
-        ref="editModal"
-        v-else-if="showEditListing"
-        :options="{
-          returnText: ob.polyT('listingDetail.editListingReturnText'),
-          onClickViewListing: onEditModalClickReturn,
-        }"
-        :bb="
-          function () {
-            return {
-              model,
-            };
-          }
-        "
-        @click-return="onEditModalClickReturn"
-        @close="onCloseEditModal"
-      />
-      <EditListing
-        ref="cloneModal"
-        v-else-if="showCloneListing"
-        :bb="
-          function () {
-            return {
-              model: model.cloneListing(),
-            };
-          }
-        "
-        @close="onCloseCloneModal"
-      />
-    </Teleport>
+
+          <div class="contentBox descriptionSection padLg clrP clrBr clrSh3">
+            <h2 class="txUnb">{{ ob.polyT('listingDetail.description') }}</h2>
+            <template v-html="ob.item.description"></template>
+            <template v-if="!ob.item.description">
+              <i class="clrT2">{{ ob.polyT('listingDetail.noDescription') }}</i>
+            </template>
+          </div>
+
+          <template v-if="ob.item.images.length">
+            <div class="contentBox clrSh3 photoSection js-photoSection">
+              <div class="flexCent photoSelected js-photoSelected">
+                <img class="photoSelectedInner js-photoSelectedInner">
+              </div>
+              <template v-if="ob.item.images.length > 1">
+                <button class="btn ion-ios-arrow-left photoPrev " @click="onClickPhotoPrev"></button>
+                <button class="btn ion-ios-arrow-right photoNext " @click="onClickPhotoNext"></button>
+              </template>
+              <template v-if="ob.item.images.length > 1">
+                <div class="photoStrip flex gutterH">
+                  <template v-for="(image, index) in ob.item.images">
+                    <input type="radio" name="photoStripThumbnails" class="" @click="onClickPhotoSelect"
+                      id="photoStrip${index}" :checked="index === 0">
+                    <label
+                      :style="`background-image: url(` + ob.getServerUrl(`ob/image/${ob.isHiRez() ? image.small : image.tiny}`) + `)`"
+                      :for="`photoStrip${index}`"></label>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+          <div class="js-reviews"></div>
+
+          <!-- Attachments are not yet available -->
+          <!--
+
+  <div class="contentBox padLg clrP clrBr clrSh3">
+    <h2 class="txUnb">{{ ob.polyT('listingDetail.attachments') }}</h2>
+    Placeholder for Attachments
+  </div>
+ -->
+
+          <template v-if="ob.shippingOptions.length">
+            <div class="contentBox padLg clrP clrBr clrSh3" id="shippingSection">
+              <h2 class="txUnb">{{ ob.polyT('listingDetail.shipping') }}</h2>
+              <div class="flexVCent gutterHLg tx5">
+                <!-- this data is not yet available -->
+                <!--
+        <div>{{ ob.polyT('listingDetail.shipsFrom', { country: `<b>insert translation of the country here</b>` }) }}</div>
+        -->
+                <div>{{ ob.polyT('listingDetail.shipTo') }}</div>
+                <div class="col4">
+                  <select id="shippingDestinations" @change="onSetShippingDestination">
+                    <option value="ALL">{{ ob.polyT('listingDetail.allCountries') }}</option>
+                    <template v-for="country in ob.countryData">
+                      <option value="${country.id}" :selected="country.id === ob.defaultCountry">{{ country.text }}
+                      </option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+              <div class="js-shippingOptions"></div>
+            </div>
+          </template>
+          <div class="contentBox padLg clrP clrBr clrSh3">
+            <h2 class="txUnb">{{ ob.polyT('listingDetail.refundPolicy') }}</h2>
+            <template v-html="ob.refundPolicy"></template>
+            <template v-if="!ob.refundPolicy">
+              <i class="clrT2">{{ ob.polyT('listingDetail.noRefundPolicy') }}</i>
+            </template>
+          </div>
+
+          <div class="contentBox padLg clrP clrBr clrSh3">
+            <h2 class="txUnb">{{ ob.polyT('listingDetail.termsAndConditions') }}</h2>
+            <template v-html="ob.termsAndConditions"></template>
+            <template v-if="!ob.termsAndConditions">
+              <i class="clrT2">{{ ob.polyT('listingDetail.noTermsAndConditions') }}</i>
+            </template>
+          </div>
+
+          <div class="js-moreListings"></div>
+
+        </div>
+
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script>
 import $ from 'jquery';
 import _ from 'underscore';
-import { Collection } from 'backbone';
+import Backbone, { Collection } from 'backbone';
 import bigNumber from 'bignumber.js';
 import 'jquery-zoom';
 import is from 'is_js';
 import app from '../../../../backbone/app';
 import 'velocity-animate';
+import { getAvatarBgImage } from '../../../../backbone/utils/responsive';
 import { convertAndFormatCurrency } from '../../../../backbone/utils/currency';
+import loadTemplate from '../../../../backbone/utils/loadTemplate';
+import { launchEditListingModal } from '../../../../backbone/utils/modalManager';
 // import {
 //   getInventory,
 //   events as inventoryEvents,
@@ -551,114 +293,63 @@ import { convertAndFormatCurrency } from '../../../../backbone/utils/currency';
 import { recordEvent } from '../../../../backbone/utils/metrics';
 import { events as outdatedListingHashesEvents } from '../../../../backbone/utils/outdatedListingHashes';
 import { getTranslatedCountries } from '../../../../backbone/data/countries';
+import BaseModal from '../BaseModal';
+import Purchase from '../purchase/Purchase';
+import Rating from './Rating';
+import Reviews from '../../reviews/Reviews';
+import SocialBtns from '../../components/SocialBtns';
 // import QuantityDisplay from '../../components/QuantityDisplay';
 import { events as listingEvents } from '../../../../backbone/models/listing';
 import Listings from '../../../../backbone/collections/Listings';
-
-import OrderListings from '../../../../backbone/collections/OrderListings';
-
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
-
-import PopInMessage, { buildRefreshAlertMessage } from '../../../../backbone/views/components/PopInMessage';
+import PopInMessage, { buildRefreshAlertMessage } from '../../components/PopInMessage';
+import { openSimpleMessage } from '../SimpleMessage';
+import NsfwWarning from '../NsfwWarning';
+import MoreListings from './MoreListings';
+import CryptoTradingPair from '../../components/CryptoTradingPair';
+import SupportedCurrenciesList from '../../components/SupportedCurrenciesList';
 
 import api from '../../../api';
-import { myGet } from '../../../api/api';
 
-import Rating from './Rating.vue';
-import NsfwWarning from '../NsfwWarning.vue';
-import MoreListings from './MoreListings.vue';
-import ShippingOptions from './ShippingOptions.vue';
-import Reviews from '../../reviews/Reviews.vue';
-import PurchaseError from '@/views/modals/listingDetail/PurchaseError.vue';
-import Purchase from '../purchase/Purchase.vue';
-import EditListing from '../editListing/EditListing.vue';
-import { findRwaTokenByCode, getRwaTokenIconPath } from '../../../data/rwaTokenMockData.js';
 
 export default {
-  components: {
-    Rating,
-    NsfwWarning,
-    MoreListings,
-    ShippingOptions,
-    Reviews,
-    Purchase,
-    PurchaseError,
-    EditListing,
-  },
   props: {
     options: {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
-  data() {
+  data () {
     return {
-      app,
-
       showModal: true,
 
       PURCHASE_MODAL_CREATE: 'PURCHASE_MODAL_CREATE',
-      outdateHash: false,
-      vendor: undefined,
-      variantOptions: [],
-      optionalFeaturesCheckBox: [],
-
-      activePhotoIndex: 0,
-
-      shippingDestination: this.defaultCountry(),
-      countryData: getTranslatedCountries().map((countryObj) => ({ id: countryObj.dataName, text: countryObj.name })),
-
-      ratingData: {
-        averageRating: 0,
-        ratingCount: 0,
-        fetched: false,
-      },
-      reviewIDs: [],
-
-      _showNsfwWarning: true,
-
-      moreListingsData: undefined,
-
-      isDeleting: false,
-      showDeleteConfirmedBox: false,
-
-      showPurchase: false,
-      showEditListing: false,
-      showCloneListing: false,
-      
-      // RWA Token 相关数据
-      selectedRwaToken: null,
+      PURCHASE_MODAL_DESTROY: 'PURCHASE_MODAL_DESTROY',
     };
   },
-  created() {
+  created () {
     this.initEventChain();
 
     this.loadData(this.options);
   },
-  mounted() {
+  mounted () {
     this.render();
   },
-  unmounted() {
-    if (this.destroyRequest) this.destroyRequest.abort();
-    if (this.ratingsFetch) this.ratingsFetch.abort();
-    // if (this.inventoryFetch) this.inventoryFetch.abort();
-    if (this.moreListingsFetch) this.moreListingsFetch.abort();
-  },
   computed: {
-    ob() {
+    ob () {
       const defaultBadge = app.verifiedMods.defaultBadge(this.model.get('moderators'));
-      const flatModel = this.model.toJSON();
 
       return {
         ...this.templateHelpers,
-        ...flatModel,
+        ...this._model,
         shipsFreeToMe: this.shipsFreeToMe,
         ownListing: this.model.isOwnListing,
         price: this.model.price,
         displayCurrency: app.settings.get('localCurrency'),
         // the ships from data doesn't exist yet
         // shipsFromCountry: this.model.get('shipsFrom');
+        countryData: this.countryData,
+        defaultCountry: this.defaultCountry,
+        vendor: this.vendor,
         openedFromStore: this.options.openedFromStore,
         hasVerifiedMods: this.hasVerifiedMods,
         verifiedModsData: app.verifiedMods.data,
@@ -667,186 +358,71 @@ export default {
         _: { sortBy: _.sortBy },
       };
     },
-    itemsToPurchase() {
-      return new OrderListings([this.model]);
-    },
-
-    introVideoLinks() {
-      const links = [];
-      if (this.ob.item.introVideo) {
-        links.push(app.getServerUrl(`ob/file/${this.ob.item.introVideo.hash}`));
-      }
-
-      (this.ob.item.altIntroVideoLinks || []).forEach((link) => {
-        links.push(link);
-      });
-
-      return links;
-    },
-
-    templateOptions() {
+    templateOptions () {
       const ob = this.ob;
 
       let tip;
       let buyNowClass = 'disabled';
-      let buyNowTranslationKey = ob.metadata.contractType !== 'CRYPTOCURRENCY' ? 'listingDetail.buyNow' : 'listingDetail.buyCryptoNow';
+      let buyNowTranslationKey = ob.metadata.contractType !== 'CRYPTOCURRENCY' ?
+        'listingDetail.buyNow' :
+        'listingDetail.buyCryptoNow';
       let unpurchaseable = true;
 
+      let coinTypeRateAvailable;
+      let cryptoPaymentCoinRateAvailable;
+
       if (ob.metadata.contractType === 'CRYPTOCURRENCY') {
-        coinTypeRateAvailable = !!ob.currencyMod.getExchangeRate(ob.item.cryptoListingCurrencyCode);
-        cryptoPaymentCoinRateAvailable = !!ob.currencyMod.getExchangeRate(ob.metadata.acceptedCurrencies[0]);
+        coinTypeRateAvailable =
+          !!ob.currencyMod.getExchangeRate(ob.item.cryptoListingCurrencyCode);
+        cryptoPaymentCoinRateAvailable =
+          !!ob.currencyMod.getExchangeRate(ob.metadata.acceptedCurrencies[0]);
       }
 
-      buyNowClass = '';
-      unpurchaseable = false;
-
-      return { tip, buyNowClass, buyNowTranslationKey, unpurchaseable };
-    },
-
-    shippingOptionsInfo() {
-      const shippingOptions = this.model.get('shippingOptions');
-      const filteredOptions = shippingOptions.filter((option) => {
-        if (this.shippingDestination === 'ALL') return option.get('regions');
-        return option.get('regions').includes(this.shippingDestination);
-      });
-
-      return {
-        shippingOptions: filteredOptions,
-        displayCurrency: app.settings.get('localCurrency'),
-      };
-    },
-    showNsfwWarning() {
-      return this._showNsfwWarning && this.checkNsfw && this.model.get('item').get('nsfw') && !this.model.isOwnListing && !app.settings.get('showNsfw');
-    },
-    mainImage() {
-        const images = this.model.get('item').get('images').toJSON();
-        return images.length > 0 ? images[0] : null;
-    },
-    imageGallary() {
-      const commonImages = this.model.get('item').get('images').toJSON() || [];
-      const skuImages = this.selectedSKU?.get('images').toJSON() || [];
-      return [...skuImages, ...commonImages];
-    },
-    selectedPhoto() {
-      const photoHash = this.imageGallary[this.activePhotoIndex].original;
-      return app.getServerUrl(`ob/image/${photoHash}`);
-    },
-    skuOptions() {
-      return this.model.get('item').get('options')?.toJSON() || [];
-    },
-    variationOptions() {
-      return this.skuOptions.filter((option) => option.variation && option.variants && option.variants.length).map((option) => option.name);
-    },
-    skus() {
-      return this.model.get('item').get('skus')?.toJSON() || [];
-    },
-    selectableSkuVariants() {
-      return (optionIndex) => {
-        if (!this.variationOptions.includes(this.skuOptions[optionIndex].name)) {
-          return this.skuOptions[optionIndex].variants?.map((v) => v.name) || [];
-        }
-
-        let subSelection = [];
-        for (let i = 0; i < this.variantOptions.length; i++) {
-          if (i < optionIndex) {
-            const skuOption = this.skuOptions[i].name;
-            if (this.variationOptions.includes(skuOption)) {
-              subSelection.push({ option: skuOption, variant: this.variantOptions[i]});
-            }
-          }
-        }
-        if (subSelection.length == 0){
-          return this.skuOptions[optionIndex].variants?.map((v) => v.name);
-        }
-
-        return this.getNextVariantsFromMatchedSkus(subSelection);
-      }
-    },
-    selectedVariants() {
-      return this.skuOptions.map((option, index) => {
-        return {name: option.name, value: this.variantOptions[index]};
-      });
-    },
-    selectedSKU() {
-      const selections = [];
-      for (let i = 0; i < this.variantOptions.length; i++) {
-        if (this.variationOptions.includes(this.skuOptions[i].name)) {
-          selections.push({option: this.skuOptions[i].name, variant: this.variantOptions[i]});
-        }
+      if (!ob.crypto.anySupportedByWallet(ob.metadata.acceptedCurrencies)) {
+        tip = ob.polyT('listingDetail.unableToPurchase.incompatibleCrypto',
+          {
+            acceptedCurs: ob.metadata.acceptedCurrencies.join(', '),
+            walletCurs: ob.crypto.supportedWalletCurs()
+              .join(', '),
+          });
+      } else if (
+        ob.metadata.contractType !== 'CRYPTOCURRENCY' &&
+        !ob.currencyMod.getExchangeRate(ob.price.currencyCode) &&
+        !(
+          ob.crypto.supportedWalletCurs().includes(ob.price.currencyCode) &&
+          ob.metadata.acceptedCurrencies.includes(ob.price.currencyCode)
+        )
+      ) {
+        // If it's priced in a wallet cur and that cur is one of the accepted
+        // curs, we won't disable purchase even if there's no exchange rate for the
+        // cur because they could still pay for it using that cur making the
+        // pricing and payment curs the same and therefore the exchange rate
+        // unnecessary.
+        tip = ob.polyT('listingDetail.unableToPurchase.noExchangeRateInfo', {
+          cur: ob.price.currencyCode
+        });
+      } else if (
+        ob.metadata.contractType === 'CRYPTOCURRENCY' &&
+        ob.item.cryptoListingCurrencyCode !== ob.metadata.acceptedCurrencies[0] &&
+        (!coinTypeRateAvailable || !cryptoPaymentCoinRateAvailable)
+      ) {
+        const cursNoRate = [];
+        if (!coinTypeRateAvailable) cursNoRate.push(ob.item.cryptoListingCurrencyCode);
+        if (!cryptoPaymentCoinRateAvailable) cursNoRate.push(ob.metadata.acceptedCurrencies[0]);
+        tip = ob.polyT('listingDetail.unableToPurchase.noCryptoExchangeRateInfo', {
+          cur: cursNoRate.join(', '),
+        });
+      } else {
+        buyNowClass = '';
+        unpurchaseable = false;
       }
 
-      // each sku has a code that matches the selected variant index combos
-      return this.model
-        .get('item')
-        .get('skus')
-        .find((v) => _.isEqual(v.get('selections'), selections));
-    },
-    selectedOptionalFeatures() {
-      let features = [];
-      const optionalFeatures = this.model.get('item').get('optionalFeatures').toJSON();
-      for (let i = 0; i < this.optionalFeaturesCheckBox.length; i++) {
-        if (this.optionalFeaturesCheckBox[i]) {
-          features.push(optionalFeatures[i]);
-        }
-      }
-      return features;
-    },
-    allOptionalFeaturesChecked() {
-      return this.optionalFeaturesCheckBox.every((item) => item);
-    },
-    totalPrice() {
-      let _totalPrice = this.model.price?.amount || bigNumber('0');
-
-      const sku = this.selectedSKU;
-      const surcharge = sku ? sku.get('surcharge') : bigNumber('0');
-      try {
-        _totalPrice = _totalPrice.plus(surcharge || bigNumber('0'));
-      } catch (e) {
-        // pass
-      }
-
-      return _totalPrice;
-    },
-    cryptoTradingPairOptions() {
-      if (this.model.isCrypto) {
-        const metadata = this.model.get('metadata');
-
-        // if (this.cryptoInventory) this.cryptoInventory.remove();
-        // this.cryptoInventory = this.createChild(QuantityDisplay, {
-        //   peerID: this.vendor.peerID,
-        //   slug: this.model.get('slug'),
-        //   initialState: {
-        //     coinType: metadata.get('coinType'),
-        //     amount: this._inventory,
-        //   },
-        // });
-        // $('.js-cryptoInventory')
-        //   .html(this.cryptoInventory.render().el);
-
-        return {
-          tradingPairClass: 'cryptoTradingPairXL rowSm',
-          exchangeRateClass: 'clrT2 exchangeRateLine',
-          fromCur: metadata.get('acceptedCurrencies')[0],
-          toCur: this.model.get('item').get('cryptoListingCurrencyCode'),
-        };
-      }
-      return {};
-    },
-    
-    // RWA Token 信息
-    rwaTokenInfo() {
-      if (this.model.get('metadata').get('contractType') === 'RWA_TOKEN') {
-        const cryptoListingCurrencyCode = this.model.get('item').get('cryptoListingCurrencyCode');
-        if (cryptoListingCurrencyCode) {
-          return findRwaTokenByCode(cryptoListingCurrencyCode);
-        }
-      }
-      return null;
+      return { tip, buyNowClass, buyNowTranslationKey, unpurchaseable }
     }
   },
   methods: {
-    loadData(options = {}) {
-      if (!this.model) {
+    loadData (options = {}) {
+      if (!options.model) {
         throw new Error('Please provide a model.');
       }
 
@@ -858,21 +434,31 @@ export default {
 
       this.baseInit(opts);
 
-      this.shipsFreeToMe = this.model.shipsFreeToMe;
+      this._shipsFreeToMe = this.model.shipsFreeToMe;
       this.activePhotoIndex = 0;
 
+      // Set to an empty bigNumber instance so if we can't fill it with a legitmate
+      // value, at least bigNumber ops won't fail.
+      this.totalPrice = bigNumber();
+
+      try {
+        this.totalPrice = this.model.get('item').get('price');
+      } catch (e) {
+        // pass
+      }
+
+      this._purchaseModal = null;
       this._latestHash = this.model.get('hash');
       this._renderedHash = null;
 
       // Sometimes a profile model is available and the vendor info
       // can be obtained from that.
-      const profile = this.profile;
-      if (profile) {
+      if (opts.profile) {
         this.vendor = {
-          peerID: profile.id,
-          name: profile.get('name'),
-          handle: profile.get('handle'),
-          avatarHashes: profile.get('avatarHashes').toJSON(),
+          peerID: opts.profile.id,
+          name: opts.profile.get('name'),
+          handle: opts.profile.get('handle'),
+          avatarHashes: opts.profile.get('avatarHashes').toJSON(),
         };
       }
 
@@ -882,29 +468,26 @@ export default {
       // bridge when we get to it.
       this.vendor = this.vendor || opts.vendor;
 
-      this.variantOptions = [];
-      let skuSelectionIdx = 0;
-      for (let i = 0; i < this.skuOptions.length; i++) {
-        const option = this.skuOptions[i];
-        if (option.variants && option.variants.length > 0) {
-          if (!option.variation) {
-            this.variantOptions.push(option.variants[0].name);
-          } else {
-            this.variantOptions.push(this.skus[0].selections[skuSelectionIdx++].variant);
-          }
-        }
-      }
+      this.countryData = getTranslatedCountries()
+        .map((countryObj) => ({ id: countryObj.dataName, text: countryObj.name }));
 
-      const optionalFeatureCount = this.model.get('item').get('optionalFeatures').length;
-      this.optionalFeaturesCheckBox = new Array(optionalFeatureCount).fill(false);
+      this.defaultCountry = app.settings.get('shippingAddresses').length
+        ? app.settings.get('shippingAddresses').at(0).get('country') : app.settings.get('country');
 
       this.listenTo(app.settings, 'change:country', () => (this.shipsFreeToMe = this.model.shipsFreeToMe));
 
-      this.listenTo(app.settings.get('shippingAddresses'), 'update', (cl, updateOpts) => {
-        if (updateOpts.changes.added.length || updateOpts.changes.removed.length) {
-          this.shipsFreeToMe = this.model.shipsFreeToMe;
-        }
-      });
+      this.listenTo(
+        app.settings.get('shippingAddresses'),
+        'update',
+        (cl, updateOpts) => {
+          if (updateOpts.changes.added.length
+            || updateOpts.changes.removed.length) {
+            this.shipsFreeToMe = this.model.shipsFreeToMe;
+          }
+        },
+      );
+
+      this.listenTo(this.model, 'someChange', () => this.showDataChangedMessage());
 
       if (this.model.isOwnListing) {
         this.listenTo(listingEvents, 'saved', (md, e) => {
@@ -919,10 +502,15 @@ export default {
             const cur = md.toJSON();
             delete cur.item.cryptoQuantity;
 
-            if (!_.isEqual(prev, cur)) {
+            if (!(_.isEqual(prev, cur))) {
               this.showDataChangedMessage();
             }
           }
+        });
+
+        this.listenTo(app.profile.get('avatarHashes'), 'change', () => {
+          this.$storeOwnerAvatar
+            .attr('style', getAvatarBgImage(app.profile.get('avatarHashes').toJSON()));
         });
 
         this.listenTo(app.settings, 'change:localCurrency', () => this.showDataChangedMessage());
@@ -941,20 +529,34 @@ export default {
 
       this.listenTo(outdatedListingHashesEvents, 'newHash', (e) => {
         this._latestHash = e.newHash;
-        if (e.oldHash === this._renderedHash) this.outdateHash = true;
+        if (e.oldHash === this._renderedHash) this.outdateHash();
       });
 
+      this.rating = this.createChild(Rating);
+
       // get the ratings data, if any
-      this.ratingsFetch = myGet(app.getServerUrl(`ob/ratingindex/${this.vendor.peerID}/${this.model.get('slug')}`))
+      this.ratingsFetch = $.get(app.getServerUrl(`ob/ratingindex/${this.vendor.peerID}/${this.model.get('slug')}`))
         .done((data) => this.onRatings(data))
         .fail((jqXhr) => {
           if (jqXhr.statusText === 'abort') return;
-          const failReason = (jqXhr.responseJSON && jqXhr.responseJSON.reason) || '';
-          openSimpleMessage(app.polyglot.t('listingDetail.errors.fetchRatings'), failReason);
+          const failReason = jqXhr.responseJSON && jqXhr.responseJSON.reason || '';
+          openSimpleMessage(
+            app.polyglot.t('listingDetail.errors.fetchRatings'),
+            failReason,
+          );
         });
+
+      this.reviews = this.createChild(Reviews, {
+        async: true,
+        showListingData: true,
+        initialState: {
+          isFetchingRatings: true,
+        },
+      });
 
       if (this.model.isCrypto) {
         // Commenting out for since inventory fetch is currently broken on the server.
+
         // startAjaxEvent('Listing_InventoryFetch');
         // this.inventoryFetch = getInventory(this.vendor.peerID, {
         //   slug: this.model.get('slug'),
@@ -963,11 +565,13 @@ export default {
         // })
         //   .done(e => {
         //     this._inventory = e.inventory;
+
         //     if (this.cryptoInventory) {
         //       this.cryptoInventory.setState({
         //         amount: this._inventory,
         //       });
         //     }
+
         //     endAjaxEvent('Listing_InventoryFetch', {
         //       ownListing: this.model.isOwnListing,
         //     });
@@ -984,195 +588,154 @@ export default {
 
       this.moreListingsCol = new Listings([], { guid: this.vendor.peerID });
 
-      const fetchOpts =
-        this.vendor.peerID === app.profile.id
-          ? {}
-          : {
-              data: $.param({
-                'max-age': 60 * 60, // 1 hour
-              }),
-            };
+      const fetchOpts = this.vendor.peerID === app.profile.id ? {}
+        : {
+          data: $.param({
+            'max-age': 60 * 60, // 1 hour
+          }),
+        };
 
-      this.moreListingsFetch = this.moreListingsCol.fetch(fetchOpts).done(() => {
-        this.moreListingsData = this.randomizeMoreListings(this.moreListingsCol);
-      });
+      this.moreListingsFetch = this.moreListingsCol.fetch(fetchOpts)
+        .done(() => {
+          this.moreListingsData = this.randomizeMoreListings(this.moreListingsCol);
+          setTimeout(() => {
+            if (this.moreListings) {
+              this.moreListings.setState({
+                listings: this.moreListingsData,
+              });
+            }
+          });
+        });
 
-      // 初始化RWA Token信息
-      if (this.model.get('metadata').get('contractType') === 'RWA_TOKEN') {
-        const cryptoListingCurrencyCode = this.model.get('item').get('cryptoListingCurrencyCode');
-        if (cryptoListingCurrencyCode) {
-          this.selectedRwaToken = findRwaTokenByCode(cryptoListingCurrencyCode);
-        }
-      }
-
+      this.rendered = false;
       this._outdatedHashState = null;
+
+      this.purchaseErrorT = null;
+      loadTemplate('modals/listingDetail/purchaseError.html',
+        (t) => (this.purchaseErrorT = t));
     },
 
-    onDocumentClick() {
-      this.showDeleteConfirmedBox = false;
+    events () {
+      return {
+        'click .js-reloadOutdated': 'onClickReloadOutdated',
+      };
     },
 
-    renderPrice(price) {
-      let priceInfo;
-      try {
-        priceInfo = convertAndFormatCurrency(price, this.model.get('metadata').get('pricingCurrency').code, app.settings.get('localCurrency'));
-      } catch (e) {
-        // pass
-        console.error(e);
-      }
-      return priceInfo;
+    onDocumentClick () {
+      this.$deleteConfirmedBox.addClass('hide');
     },
 
-    defaultCountry() {
-      return app.settings.get('shippingAddresses').length ? app.settings.get('shippingAddresses').at(0).get('country') : app.settings.get('country');
-    },
-
-    changeCheckAll(event) {
-      this.$nextTick(() => {
-        this.optionalFeaturesCheckBox = new Array(this.optionalFeaturesCheckBox.length).fill(event.target.checked)
-      });
-    },
-
-    onVariantSelectionChange(optionIndex) {
-      // non variation option, do nothing
-      if (!this.variationOptions.includes(this.skuOptions[optionIndex].name)) {
-        return;
-      }
-
-      let subSelection = [];
-      for (let i = 0; i < this.variantOptions.length; i++) {
-        if (i <= optionIndex) {
-          const skuOption = this.skuOptions[i].name;
-          if (this.variationOptions.includes(skuOption)) {
-            subSelection.push({ option: skuOption, variant: this.variantOptions[i]});
-          }
-        } else {
-          const nextVariants = this.getNextVariantsFromMatchedSkus(subSelection);
-          if (nextVariants.length == 0) {
-            return;
-          } else {
-            this.variantOptions[i] = nextVariants[0];
-          }
-        }
-      }
-    },
-
-    getNextVariantsFromMatchedSkus(subSelection) {
-      if (this.skus.length === 0) {
-        return [];
-      }
-
-      if (this.skus[0].selections?.length <= subSelection?.length) {
-        return [];
-      }
-
-      const matchedSkus = this.model
-        .get('item')
-        .get('skus')
-        .filter((v) => _.isEqual(v.get('selections').slice(0, subSelection.length), subSelection));
-      if (matchedSkus.length === 0) {
-        return [];
-      }
-      return _.uniq(matchedSkus.map((v) => v.get('selections')[subSelection.length].variant), true) ;
-    },
-
-    onRatings(data) {
+    onRatings (data) {
       const pData = data || {};
+      this.rating.averageRating = pData.average;
+      this.rating.ratingCount = pData.count;
+      this.rating.fetched = true;
+      this.rating.render();
+      this.reviews.reviewIDs = pData.ratings || [];
+      this.reviews.setState({ isFetchingRatings: false });
+    },
 
-      this.ratingData = {
-        averageRating: pData.average,
-        ratingCount: pData.count,
-        fetched: true,
+    onClickEditListing () {
+      recordEvent('Listing_EditFromListing');
+      const onCloseEditModal = () => {
+        this.showModal = false;
+
+        if (!this.isRemoved()) {
+          this.showModal = true;
+        }
       };
 
-      this.reviewIDs = pData.ratings || [];
-    },
+      const onEditModalClickReturn = () => {
+        this.editModal.confirmClose()
+          .done(() => {
+            this.stopListening(null, null, onCloseEditModal);
+            this.editModal.remove();
 
-    onClickEditListing() {
-      recordEvent('Listing_EditFromListing');
+            this.showModal = true;
+          });
+      };
 
-      this.showEditListing = true;
+      this.editModal = launchEditListingModal({
+        model: this.model,
+        returnText: app.polyglot.t('listingDetail.editListingReturnText'),
+        onClickViewListing: onEditModalClickReturn,
+      });
+
       this.showModal = false;
+      this.listenTo(this.editModal, 'close', onCloseEditModal);
+      this.listenTo(this.editModal, 'click-return', onEditModalClickReturn);
     },
 
-    onEditModalClickReturn() {
-      this.$refs.editModal.confirmClose().done(() => {
-        this.showEditListing = false;
-
-        this.showModal = true;
+    onClickCloneListing () {
+      recordEvent('Listing_CloneFromListing');
+      launchEditListingModal({
+        model: this.model.cloneListing(),
       });
     },
 
-    onCloseEditModal() {
-      this.showEditListing = false;
-      this.showModal = true;
-    },
-
-    onClickCloneListing() {
-      recordEvent('Listing_CloneFromListing');
-
-      this.showCloneListing = true;
-      this.showModal = false;
-    },
-
-    onCloseCloneModal() {
-      this.showCloneListing = false;
-      this.showModal = true;
-    },
-
-    onClickDeleteListing() {
+    onClickDeleteListing () {
       recordEvent('Listing_DeleteFromListing');
-      this.showDeleteConfirmedBox = true;
+      this.$deleteConfirmedBox.removeClass('hide');
+      // don't bubble to the document click handler
+      return false;
     },
 
-    onClickConfirmedDelete() {
+    onClickDeleteConfirmBox () {
+      // don't bubble to the document click handler
+      return false;
+    },
+
+    onClickConfirmedDelete () {
       recordEvent('Listing_DeleteFromListingConfirm');
       if (this.destroyRequest && this.destroyRequest.state === 'pending') return;
       this.destroyRequest = this.model.destroy({ wait: true });
 
       if (this.destroyRequest) {
-        this.isDeleting = true;
+        this.$deleteListing.addClass('processing');
 
-        this.destroyRequest
-          .done(() => {
-            if (this.destroyRequest.statusText === 'abort' || this.isRemoved()) return;
+        this.destroyRequest.done(() => {
+          if (this.destroyRequest.statusText === 'abort'
+            || this.isRemoved()) return;
 
-            this.close();
-          })
-          .always(() => {
-            this.isDeleting = false;
-          });
+          this.close();
+        }).always(() => {
+          if (!this.isRemoved()) {
+            this.$deleteListing.removeClass('processing');
+          }
+        });
       }
     },
 
-    onClickConfirmCancel() {
+    onClickConfirmCancel () {
       recordEvent('Listing_DeleteFromListingCancel');
-      this.showDeleteConfirmedBox = false;
+      this.$deleteConfirmedBox.addClass('hide');
     },
 
-    onClickGotoPhotos() {
+    onClickGotoPhotos () {
       recordEvent('Listing_GoToPhotos', { ownListing: this.model.isOwnListing });
       this.gotoPhotos();
     },
 
-    onClickGoToStore() {
+    onClickGoToStore () {
       if (this.options.openedFromStore) {
-        recordEvent('Listing_GoToStore', {
-          OpenedFromStore: true,
-          ownListing: this.model.isOwnListing,
-        });
+        recordEvent('Listing_GoToStore',
+          {
+            OpenedFromStore: true,
+            ownListing: this.model.isOwnListing,
+          });
         this.close();
       } else {
-        recordEvent('Listing_GoToStore', {
-          OpenedFromStore: false,
-          ownListing: this.model.isOwnListing,
-        });
+        recordEvent('Listing_GoToStore',
+          {
+            OpenedFromStore: false,
+            ownListing: this.model.isOwnListing,
+          });
         const base = this.vendor.handle ? `@${this.vendor.handle}` : this.vendor.peerID;
         app.router.navigateUser(`${base}/store`, this.vendor.peerID, { trigger: true });
       }
     },
 
-    randomizeMoreListings(cl) {
+    randomizeMoreListings (cl) {
       if (!(cl instanceof Collection)) {
         throw new Error('Please provide a Collection instance.');
       }
@@ -1183,101 +746,260 @@ export default {
         .slice(0, 8);
     },
 
-    gotoPhotos() {
+    gotoPhotos () {
       recordEvent('Listing_GoToPhotos', { ownListing: this.model.isOwnListing });
-
-      this.scrollToSection('.photoSection');
+      this.$photoSection.velocity(
+        'scroll',
+        {
+          duration: 500,
+          easing: 'easeOutSine',
+          container: this.$el,
+        });
     },
 
-    clickRating() {
+    clickRating () {
       recordEvent('Listing_ClickOnRatings', { ownListing: this.model.isOwnListing });
-      this.scrollToSection('.reviews');
+      this.gotoReviews();
     },
 
-    scrollToSection(el) {
-      this.$scrollTo(el, 500, {
-        offset: -10,
-        container: '.listingDetail', //设置滚动容器
-        easing: 'ease-out', //动画效果
-        x: false, //是否在x轴滚动
-        y: true, //是否在y轴滚动
-      });
+    gotoReviews () {
+      this.$reviews.velocity(
+        'scroll',
+        {
+          duration: 500,
+          easing: 'easeOutSine',
+          container: this.$el,
+        });
     },
 
-    onClickPhotoSelect(photoIndex) {
+    onClickPhotoSelect (e) {
       recordEvent('Listing_ClickOnPhoto', { ownListing: this.model.isOwnListing });
-      this.setSelectedPhoto(photoIndex);
+      this.setSelectedPhoto($(e.target).index('.js-photoSelect'));
     },
 
-    setSelectedPhoto(photoIndex) {
+    setSelectedPhoto (photoIndex) {
       if (is.not.number(photoIndex)) {
         throw new Error('Please provide an index for the selected photo.');
       }
       if (photoIndex < 0) {
         throw new Error('Please provide a valid index for the selected photo.');
       }
+      const photoCol = this.model.toJSON().item.images;
+      const photoHash = photoCol[photoIndex].original;
+      const phSrc = app.getServerUrl(`ob/image/${photoHash}`);
 
       this.activePhotoIndex = photoIndex;
+      this.$photoSelected.trigger('zoom.destroy'); // old zoom must be removed
+      this.$photoSelectedInner.attr('src', phSrc);
     },
 
-    onClickPhotoPrev() {
+    activateZoom () {
+      if (this.$photoSelectedInner.width() >= this.$photoSelected.width()
+        || this.$photoSelectedInner.height() >= this.$photoSelected.height()) {
+        this.$photoSelected
+          .removeClass('unzoomable')
+          .zoom({
+            url: this.$photoSelectedInner.attr('src'),
+            on: 'click',
+            onZoomIn: () => {
+              this.$photoSelected.addClass('open');
+            },
+            onZoomOut: () => {
+              this.$photoSelected.removeClass('open');
+            },
+          });
+      } else {
+        this.$photoSelected.addClass('unzoomable');
+      }
+    },
+
+    setActivePhotoThumbnail (thumbIndex) {
+      if (is.not.number(thumbIndex)) {
+        throw new Error('Please provide an index for the selected photo thumbnail.');
+      }
+      if (thumbIndex < 0) {
+        throw new Error('Please provide a valid index for the selected photo thumbnail.');
+      }
+      this.$photoRadioBtns.prop('checked', false).eq(thumbIndex).prop('checked', true);
+    },
+
+    onClickPhotoPrev () {
       recordEvent('Listing_ClickOnPhotoPrev', { ownListing: this.model.isOwnListing });
       let targetIndex = this.activePhotoIndex - 1;
+      const imagesLength = parseInt(this.model.toJSON().item.images.length, 10);
 
-      targetIndex = targetIndex < 0 ? this.imageGallary.length - 1 : targetIndex;
+      targetIndex = targetIndex < 0 ? imagesLength - 1 : targetIndex;
       this.setSelectedPhoto(targetIndex);
+      this.setActivePhotoThumbnail(targetIndex);
     },
 
-    onClickPhotoNext() {
+    onClickPhotoNext () {
       recordEvent('Listing_ClickOnPhotoNext', { ownListing: this.model.isOwnListing });
       let targetIndex = this.activePhotoIndex + 1;
+      const imagesLength = parseInt(this.model.toJSON().item.images.length, 10);
 
-      targetIndex = targetIndex >= this.imageGallary.length ? 0 : targetIndex;
+      targetIndex = targetIndex >= imagesLength ? 0 : targetIndex;
       this.setSelectedPhoto(targetIndex);
+      this.setActivePhotoThumbnail(targetIndex);
     },
 
-    onClickFreeShippingLabel() {
+    onClickFreeShippingLabel () {
       recordEvent('Listing_ClickFreeShippingLabel', { ownListing: this.model.isOwnListing });
       this.gotoShippingOptions();
     },
 
-    gotoShippingOptions() {
-      $(this.$refs.shippingSection).velocity('scroll', {
-        duration: 500,
-        easing: 'easeOutSine',
-        container: this.$el,
-      });
+    gotoShippingOptions () {
+      this.$shippingSection.velocity(
+        'scroll',
+        {
+          duration: 500,
+          easing: 'easeOutSine',
+          container: this.$el,
+        });
     },
 
-    showDataChangedMessage() {
+    onChangeVariantSelect () {
+      this.adjustPriceBySku();
+    },
+
+    adjustPriceBySku () {
+      const variantCombo = [];
+      // assemble a combo of the indexes of the selected variants
+      this.variantSelects.each((i, select) => {
+        variantCombo.push($(select).prop('selectedIndex'));
+      });
+
+      const { options } = this.model.toJSON().item;
+      const selections = variantCombo.map((val, idx) => ({
+        option: options[idx].name,
+        variant: options[idx].variants[val].name,
+      }));
+
+      // each sku has a code that matches the selected variant index combos
+      const sku = this.model
+        .get('item')
+        .get('skus')
+        .find((v) => _.isEqual(v.get('selections'), selections));
+      const surcharge = sku ? sku.get('surcharge') : bigNumber('0');
+
+      try {
+        const _totalPrice = this.model.price.amount.plus(surcharge || bigNumber('0'));
+
+        if (!_totalPrice.eq(this.totalPrice)) {
+          this.totalPrice = _totalPrice;
+          let adjPrice = '';
+
+          try {
+            adjPrice = convertAndFormatCurrency(
+              this.totalPrice,
+              this.model
+                .get('metadata')
+                .get('pricingCurrency')
+                .code,
+              app.settings.get('localCurrency')
+            );
+          } catch (e) {
+            // pass
+            console.error(e);
+          }
+
+          this.getCachedEl('.js-price').html(adjPrice);
+        }
+      } catch (e) {
+        // pass
+      }
+    },
+
+    showDataChangedMessage () {
       if (this.dataChangePopIn && !this.dataChangePopIn.isRemoved()) {
         this.dataChangePopIn.$el.velocity('callout.shake', { duration: 500 });
       } else {
         this.dataChangePopIn = this.createChild(PopInMessage, {
-          messageText: buildRefreshAlertMessage(app.polyglot.t('listingDetail.listingDataChangedPopin')),
+          messageText:
+            buildRefreshAlertMessage(app.polyglot.t('listingDetail.listingDataChangedPopin')),
         });
 
-        this.listenTo(this.dataChangePopIn, 'clickRefresh', () => this.$emit('refresh'));
+        this.listenTo(this.dataChangePopIn, 'clickRefresh', () => (this.render()));
 
         this.listenTo(this.dataChangePopIn, 'clickDismiss', () => {
           this.dataChangePopIn.remove();
           this.dataChangePopIn = null;
         });
 
-        $(this.$refs.popInMessages).append(this.dataChangePopIn.render().el);
+        this.$popInMessages.append(this.dataChangePopIn.render().el);
       }
     },
 
-    onClickReloadOutdated(e) {
-      if (e.target.id !== 'reloadOutdated') return;
-
-      this.$emit('refresh');
+    outdateHash () {
+      const tip = app.polyglot.t('listingDetail.errors.outdatedHash', {
+        reloadLink: '<a class="js-reloadOutdated">'
+          + `${app.polyglot.t('listingDetail.errors.reloadOutdatedHash')}<a>`,
+      });
+      this.getCachedEl('.js-purchaseErrorWrap').html(
+        this.purchaseErrorT({ tip }),
+      );
+      this.getCachedEl('.js-purchaseBtn').addClass('disabled');
     },
 
-    startPurchase() {
+    onClickReloadOutdated () {
+      let defaultPrevented = false;
+
+      this.trigger('clickReloadOutdated', {
+        preventDefault: () => (defaultPrevented = true),
+      });
+
+      setTimeout(() => {
+        if (!defaultPrevented) {
+          Backbone.history.loadUrl();
+        }
+      });
+    },
+
+    onSetShippingDestination (e) {
+      this.renderShippingDestinations($(e.target).val());
+    },
+
+    renderShippingDestinations (destination) {
+      if (!destination) {
+        throw new Error('Please provide a destination.');
+      }
+      const shippingOptions = this.model.get('shippingOptions').toJSON();
+      const templateData = shippingOptions.filter((option) => {
+        if (destination === 'ALL') return option.regions;
+        return option.regions.includes(destination);
+      });
+      loadTemplate('modals/listingDetail/shippingOptions.html', (t) => {
+        this.$shippingOptions.html(t({
+          templateData,
+          displayCurrency: app.settings.get('localCurrency'),
+          pricingCurrency: this.model.price.currencyCode,
+        }));
+      });
+    },
+  /**
+   * Returns a promise that will fire progress notifications when a purchase modal
+   * is created. Will also fire a notifications when one is destroyed.
+   */
+  get purchaseModal () {
+      this._purchaseModalDeferred = this._purchaseModalDeferred || $.Deferred();
+
+      if (this._purchaseModal) {
+        this._purchaseModalDeferred.notify({
+          type: this.PURCHASE_MODAL_CREATE,
+          view: this._purchaseModal,
+        });
+      }
+
+      return this._purchaseModalDeferred.promise();
+    },
+
+    startPurchase () {
       if (!this.model.isCrypto) {
         if (this.totalPrice.lte(0)) {
-          openSimpleMessage(app.polyglot.t('listingDetail.errors.noPurchaseTitle'), app.polyglot.t('listingDetail.errors.zeroPriceMsg'));
+          openSimpleMessage(
+            app.polyglot.t('listingDetail.errors.noPurchaseTitle'),
+            app.polyglot.t('listingDetail.errors.zeroPriceMsg'),
+          );
           return;
         }
         // Commenting out inventory related stuff for now since it's broken on the server.
@@ -1292,282 +1014,260 @@ export default {
         //   }
       }
 
-      this.showPurchase = true;
+      const selectedVariants = this.getSelectedVariants();
 
+      if (this._purchaseModal) this._purchaseModal.remove();
+
+      this._purchaseModal = new Purchase({
+        listing: this.model,
+        variants: selectedVariants,
+        vendor: this.vendor,
+        removeOnClose: true,
+        showCloseButton: false,
+        phase: 'pay',
+        // inventory: this._inventory,
+      })
+        .render()
+        .open();
+
+      if (this._purchaseModalDeferred) {
+        this._purchaseModalDeferred.notify({
+          type: this.PURCHASE_MODAL_CREATE,
+          view: this._purchaseModal,
+        });
+      }
+
+      this._purchaseModal.on('modal-will-remove', () => {
+        this._purchaseModal = null;
+        if (this._purchaseModalDeferred) {
+          this._purchaseModalDeferred.notify({
+            type: this.PURCHASE_MODAL_DESTROY,
+          });
+        }
+      });
+
+      this.listenTo(this._purchaseModal, 'closeBtnPressed', () => this.close());
       recordEvent('Purchase_Start', { ownListing: this.model.isOwnListing });
     },
 
-    onPurchaseReloadOutdated() {
-      this.showPurchase = false;
-      this.showModal = true;
-    },
-    onPurchaseClose() {
-      this.showPurchase = false;
-      this.close();
+    getSelectedVariants () {
+      const selectedVariants = [];
+      this.variantSelects.each((i, select) => {
+        const variant = {};
+        variant.name = $(select).attr('name');
+        variant.value = $(select).val();
+        selectedVariants.push(variant);
+      });
+
+      return selectedVariants;
     },
 
-    addToCart() {
+    addToCart () {
+      const selectedVariants = this.getSelectedVariants();
+
       api.addToShoppingCart(this.vendor.peerID, {
         slug: this.model.get('slug'),
         quantity: '1',
-        options: this.selectedVariants || [],
-        optionalFeatures: this.selectedOptionalFeatures?.map(item => item.name) || [],
-      });
+        options: selectedVariants || [],
+      })
     },
 
-    onNsfwWarningClose() {
-      this._showNsfwWarning = false;
+    get shipsFreeToMe () {
+      return this._shipsFreeToMe;
     },
 
-    render() {
+    set shipsFreeToMe (shipsFree) {
+      const prevVal = this._shipsFreeToMe;
+      this._shipsFreeToMe = !!shipsFree;
+
+      if (prevVal !== this._shipsFreeToMe) {
+        this.$shipsFreeBanner[this._shipsFreeToMe ? 'removeClass' : 'addClass']('hide');
+      }
+    },
+
+    get $deleteListing () {
+      return this._$deleteListing || $('.js-deleteListing');
+    },
+
+    get $shipsFreeBanner () {
+      return this._$shipsFreeBanner || $('.js-shipsFreeBanner');
+    },
+
+    get $popInMessages () {
+      return this._$popInMessages
+        || (this._$popInMessages = $('.js-popInMessages'));
+    },
+
+    get $photoSection () {
+      return this._$photoSection
+        || (this._$photoSection = $('.js-photoSection'));
+    },
+
+    get $photoSelected () {
+      return this._$photoSelected
+        || (this._$photoSelected = $('.js-photoSelected'));
+    },
+
+    get $shippingSection () {
+      return this._$shippingSection
+        || (this._$shippingSection = $('#shippingSection'));
+    },
+
+    get $shippingOptions () {
+      return this._$shippingOptions
+        || (this._$shippingOptions = $('.js-shippingOptions'));
+    },
+
+    get $photoRadioBtns () {
+      return this._$photoRadioBtns
+        || (this._$photoRadioBtns = $('.js-photoSelect'));
+    },
+
+    get $storeOwnerAvatar () {
+      return this._$storeOwnerAvatar
+        || (this._$storeOwnerAvatar = $('.js-storeOwnerAvatar'));
+    },
+
+    get $deleteConfirmedBox () {
+      return this._$deleteConfirmedBox
+        || (this._$deleteConfirmedBox = $('.js-deleteConfirmedBox'));
+    },
+
+    remove () {
+      if (this.editModal) this.editModal.remove();
+      if (this._purchaseModal) this._purchaseModal.remove();
+      if (this.destroyRequest) this.destroyRequest.abort();
+      if (this.ratingsFetch) this.ratingsFetch.abort();
+      // if (this.inventoryFetch) this.inventoryFetch.abort();
+      if (this.moreListingsFetch) this.moreListingsFetch.abort();
+      $(document).off('click', this.boundDocClick);
+      super.remove();
+    },
+
+    render () {
       if (this.dataChangePopIn) this.dataChangePopIn.remove();
 
-      if (this._latestHash !== this.model.get('hash')) {
-        this.outdateHash = true;
+      let nsfwWarning;
+
+      if (!this.rendered
+        && this.options.checkNsfw
+        && this.model.get('item').get('nsfw')
+        && !this.model.isOwnListing && !app.settings.get('showNsfw')) {
+        nsfwWarning = new NsfwWarning()
+          .render()
+          .open();
+        this.listenTo(nsfwWarning, 'canceled', () => this.close());
       }
 
-      this.setSelectedPhoto(this.activePhotoIndex);
+      if (nsfwWarning) this.showModal = false;
 
+      $('.js-rating').append(this.rating.render().$el);
+      this.$reviews = $('.js-reviews');
+      this.$reviews.append(this.reviews.render().$el);
+
+      if (this._latestHash !== this.model.get('hash')) {
+        this.outdateHash();
+      }
+
+      if (this.supportedCurrenciesList) this.supportedCurrenciesList.remove();
+      this.supportedCurrenciesList = this.createChild(SupportedCurrenciesList, {
+        initialState: {
+          currencies: this.model.get('metadata')
+            .get('acceptedCurrencies'),
+        },
+      });
+      this.getCachedEl('.js-supportedCurrenciesList')
+        .append(this.supportedCurrenciesList.render().el);
+
+      if (!this.model.isOwnListing) {
+        if (this.socialBtns) this.socialBtns.remove();
+        this.socialBtns = this.createChild(SocialBtns, {
+          targetID: this.vendor.peerID,
+        });
+        $('.js-socialBtns').append(this.socialBtns.render().$el);
+      }
+
+      if (this.moreListings) this.moreListings.remove();
+      this.moreListings = this.createChild(MoreListings, {
+        initialState: {
+          vendor: this.vendor,
+          listings: this.moreListingsData,
+        },
+      });
+      this.listenTo(this.moreListings, 'listingDetailOpened', () => this.remove());
+      this.getCachedEl('.js-moreListings')
+        .append(this.moreListings.render().$el);
+
+      this.$photoSelectedInner = $('.js-photoSelectedInner');
+      this._$deleteListing = null;
+      this._$shipsFreeBanner = null;
+      this._$popInMessages = null;
+      this._$photoSection = null;
+      this._$photoSelected = null;
+      this._$shippingOptions = null;
+      this._$photoRadioBtns = null;
+      this._$shippingSection = null;
+      this._$storeOwnerAvatar = null;
+      this._$deleteConfirmedBox = null;
+
+      this.$photoSelectedInner.on('load', () => this.activateZoom());
+
+      this.variantSelects = $('.js-variantSelect');
+
+      this.variantSelects.select2({
+        // disables the search box
+        minimumResultsForSearch: Infinity,
+      });
+
+      $('#shippingDestinations').select2();
+      this.renderShippingDestinations(this.defaultCountry);
+      this.setSelectedPhoto(this.activePhotoIndex);
+      this.setActivePhotoThumbnail(this.activePhotoIndex);
+
+      if (this.model.isCrypto) {
+        const metadata = this.model.get('metadata');
+
+        // if (this.cryptoInventory) this.cryptoInventory.remove();
+        // this.cryptoInventory = this.createChild(QuantityDisplay, {
+        //   peerID: this.vendor.peerID,
+        //   slug: this.model.get('slug'),
+        //   initialState: {
+        //     coinType: metadata.get('coinType'),
+        //     amount: this._inventory,
+        //   },
+        // });
+        // this.getCachedEl('.js-cryptoInventory')
+        //   .html(this.cryptoInventory.render().el);
+
+        if (this.cryptoTitle) this.cryptoTitle.remove();
+        this.cryptoTitle = this.createChild(CryptoTradingPair, {
+          initialState: {
+            tradingPairClass: 'cryptoTradingPairXL rowSm',
+            exchangeRateClass: 'clrT2 exchangeRateLine',
+            fromCur: metadata.get('acceptedCurrencies')[0],
+            toCur: this.model.get('item').get('cryptoListingCurrencyCode'),
+          },
+        });
+        this.getCachedEl('.js-cryptoTitle')
+          .html(this.cryptoTitle.render().el);
+      } else {
+        this.adjustPriceBySku();
+      }
+
+      if (nsfwWarning) {
+        setTimeout(() => {
+          nsfwWarning.bringToTop();
+          this.showModal = true;
+        });
+      }
+
+      this.rendered = true;
       this._renderedHash = this.model.get('hash');
 
       return this;
-    },
+    }
 
-    // RWA Token 相关方法
-    getTokenTypeName(tokenType) {
-      const tokenTypeNames = {
-        'REAL_ESTATE': '房地产代币',
-        'BOND': '债券代币',
-        'COMMODITY': '商品代币',
-        'ART': '艺术品代币',
-        'CARBON_CREDIT': '碳信用代币',
-        'CUSTOM': '自定义代币'
-      };
-      return tokenTypeNames[tokenType] || tokenType;
-    },
-
-    formatAddress(address) {
-      if (!address) return '';
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    },
-
-    getInvestmentSuggestions(tokenData) {
-      if (!tokenData) return [];
-      
-      const suggestions = [];
-      
-      if (tokenData.metadata && tokenData.metadata.riskLevel === '低') {
-        suggestions.push('低风险代币，适合保守型投资者');
-      } else if (tokenData.metadata && tokenData.metadata.riskLevel === '中等') {
-        suggestions.push('中等风险代币，适合平衡型投资者');
-      } else if (tokenData.metadata && tokenData.metadata.riskLevel === '高') {
-        suggestions.push('高风险代币，适合激进型投资者');
-      }
-
-      if (tokenData.tokenType === 'REAL_ESTATE') {
-        suggestions.push('房地产代币通常具有稳定的现金流');
-      } else if (tokenData.tokenType === 'CARBON_CREDIT') {
-        suggestions.push('碳信用代币支持环保项目');
-      }
-
-      return suggestions;
-    },
-
-    formatTokenAmount(amount, decimals = 18) {
-      if (!amount) return '0';
-      
-      try {
-        const bigNum = new bigNumber(amount);
-        const divisor = new bigNumber(10).pow(decimals);
-        const result = bigNum.dividedBy(divisor);
-        return result.toFormat(0);
-      } catch (e) {
-        return amount;
-      }
-    },
-
-    getTokenTypeIcon(tokenCode) {
-      return getRwaTokenIconPath(tokenCode);
-    },
-  },
-};
+  }
+}
 </script>
-<style lang="scss" scoped>
-.flex {
-  &-1 {
-    flex: 1;
-  }
-  button {
-    font-size: 16px;
-    padding: 0 12px;
-  }
-  button + button {
-    margin-left: 10px;
-  }
-}
-.warning-btn,
-.success-btn {
-  height: 52px;
-  border-radius: 26px;
-  background-color: #eb9b3a;
-  border-width: 1px;
-  border-style: solid;
-  border-color: #e8b16e;
-  font-size: 18px;
-  color: #fff;
-  box-sizing: border-box;
-  &:hover {
-    opacity: 0.8;
-  }
-}
-.success-btn {
-  background-color: #01bf65;
-  border-color: #66e9ac;
-}
-
-.carousel {
-  width: 530px;
-  height: 530px;
-}
-
-.introVideoItem {
-  width: 330px;
-  height: 300px;
-}
-
-// RWA Token 信息样式
-.rwaTokenInfoSection {
-  .rwaTokenInfoGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-
-    .infoItem {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #e9ecef;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .label {
-        color: #666;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .value {
-        color: #333;
-        font-size: 14px;
-        font-weight: 600;
-
-        .tokenTypeIcon {
-          width: 16px;
-          height: 16px;
-          border-radius: 3px;
-          margin-right: 6px;
-          vertical-align: middle;
-        }
-
-        &.verified {
-          color: #28a745;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-
-          i {
-            font-size: 12px;
-          }
-        }
-
-        &.address {
-          font-family: monospace;
-          font-size: 12px;
-          color: #007bff;
-        }
-      }
-    }
-  }
-
-  .priceHistory {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
-
-    h5 {
-      color: #007bff;
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .priceHistoryChart {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-
-      .pricePoint {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 8px 12px;
-        background: #f8f9fa;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
-        min-width: 80px;
-
-        .date {
-          font-size: 11px;
-          color: #666;
-          margin-bottom: 4px;
-        }
-
-        .price {
-          font-size: 13px;
-          font-weight: 600;
-          color: #28a745;
-        }
-      }
-    }
-  }
-
-  .investmentAdvice {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
-
-    h5 {
-      color: #007bff;
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
-      li {
-        padding: 6px 0;
-        color: #666;
-        font-size: 13px;
-        position: relative;
-        padding-left: 20px;
-
-        &:before {
-          content: "💡";
-          position: absolute;
-          left: 0;
-          top: 6px;
-          font-size: 12px;
-        }
-      }
-    }
-  }
-}
-</style>
+<style lang="scss" scoped></style>
