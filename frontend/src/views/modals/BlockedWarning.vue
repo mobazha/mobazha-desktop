@@ -51,6 +51,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
   },
@@ -69,11 +70,16 @@ export default {
 
     onCancelClick () {
       this.$emit('canceled');
+      this.close();
     },
 
     onUnblockClick () {
       unblock(this.options.peerID);
-      this.$emit('unblock');
+      this.close();
+    },
+
+    close() {
+      this.$emit('close');
     },
   }
 }

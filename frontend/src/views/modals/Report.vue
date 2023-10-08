@@ -62,8 +62,8 @@
 <script>
 import $ from 'jquery';
 import app from '../../../backbone/app';
-import { myAjax } from '../../api/api';
 import { openSimpleMessage } from './SimpleMessage';
+
 
 export default {
   props: {
@@ -126,7 +126,7 @@ export default {
     },
 
     onOtherClick () {
-      $('.js-otherInput').focus();
+      this.getCachedEl('.js-otherInput').focus();
     },
 
     onClickSubmit () {
@@ -138,7 +138,7 @@ export default {
       this.setState({
         reporting: true,
       });
-      myAjax({
+      $.ajax({
         url: this.url,
         data: JSON.stringify(data),
         type: 'POST',

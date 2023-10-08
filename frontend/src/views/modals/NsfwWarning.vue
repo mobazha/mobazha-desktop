@@ -40,7 +40,6 @@
 <script>
 import $ from 'jquery';
 import app from '../../../backbone/app';
-import { myAjax } from '../../api/api';
 
 export default {
   props: {
@@ -57,6 +56,7 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
   },
@@ -79,7 +79,7 @@ export default {
       if ($('.js-checkboxNsfw').is(':checked')) {
         this.stopListening(app.settings, null, this.onChangeNsfw);
         app.settings.set('showNsfw', true);
-        myAjax({
+        $.ajax({
           type: 'PUT',
           url: app.getServerUrl('ob/preferences'),
           data: JSON.stringify({ showNsfw: true }),

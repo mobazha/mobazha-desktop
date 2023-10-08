@@ -10,7 +10,7 @@
             <h1>{{ ob.title }}</h1>
           </div>
           <div class="msgWrap">
-            <div v-if="ob.messageHtml" v-html="ob.messageHtml" />
+            <template v-if="ob.messageHtml" v-html="ob.messageHtml"></template>
             <template v-else>
               <p v-html="ob.message"></p>
             </template>
@@ -54,6 +54,8 @@ export default {
   methods: {
     loadData (options = {}) {
       const opts = {
+        removeOnClose: true,
+        removeOnRoute: true,
         title: '',
         message: '',
         ...options,
@@ -70,6 +72,7 @@ export default {
       if (title !== this.title || message !== this.message) {
         this.title = title;
         this.message = message;
+        this.render();
       }
     },
   }

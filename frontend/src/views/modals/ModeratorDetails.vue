@@ -1,6 +1,6 @@
 <template>
   <div class="modal moderatorDetails modalTop modalScrollPage modalNarrow">
-    <BaseModal @close="$emit('close')">
+    <BaseModal>
       <template v-slot:component>
 
         <div class="topControls flex js-closeClickTarget"></div>
@@ -22,11 +22,9 @@
                 </div>
               </div>
               <!-- // Don't include the social buttons if this is the viewer's own moderator details -->
-              <div class="js-socialBtns">
-                <SocialBtns
-                  v-if="!ob.isOwnProfile"
-                  :options="{
-                  targetID: model.id,
+              <div class="js-socialBtns" v-if="_model.peerID !== app.profile.id">
+                <SocialBtns :options="{
+                  targetID: _model.id,
                   initialState: {
                     stripClasses: 'flexHCent gutterH',
                     btnClasses: 'clrP clrBr clrSh2',
@@ -45,7 +43,7 @@
               <div class="rowDivV clrBrBk TODO"></div>
               <div class="mDetail TODO">
                 <div class="flexCol flexCent">
-                  <div v-html="ob.parseEmojis('👍')" /> XX <!-- // placeholder for reputation -->
+                  <template v-html="b.parseEmojis('👍')"></template> XX <!-- // placeholder for reputation -->
                   <div class="txCtr tx5b clrT2">{{ ob.polyT('moderatorDetails.recommendations') }}</div>
                 </div>
               </div>
@@ -53,17 +51,15 @@
               <div class="mDetail">
                 <div class="flexCol flexCent">
                   <div class="txCtr">{{ ob.polyT(`moderatorCard.${ob.moderatorInfo.fee.feeType}`, {
-                    amount: ob.moderatorInfo.fee === 'FIXED' ? ob.currencyMod.convertAndFormatCurrency(ob.moderatorInfo.fee.fixedFee.amount, ob.moderatorInfo.fee.fixedFee.currency.code, ob.displayCurrency) : 0,
+                    amount: ob.currencyMod.convertAndFormatCurrency(ob.moderatorInfo.fee.fixedFee.amount, ob.moderatorInfo.fee.fixedFee.currency.code, ob.displayCurrency),
                     percentage: ob.moderatorInfo.fee.percentage
                   }) }}</div>
                   <div class="txCtr tx5b clrT2">{{ ob.polyT('moderatorDetails.serviceCharge') }}</div>
                 </div>
               </div>
               <div class="rowDivV clrBrBk"></div>
-              <div :class="`box mDetail verifiedWrapper ${verifiedModModel ? 'clrBrAlert2 clrBAlert2Grad' : 'clrBrInvis'} js-verifiedMod`">
-                <VerifiedMod
-                  :key="verfiedModsKey"
-                  :options="getModeratorOptions({
+              <div :class="`box mDetail verifiedWrapper ${ob.verifiedMod ? 'clrBrAlert2 clrBAlert2Grad' : 'clrBrInvis'} js-verifiedMod`">
+                <VerifiedMod :options="getModeratorOptions({
                     model: verifiedModModel,
                     shortText: false,
                   })"
@@ -73,13 +69,7 @@
             <div class="contentBox mDetailWrapper padMd2 clrP clrBr clrSh3 tx5">
               <div class="rowMd">
                 <h4>{{ ob.polyT('moderatorDetails.currenciesSupported') }}</h4>
-                <div ref="supportedCurrenciesList" class="js-supportedCurrenciesList">
-                  <SupportedCurrenciesList :options="{
-                    initialState: {
-                      currencies: model.get('moderatorInfo').get('acceptedCurrencies'),
-                    },
-                  }"/>
-                </div>
+                <div class="js-supportedCurrenciesList"></div>
               </div>
               <div class="rowLg">
                 <h4>{{ ob.polyT('moderatorDetails.languages') }}</h4>
@@ -126,11 +116,15 @@
 </template>
 
 <script>
+import loadTemplate from '../../../backbone/utils/loadTemplate';
 import app from '../../../backbone/app';
 import Profile from '../../../backbone/models/profile/Profile';
+import SocialBtns from '../components/SocialBtns';
 import { getLangByCode } from '../../../backbone/data/languages';
+import VerifiedMod from '../components/VerifiedMod';
+import SupportedCurrenciesList from '../components/SupportedCurrenciesList';
 
-import { getModeratorOptions } from '@/utils/verifiedMod';
+import { getModeratorOptions } from '@/utils/verifiedMod'
 
 
 export default {
@@ -146,7 +140,7 @@ export default {
       purchase: false,
       cardState: {},
 
-      verfiedModsKey: 0,
+      _verfiedModsMonitor: 0,
     };
   },
   created () {
@@ -155,11 +149,11 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
-      const modLanguages = this.model.get('moderatorInfo')
-        .get('languages')
+      const modLanguages = this._model.moderatorInfo.languages
         .map((lang) => {
           const langData = getLangByCode(lang);
           return (langData && langData.name) || lang;
@@ -167,24 +161,23 @@ export default {
       
       return {
         ...this.templateHelpers,
+        followedByYou: this.followedByYou,
         displayCurrency: app.settings.get('localCurrency'),
         ownMod: app.settings.get('storeModerators').indexOf(this.model.id) !== -1,
         purchase: this.purchase,
         cardState: this.cardState,
         modLanguages,
-        isOwnProfile: this.model.get('peerID') !== app.profile.id,
-        ...this.model.toJSON(),
+        verifiedMod: this.verifiedModModel,
+        ...this._model,
       };
     },
 
     verifiedModModel() {
-      let access = this.verfiedModsKey;
-      return app.verifiedMods.get(this.model.get('peerID'));
+      let verfiedModsMonitor = this._verfiedModsMonitor; // for refresh
+      return app.verifiedMods.get(this._model.peerID);
     }
   },
   methods: {
-    getModeratorOptions,
-
     loadData (options = {}) {
       this.baseInit(options);
 
@@ -193,7 +186,7 @@ export default {
       }
 
       this.listenTo(app.verifiedMods, 'update', () => {
-        this.verfiedModsKey += 1;
+        this._verfiedModsMonitor += 1;
       });
     },
 
@@ -205,6 +198,21 @@ export default {
     close() {
       this.$emit('close');
     },
+
+    render () {
+      if (this.supportedCurrenciesList) this.supportedCurrenciesList.remove();
+      this.supportedCurrenciesList = this.createChild(SupportedCurrenciesList, {
+        initialState: {
+          currencies: this.model.get('moderatorInfo')
+            .get('acceptedCurrencies'),
+        },
+      });
+      this.getCachedEl('.js-supportedCurrenciesList')
+        .append(this.supportedCurrenciesList.render().el);
+
+      return this;
+    }
+
   }
 }
 </script>
