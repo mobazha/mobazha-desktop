@@ -5,65 +5,48 @@
         <div class="flexRow">
           <div class="flexExpand">
             <label for="editListingTitle">{{ ob.polyT('editListing.title') }}</label>
-            <div class="js-cryptoTradingPairContainer">
-              <CryptoTradingPairWrap :options="{
-                className: `cryptoTradingPairWrap row ${hideTradingPair ? 'invisible' : ''}`,
-                tradingPairClass: 'cryptoTradingPairLg rowSm',
-                exchangeRateClass: 'clrT2 tx6',
-                fromCur: curAccepted,
-                toCur: curToSell,
-              }" />
-            </div>
+            <div class="js-cryptoTradingPairContainer"></div>
           </div>
-          <ViewListingLinks :createMode="ob.createMode" @viewListing="onClickViewListing" @viewListingOnWeb="onClickViewListingOnWeb" />
+          {{ ob.viewListingsT({ createMode: ob.createMode }) }}
         </div>
       </div>
     </div>
     <div class="flexRow gutterH">
       <div class="col6 simpleFlexCol">
         <label for="editListingCryptoContractType" class="required">{{ ob.polyT('editListing.type') }}</label>
-        <template v-if="formData.metadata.contractType === 'CRYPTOCURRENCY' && ob.errors['metadata.contractType']">
+        <template v-if="ob.metadata.contractType === 'CRYPTOCURRENCY' && ob.errors['metadata.contractType']">
           <FormError :errors="ob.errors['metadata.contractType']" />
         </template>
-        <Select2 id="editListingCryptoContractType" v-model="localContractType" class="clrBr clrP clrSh2 marginTopAuto" :options="{ minimumResultsForSearch: Infinity }" @change="onContractTypeChange">
+        <select id="editListingCryptoContractType" name="metadata.contractType" class="clrBr clrP clrSh2 marginTopAuto">
           <template v-for="(contractType, j) in ob.contractTypes" :key="j">
-            <option :value="contractType.code" :selected="contractType.code === localContractType">{{ contractType.name }}</option>
+            <option :value="contractType.code" :selected="contractType.code === ob.metadata.contractType">{{
+              contractType.name }}</option>
           </template>
-        </Select2>
+        </select>
         <div class="clrT2 txSm helper">
-          <div v-html="ob.polyT('editListing.cryptoCurrencyType.helperType', { count: `<b> ${ob.polyT('editListing.cryptoCurrencyType.helperTypeCount')}</b>`, })"></div>
+          <template v-html="ob.polyT('editListing.cryptoCurrencyType.helperType', { count: `<b>
+            ${ob.polyT('editListing.cryptoCurrencyType.helperTypeCount')}</b>`,
+            })"></template>
         </div>
       </div>
     </div>
     <div class="flexRow gutterH">
       <div class="col6 simpleFlexCol">
-        <label for="editListingCoinType" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.coinType') }}</label>
-        <FormError v-if="ob.errors['item.cryptoListingCurrencyCode']" :errors="ob.errors['item.cryptoListingCurrencyCode']" />
-        <div class="js-cryptoCurrencyTradeContainer marginTopAuto">
-          <div class="cryptoCurrencyTradeField">
-            <div class="posR">
-              <template v-if="isFetching">
-                <SpinnerSVG className="center spinnerMd" />
-              </template>
-              <div v-if="!isFetching">
-                <Select2 id="editListingCoinType" v-model="curToSell" :options="getTradeSelect2Opts()" class="clrBr clrP clrSh2" style="width: 100%">
-                  <template v-for="(coin, j) in coinTypes" :key="j">
-                    <option :value="coin.code" :selected="coin.code === curToSell">{{ coin.name }}</option>
-                  </template>
-                </Select2>
-                <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperCoinType') }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <label for="editListingCoinType" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.coinType')
+        }}</label>
+        <FormError v-if="ob.errors['item.cryptoListingCurrencyCode']"
+          :errors="ob.errors['item.cryptoListingCurrencyCode']" />
+        <div class="js-cryptoCurrencyTradeContainer marginTopAuto"></div>
       </div>
       <div class="col6 simpleFlexCol">
-        <label for="editListingCryptoQuantity" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.quantity') }}</label>
+        <label for="editListingCryptoQuantity" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.quantity')
+        }}</label>
         <FormError v-if="ob.errors['item.cryptoQuantity']" :errors="ob.errors['item.cryptoQuantity']" />
         <div class="posR">
-          <input type="number" class="clrBr clrP clrSh2" v-model="localCryptoQuantity" id="editListingCryptoQuantity"
-            placeholder="0.00" data-var-type="bignumber" @input="onCryptoQuantityChange">
-          <div class="cryptoQuantityCoinType clrT2 tx5 js-quantityCoinType">{{ curToSell }}</div>
+          <input type="text" class="clrBr clrP clrSh2" name="item.cryptoQuantity" id="editListingCryptoQuantity"
+            :value="ob.number.toStandardNotation(ob.item.cryptoQuantity)" placeholder="0.00" data-var-type="bignumber">
+          <div class="cryptoQuantityCoinType clrT2 tx5 js-quantityCoinType">{{ ob.coinTypes ?
+            ob.item.cryptoListingCurrencyCode || ob.coinTypes[0].code : '' }}</div>
         </div>
         <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperQuantity') }}</div>
       </div>
@@ -71,117 +54,77 @@
   </div>
   <div class="flexRow gutterH">
     <div class="col6 simpleFlexCol">
-      <label for="editListingCryptoReceive" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.lblReceive') }}</label>
+      <label for="editListingCryptoReceive" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.lblReceive')
+      }}</label>
       <div class="posR marginTopAuto">
         <template v-if="ob.errors['metadata.acceptedCurrencies'] && ob.metadata.contractType === 'CRYPTOCURRENCY'">
           <FormError :errors="ob.errors['metadata.acceptedCurrencies']" />
         </template>
-        <Select2 id="editListingCryptoReceive" v-model="curAccepted" name="metadata.acceptedCurrencies" class="clrBr clrP clrSh2 marginTopAuto">
+        <select id="editListingCryptoReceive" @change="onChangeReceiveCur" name="metadata.acceptedCurrencies"
+          class="clrBr clrP clrSh2 marginTopAuto">
           <template v-for="(coin, j) in ob.receiveCurs" :key="j">
-            <option :value="coin.code" :selected="coin.code === curAccepted">{{ coin.name }}</option>
+            <option :value="coin.code" :selected="coin.code === ob.receiveCur">{{ coin.name }}</option>
           </template>
-        </Select2>
+        </select>
         <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperReceive') }}</div>
       </div>
     </div>
     <div class="col6 simpleFlexCol">
-      <label for="editListingCryptoPriceModifier" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.priceModifier') }}</label>
-      <FormError v-if="ob.errors['item.cryptoListingPriceModifier']" :errors="ob.errors['item.cryptoListingPriceModifier']" />
+      <label for="editListingCryptoPriceModifier" class="required">{{
+        ob.polyT('editListing.cryptoCurrencyType.priceModifier') }}</label>
+      <FormError v-if="ob.errors['item.cryptoListingPriceModifier']"
+        :errors="ob.errors['item.cryptoListingPriceModifier']" />
       <div class="posR marginTopAuto">
-        <input type="text" class="clrBr clrP clrSh2" v-model="localPriceModifier"
-          id="editListingCryptoPriceModifier"
-          :placeholder="ob.polyT('editListing.cryptoCurrencyType.priceModifierPlaceholder')" data-var-type="number" @input="onPriceModifierChange">
+        <input type="text" class="clrBr clrP clrSh2" name="item.cryptoListingPriceModifier"
+          id="editListingCryptoPriceModifier" :value="ob.item.cryptoListingPriceModifier"
+          :placeholder="ob.polyT('editListing.cryptoCurrencyType.priceModifierPlaceholder')" data-var-type="number">
         <div class="cryptoPriceModifierPercentSymbol clrT2 tx5">%</div>
       </div>
       <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperPriceModifier') }}</div>
     </div>
   </div>
-</template>
+</div></template>
 
 <script>
-import bigNumber from 'bignumber.js';
 import app from '../../../../backbone/app';
 import { supportedWalletCurs } from '../../../../backbone/data/walletCurrencies';
 import { isJQPromise } from '../../../../backbone/utils/object';
-
-import ViewListingLinks from './ViewListingLinks.vue';
+import loadTemplate from '../../../../backbone/utils/loadTemplate';
+import CryptoTradingPair from '../../components/CryptoTradingPair';
+import CryptoCurrencyTradeField from './CryptoCurrencyTradeField';
 
 
 export default {
-  components: {
-    ViewListingLinks,
+  props: {
+    options: {
+      type: Object,
+      default: {},
+    },
+    bb: Function,
   },
-  props: ["options", "bb", "modelValue"],
-  emits: ['update:modelValue', 'clickViewListing', 'clickViewListingOnWeb'],
   data () {
     return {
-      curAccepted: '',
-      curToSell: '',
-      hideTradingPair: true,
-
-      isFetching: true,
-      coinTypes: [],
-      receiveCur: undefined,
-      
-      // 本地变量，避免直接修改父组件数据
-      localContractType: '',
-      localCryptoQuantity: '',
-      localPriceModifier: '',
     };
   },
   created () {
+    this.initEventChain();
+
     this.loadData(this.options);
   },
   mounted () {
-  },
-  watch: {
-    curAccepted(val) {
-      this.$emit('update:modelValue', {
-        ...this.modelValue,
-        metadata: {
-          ...this.modelValue.metadata,
-          acceptedCurrencies: [val]
-        }
-      });
-    },
-    curToSell(val) {
-      this.$emit('update:modelValue', {
-        ...this.modelValue,
-        item: {
-          ...this.modelValue.item,
-          cryptoListingCurrencyCode: val
-        }
-      });
-    },
-    modelValue: {
-      handler(newVal) {
-        // 同步本地变量
-        this.localContractType = newVal?.metadata?.contractType || '';
-        // 处理cryptoQuantity，确保它是字符串格式用于显示
-        const cryptoQuantity = newVal?.item?.cryptoQuantity;
-        if (cryptoQuantity instanceof bigNumber) {
-          this.localCryptoQuantity = cryptoQuantity.toString();
-        } else {
-          this.localCryptoQuantity = cryptoQuantity || '';
-        }
-        this.localPriceModifier = newVal?.item?.cryptoListingPriceModifier || '';
-      },
-      deep: true
-    }
+    this.render();
   },
   computed: {
-    formData: {
-      get() {
-        return this.modelValue;
-      },
-    },
     ob () {
       return {
         ...this.templateHelpers,
-        contractTypes: this.model.get('metadata').contractTypesVerbose,
+        contractTypes: this._model.metadata.contractTypesVerbose,
+        coinTypes: this.coinTypes,
         receiveCurs: this.receiveCurs,
         errors: this.model.validationError || {},
-        ...this.model.toJSON(),
+        viewListingsT,
+        ...this._model,
+        receiveCur: this.options.getReceiveCur(),
       };
     }
   },
@@ -195,12 +138,23 @@ export default {
         throw new Error('Please provide getCoinTypes as a jQuery promise.');
       }
 
-      this.baseInit({
-        ...options,
-      });
+      this.baseInit(options);
 
+      this.options = {
+        getReceiveCur: () => this.model.get('metadata')
+          .get('acceptedCurrencies')[0],
+        ...options,
+      };
+
+      if (typeof this.options.getReceiveCur !== 'function') {
+        throw new Error('If providing a getReceiveCur options, it must be a function.');
+      }
+
+      this.getCoinTypes = options.getCoinTypes;
       this.receiveCurs = supportedWalletCurs();
-      if (this.receiveCur && !this.receiveCurs.includes(this.receiveCur)) {
+      const receiveCur = this.options.getReceiveCur();
+
+      if (receiveCur && !this.receiveCurs.includes(receiveCur)) {
         // if the model has the receiving currency set to an unsupported cur,
         // we'll manually add that to the list of available options. Upon a
         // a save attempt, the user will be presented with an error prompting them
@@ -221,33 +175,41 @@ export default {
         return 0;
       });
 
-      // TODO - don't assume BTC, hard-code to the exchange rate reference coin
-      this.curAccepted = this.receiveCur || (this.receiveCurs[0] && this.receiveCurs[0].code) || 'BTC';
-      this.curToSell = 'BTC';
-
-      // 初始化本地变量
-      this.localContractType = this.modelValue?.metadata?.contractType || '';
-      // 处理cryptoQuantity，确保它是字符串格式用于显示
-      const cryptoQuantity = this.modelValue?.item?.cryptoQuantity;
-      if (cryptoQuantity instanceof bigNumber) {
-        this.localCryptoQuantity = cryptoQuantity.toString();
-      } else {
-        this.localCryptoQuantity = cryptoQuantity || '';
-      }
-      this.localPriceModifier = this.modelValue?.item?.cryptoListingPriceModifier || '';
+      this.tradeField = this.createChild(CryptoCurrencyTradeField, {
+        select2Opts: this.tradeSelect2Opts,
+        initialState: {
+          isFetching: this.getCoinTypes.state() === 'pending',
+        },
+      });
 
       // Initially we'll show this as 'invisible' for spacing purposes. A spinner will
       // show until the subsequent getCoinTypes() call returns.
-      this.hideTradingPair = true;
+      this.cryptoTradingPair = this.createChild(CryptoTradingPair, {
+        className: 'cryptoTradingPairWrap row invisible',
+        initialState: {
+          tradingPairClass: 'cryptoTradingPairLg rowSm',
+          exchangeRateClass: 'clrT2 tx6',
+          // TODO
+          // TODO
+          // TODO - don't assume BTC, hard-code to the exchange rate reference coin
+          fromCur: this.options.getReceiveCur() ||
+            (this.receiveCurs[0] && this.receiveCurs[0].code) || 'BTC',
+          toCur: 'BTC',
+        },
+      });
 
-      this.isFetching = this.getCoinTypes.state() === 'pending';
       this.getCoinTypes.done(curs => {
-        const modelCur = this.model.get('item').get('cryptoListingCurrencyCode');
+        const modelCur = this.model
+          .get('item')
+          .get('cryptoListingCurrencyCode');
         const selected = modelCur || curs[0].code;
 
         const currencies = [...curs];
 
-        if (modelCur && !currencies.find(cur => (cur.code === modelCur))) {
+        if (
+          modelCur &&
+          !currencies.find(cur => (cur.code === modelCur))
+        ) {
           // The saved coin type is not in the list. Maybe there's no
           // exchange rate available. Maybe it's no longer on CMC. Anyhow,
           // we'll manually add it to the list otherwise the coin type just
@@ -261,15 +223,53 @@ export default {
           });
         }
 
-        this.isFetching = false;
         this.coinTypes = currencies;
 
-        this.hideTradingPair = false;
-        this.curToSell = selected;
+        this.tradeField.setState({
+          curs: currencies,
+          isFetching: false,
+          selected,
+        });
+
+        this.cryptoTradingPair.$el.removeClass('invisible');
+        this.cryptoTradingPair.setState({
+          toCur: selected,
+        });
+
+        $('.js-quantityCoinType')
+          .text(selected);
+      });
+
+      this.tradeField.render();
+      this.cryptoTradingPair.render();
+    },
+
+    events () {
+      return {
+        'change #editListingCoinType': 'onChangeCoinType',
+      };
+    },
+
+    onChangeCoinType (e) {
+      $('.js-quantityCoinType')
+        .text(e.target.value);
+      this.cryptoTradingPair.setState({
+        toCur: e.target.value,
       });
     },
 
-    getTradeSelect2Opts () {
+    onChangeReceiveCur (e) {
+      this.cryptoTradingPair.setState({
+        fromCur: e.target.value,
+      });
+    }
+
+  get defaultFromCur () {
+      return this.model.get('item').get('cryptoListingCurrencyCode') ||
+        this.coinTypes ? this.coinTypes[0].code : '';
+    }
+
+  get tradeSelect2Opts () {
       return {
         minimumResultsForSearch: 5,
         matcher: (params, data) => {
@@ -277,8 +277,16 @@ export default {
             return data;
           }
 
-          const term = params.term.toUpperCase().trim();
-          if (data.text.toUpperCase().includes(term) || data.id.includes(term)) {
+          const term = params.term
+            .toUpperCase()
+            .trim();
+
+          if (
+            data.text
+              .toUpperCase()
+              .includes(term) ||
+            data.id.includes(term)
+          ) {
             return data;
           }
 
@@ -287,43 +295,42 @@ export default {
       };
     },
 
-    onClickViewListing() {
-      this.$emit('clickViewListing');
+    renderCryptoTradingPair () {
+
     },
 
-    onClickViewListingOnWeb() {
-      this.$emit('clickViewListingOnWeb');
-    },
+    render () {
+      super.render();
 
-    onContractTypeChange() {
-      this.$emit('update:modelValue', {
-        ...this.modelValue,
-        metadata: {
-          ...this.modelValue.metadata,
-          contractType: this.localContractType
-        }
+      loadTemplate('modals/editListing/viewListingLinks.html', viewListingsT => {
+        loadTemplate('modals/editListing/cryptoCurrencyType.html', t => {
+          this.$el.html(t({
+            contractTypes: this.model.get('metadata').contractTypesVerbose,
+            coinTypes: this.coinTypes,
+            receiveCurs: this.receiveCurs,
+            errors: this.model.validationError || {},
+            viewListingsT,
+            ...this.model.toJSON(),
+            receiveCur: this.options.getReceiveCur(),
+          }));
+
+          $('#editListingCryptoContractType').select2({
+            minimumResultsForSearch: Infinity,
+          });
+
+          $('#editListingCryptoReceive').select2(this.tradeSelect2Opts);
+
+          this.tradeField.delegateEvents();
+          $('.js-cryptoCurrencyTradeContainer').html(this.tradeField.el);
+
+          this.cryptoTradingPair.delegateEvents();
+          $('.js-cryptoTradingPairContainer').html(this.cryptoTradingPair.el);
+        });
       });
-    },
 
-    onCryptoQuantityChange() {
-      this.$emit('update:modelValue', {
-        ...this.modelValue,
-        item: {
-          ...this.modelValue.item,
-          cryptoQuantity: new bigNumber(this.localCryptoQuantity || 0)
-        }
-      });
-    },
-
-    onPriceModifierChange() {
-      this.$emit('update:modelValue', {
-        ...this.modelValue,
-        item: {
-          ...this.modelValue.item,
-          cryptoListingPriceModifier: this.localPriceModifier
-        }
-      });
+      return this;
     }
+
   }
 }
 </script>

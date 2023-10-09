@@ -1,46 +1,27 @@
 <template>
-  <div :class="`variant flexRow gutterH ${hasError ? 'hasError' : ''}`">
-    <div class="col4 simpleFlexCol">
+  <div class="variant flexRow gutterH">
+    <div class="col6 simpleFlexCol">
       <FormError v-if="ob.errors['name']" :errors="ob.errors['name']" />
-      <input
-        type="text"
-        class="clrBr clrP clrSh2 variantNameInput js-variantNameInput"
-        name="name"
-        :value="ob.name"
-        ref="name"
-        :placeholder="ob.polyT('editListing.variants.titlePlaceholder')"
-        :maxlength="ob.max.nameLength"
-      />
+      <input type="text" class="clrBr clrP clrSh2 variantNameInput js-variantNameInput" name="name" :value="ob.name"
+        :placeholder="ob.polyT('editListing.variants.titlePlaceholder')" :maxlength="ob.max.nameLength">
     </div>
     <div class="col6 simpleFlexCol">
       <FormError v-if="variantsErrs.length" :errors="variantsErrs" />
-      <select
-        ref="variants"
-        multiple
-        name="variants"
-        class="clrBr clrP clrSh2 hideDropDown flexExpand"
-        :placeholder="ob.polyT('editListing.variants.choicesPlaceholder')"
-      ></select>
-    </div>
-    <div class="col2 simpleFlexCol">
-      <FormError v-if="variantsErrs.length" :errors="variantsErrs" />
       <div class="flexRow marginTopAuto">
-        <label for="variation"></label>
-        <input class="checkbox" type="checkbox" id="variation" v-model="variation" name="variation" @change="setModelData"/>
-        <a
-          class="iconBtn clrBr clrP clrSh2 margLSm toolTipNoWrap btnRemoveVariant"
-          @click="onClickRemove"
-          :data-tip="ob.polyT('editListing.variants.toolTip.delete')"
-        >
+        <select multiple name="variants" class="clrBr clrP clrSh2 hideDropDown flexExpand"
+          :placeholder="ob.polyT('editListing.variants.choicesPlaceholder')"></select>
+        <a class="iconBtn clrBr clrP clrSh2 margLSm toolTipNoWrap  btnRemoveVariant" @click="onClickRemove"
+          :data-tip="ob.polyT('editListing.variants.toolTip.delete')">
           <i class="ion-trash-b"></i>
         </a>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
-import $ from 'jquery';
+import loadTemplate from '../../../../backbone/utils/loadTemplate';
 
 export default {
   props: {
@@ -50,37 +31,31 @@ export default {
     },
     bb: Function,
   },
-  data() {
+  data () {
     return {
-      variation: true,
     };
   },
-  created() {
+  created () {
     this.loadData(this.options);
   },
-  mounted() {
+  mounted () {
     this.render();
   },
   computed: {
-    ob() {
-      const errors = {
-        ...(this.model.validationError || {}),
-        ...(this.options.errors || {}),
-      };
-
+    ob () {
       return {
         ...this.templateHelpers,
-        ...this.model.toJSON(),
+        ...this._model,
         max: this.model.max,
         errors,
       };
     },
-    variantsErrs() {
+    variantsErrs () {
       const ob = this.ob;
 
       let variantsErrs = [];
 
-      Object.keys(ob.errors).forEach((errKey) => {
+      Object.keys(ob.errors).forEach(errKey => {
         if (errKey.startsWith('variants[') && errKey.endsWith('].name')) {
           variantsErrs = variantsErrs.concat(ob.errors[errKey]);
         }
@@ -91,40 +66,28 @@ export default {
       }
 
       return variantsErrs;
-    },
-    hasError() {
-      const errors = {
-        ...(this.model.validationError || {}),
-        ...(this.options.errors || {}),
-      };
-
-      return !!Object.keys(errors).length;
-    },
+    }
   },
   methods: {
-    loadData() {
+    loadData (options = {}) {
       if (!this.model) {
         throw new Error('Please provide a VariantOption model.');
       }
 
-      this.variation = this.model.get('variation');
       // any parent level errors can be passed in options.errors, e.g.
       // options.errors = {
       //   <field-name>: ['err1', 'err2', 'err3']
       // }
+
+      this.baseInit(options);
     },
 
-    setFocus() {
-      this.$refs.name.focus();
+    onClickRemove () {
+      this.$emit('removeClick', { view: this });
     },
 
-    onClickRemove() {
-      this.$emit('removeClick', this.model);
-    },
-
-    getFormDataEx() {
-      const fields = this.$el.querySelectorAll('select[name], input[name], textarea[name]');
-      const formData = this.getFormData(fields);
+    getFormData (fields = this.$formFields) {
+      const formData = super.getFormData(fields);
 
       // Post process the vairants to seperate the clientID from the actual value.
       formData.variants = formData.variants.map((v) => {
@@ -143,26 +106,45 @@ export default {
     },
 
     // Sets the model based on the current data in the UI.
-    setModelData() {
-      const formData = this.getFormDataEx();
+    setModelData () {
+      const formData = this.getFormData();
       this.model.set(formData);
     },
 
-    render() {
-      const variantItems = [];
-      const variantOptions = [];
+    get $formFields () {
+      return this._$formFields
+        || (this._$formFields = $('select[name], input[name], textarea[name]'));
+    },
 
-      this.model
-        .get('variants')
-        .toJSON()
-        .forEach((variant) => {
-          const value = `${variant._clientID}<===>${variant.name}`;
-          variantOptions.push({ ...variant, value });
-          variantItems.push(value);
-        });
+    render () {
+      super.render();
+      const errors = {
+        ...(this.model.validationError || {}),
+        ...(this.options.errors || {}),
+      };
 
-      $(this.$refs.variants)
-        .selectize({
+      this.$el.toggleClass('hasError', !!Object.keys(errors).length);
+
+      loadTemplate('modals/editListing/variant.html', (t) => {
+        this.$el.html(t({
+          ...this.model.toJSON(),
+          max: this.model.max,
+          errors,
+        }));
+
+        this._$formFields = null;
+
+        const variantItems = [];
+        const variantOptions = [];
+
+        this.model.get('variants').toJSON()
+          .forEach((variant) => {
+            const value = `${variant._clientID}<===>${variant.name}`;
+            variantOptions.push({ ...variant, value });
+            variantItems.push(value);
+          });
+
+        this.getCachedEl('select[name=variants]').selectize({
           persist: false,
           valueField: 'value',
           options: variantOptions,
@@ -175,19 +157,13 @@ export default {
             option: (data) => `<div>${data.name}</div>`,
             item: (data) => `<div>${data.name}</div>`,
           },
-        })
-        .on('change', () => {
-          this.setModelData();
-          this.$emit('update');
-        });
+        }).on('change', () => this.trigger('choiceChange', { view: this }));
+      });
 
       return this;
-    },
-  },
-};
-</script>
-<style lang="scss" scoped>
-.checkbox {
-  display: inline-block;
+    }
+
+  }
 }
-</style>
+</script>
+<style lang="scss" scoped></style>

@@ -1,58 +1,40 @@
 <template>
   <tr>
-    <td class="clrBr">
-      <UploadPhoto2 :image="formData.images[0]" @imageChange="onImageChange" />
-    </td>
     <template v-for="(choice, j) in ob.choices" :key="j">
       <td class="clrBr">{{ choice }}</td>
     </template>
     <td class="clrBr">
       <FormError v-if="ob.errors['surcharge']" :errors="ob.errors['surcharge']" />
-      <input type="number" class="clrBr clrP clrSh2" v-model="formData.surcharge" placeholder="0.00" data-var-type="bignumber" />
+      <input type="text" class="clrBr clrP clrSh2 " @keyup="onKeyupSurcharge" name="surcharge"
+        :value="ob.number.toStandardNotation(ob.surcharge)" placeholder="0.00" data-var-type="bignumber" />
     </td>
-    <td class="clrBr js-totalPrice">{{ ob.calculateTotalPrice(formData.surcharge || ob.bigNumber('0')) }}</td>
+    <td class="clrBr js-totalPrice">{{ ob.calculateTotalPrice(ob.surcharge || ob.bigNumber('0')) }}</td>
     <td class="clrBr">
       <FormError v-if="ob.errors['productID']" :errors="ob.errors['productID']" />
-      <input
-        type="text"
-        class="clrBr clrP clrSh2"
-        name="productID"
-        v-model="formData.productID"
-        :placeholder="ob.polyT('editListing.variantInventory.placeholderSKU')"
-        :maxlength="ob.max.productIdLength"
-      />
+      <input type="text" class="clrBr clrP clrSh2" name="productID" :value="ob.productID"
+        :placeholder="ob.polyT('editListing.variantInventory.placeholderSKU')" :maxlength="ob.max.productIdLength" />
     </td>
     <td class="clrBr unconstrainedWidth quantityCol">
       <FormError v-if="ob.errors['quantity']" :errors="ob.errors['quantity']" />
       <div class="flexVCent gutterH">
-        <input type="number" class="clrBr clrP clrSh2" v-model="formData.quantity" :placeholder="quantityPlaceholder" data-var-type="bignumber" />
-        <input
-          type="checkbox"
-          :id="`${ob.cid}_inventoryItemUnlimtedCheckbox`"
-          class="centerLabel"
-          v-model="formData.infiniteInventory"
-          @change="changeInfinite"
-        />
+        <input type="text" class="clrBr clrP clrSh2 " @focus="onFocusQuantity" @keyup="onKeyupQuantity" name="quantity"
+          :value="ob.infiniteInventory ? ob.infiniteQuantityChar : ob.quantity" data-var-type="bignumber"
+          placeholder="0" />
+        <input type="checkbox" :id="`${ob.cid}_inventoryItemUnlimtedCheckbox`" class="centerLabel "
+          @change="onChangeInfiniteCheckbox" name="infiniteInventory" :checked="ob.infiniteInventory">
         <label class="tx5b flexNoShrink" :for="`${ob.cid}_inventoryItemUnlimtedCheckbox`">{{
-          ob.polyT('editListing.variantInventory.unlimitedQuantityLabel')
-        }}</label>
+          ob.polyT('editListing.variantInventory.unlimitedQuantityLabel') }}</label>
       </div>
-    </td>
-    <td class="clrBr">
-      <a class="iconBtn clrBr clrP clrSh2 margLSm btnRemoveVariant" @click="onClickRemove"><i class="ion-trash-b"></i> </a>
     </td>
   </tr>
 </template>
 
 <script>
-import bigNumber from 'bignumber.js';
+import $ from 'jquery';
 import { formatCurrency } from '../../../../backbone/utils/currency';
-import UploadPhoto2 from './UploadPhoto2.vue';
+import loadTemplate from '../../../../backbone/utils/loadTemplate';
 
 export default {
-  components: {
-    UploadPhoto2,
-  },
   props: {
     options: {
       type: Object,
@@ -60,100 +42,108 @@ export default {
     },
     bb: Function,
   },
-  data() {
+  data () {
     return {
-      infiniteQuantityChar: '99999999',
-
-      formData: {
-        surcharge: 0,
-        productID: '',
-        quantity: '',
-        infiniteInventory: true,
-        images: [undefined],
-      },
     };
   },
-  created() {
+  created () {
+    this.initEventChain();
+
     this.loadData(this.options);
   },
-  mounted() {},
+  mounted () {
+    this.render();
+  },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
-        ...this.model.toJSON(),
+        ...this._model,
         errors: {
           ...(this.model.validationError || {}),
         },
+        getCurrency: this.options.getCurrency,
+        getPrice: this.options.getPrice,
         calculateTotalPrice: this.calculateTotalPrice.bind(this),
-        cid: this.model.cid,
+        cid: this.cid,
+        infiniteQuantityChar: this.infiniteQuantityChar,
         max: this.model.max,
       };
-    },
-    quantityPlaceholder() {
-      if (this.formData.infiniteInventory) {
-        return this.infiniteQuantityChar;
-      } else {
-        return 0;
-      }
-    },
+    }
   },
   methods: {
-    initFormData() {
-      const model = this.model.toJSON();
-      this.formData = {
-        surcharge: model.surcharge,
-        productID: model.productID,
-        quantity: model.quantity,
-        infiniteInventory: model.infiniteInventory,
-        images: model.images,
-      };
-
-      if (this.formData.infiniteInventory) {
-        this.formData.quantity = this.infiniteQuantityChar;
-      }
-    },
-    loadData() {
+    loadData (options = {}) {
       if (!this.model) {
         throw new Error('Please provide a model.');
       }
 
-      this.initFormData();
+      if (typeof options.getPrice !== 'function') {
+        throw new Error('Please provide a getPrice function that returns the product price.');
+      }
+
+      if (typeof options.getCurrency !== 'function') {
+        throw new Error('Please provide a function for me to obtain the current currency.');
+      }
+
+      this.baseInit(options);
     },
 
-    changeInfinite() {
-      if (this.formData.infiniteInventory) {
-        this.formData.quantity = '';
+  get infiniteQuantityChar () {
+      return '—';
+    },
+
+    onKeyupSurcharge (e) {
+      this.$totalPrice.text(this.calculateTotalPrice(e.target.value));
+    },
+
+    onFocusQuantity (e) {
+      if (e.target.value === this.infiniteQuantityChar) {
+        e.target.setSelectionRange(0, e.target.value.length);
+      }
+    },
+
+    onKeyupQuantity (e) {
+      if (e.target.value !== this.infiniteQuantityChar) {
+        this.$infiniteInventoryCheckbox.prop('checked', false);
       } else {
-        this.formData.quantity = 0;
+        this.$infiniteInventoryCheckbox.prop('checked', true);
       }
     },
 
-    // Sets the model based on the current data in the UI.
-    setModelData() {
-      const formData = this.formData;
-
-      if (formData.surcharge != null) {
-        formData.surcharge = bigNumber(formData.surcharge);
+    onChangeInfiniteCheckbox (e) {
+      if ($(e.target).is(':checked')) {
+        this.$quantity.val(this.infiniteQuantityChar);
+      } else {
+        this.$quantity.val('');
       }
+    },
+
+    getFormData (fields = this.$formFields) {
+      const formData = super.getFormData(fields);
+      return formData;
+    },
+
+  // Sets the model based on the current data in the UI.
+  setModelData () {
+      const formData = this.getFormData();
 
       if (formData.infiniteInventory) {
         delete formData.quantity;
         this.model.unset('quantity');
-      } else if (formData.quantity != null) {
-        formData.quantity = bigNumber(formData.quantity);
       }
 
-      this.model.set(formData, { validate: true });
+      this.model.set(formData);
     },
 
-    calculateTotalPrice(surcharge) {
-      const listingPrice = this.options.basePrice;
+    calculateTotalPrice (surcharge) {
+      const listingPrice = this.options.getPrice();
 
       let formatted;
 
       try {
-        formatted = formatCurrency(bigNumber(listingPrice).plus(surcharge), this.options.listingCurrency);
+        formatted = formatCurrency(
+          listingPrice.plus(surcharge), this.options.getCurrency()
+        );
       } catch (e) {
         return '';
       }
@@ -161,13 +151,40 @@ export default {
       return formatted;
     },
 
-    onImageChange(image) {
-      this.formData.images[0] = image;
+  get $formFields () {
+      return this._$formFields ||
+        (this._$formFields =
+          $('select[name], input[name], textarea[name]'));
     },
 
-    onClickRemove() {
-      this.$emit('removeClick', this.model);
+  get $totalPrice () {
+      return this._$totalPrice ||
+        (this._$totalPrice =
+          $('.js-totalPrice'));
     },
-  },
-};
+
+  get $infiniteInventoryCheckbox () {
+      return this._$infiniteInventoryCheckbox ||
+        (this._$infiniteInventoryCheckbox =
+          $('.js-infiniteInventoryCheckbox'));
+    },
+
+  get $quantity () {
+      return this._$quantity ||
+        (this._$quantity =
+          $('.js-quantity'));
+    },
+
+    render () {
+      this._$formFields = null;
+      this._$totalPrice = null;
+      this._$infiniteInventoryCheckbox = null;
+      this._$quantity = null;
+
+      return this;
+    }
+
+  }
+}
 </script>
+<style lang="scss" scoped></style>
