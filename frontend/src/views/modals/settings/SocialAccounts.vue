@@ -6,26 +6,14 @@
         <div class="clrT2 txSm">{{ ob.polyT('settings.pageTab.helperAbout') }}</div>
       </div>
       <div class="col6">
-        <div class="gutterV gutterVFlush js-socialWrapper">
-          <template v-for="account in collection">
-            <SocialAccount
-              ref="accountViews"
-              :bb="() => {
-                return {
-                  model: account,
-                }
-              }"
-              @remove-click="onRemoveAccount(account)"
-            />
-          </template>
-        </div>
+        <div class="gutterV gutterVFlush js-socialWrapper"></div>
       </div>
     </div>
     <div class="flexRow gutterH">
       <div class="col3"></div>
       <div class="col6">
         <div class="flexCol">
-          <button class="btnTxtOnly clrTEm txUnb txUHover" @click="onClickAddAccount" v-show="collection.length < maxAccounts">
+          <button class="btnTxtOnly clrTEm txUnb txUHover" @click="onClickAddAccount" v-show="!ob.currentCount >= ob.max">
             {{ ob.polyT('settings.socialAccounts.add') }}
           </button>
         </div>
@@ -36,14 +24,11 @@
 </template>
 
 <script>
+import SocialAccount from './SocialAccount';
 import SocialAccountMd from '../../../../backbone/models/profile/SocialAccount';
 
-import SocialAccount from './SocialAccount.vue';
 
 export default {
-  components: {
-    SocialAccount,
-  },
   props: {
     options: {
       type: Object,
@@ -53,18 +38,28 @@ export default {
   },
   data () {
     return {
+      accountViews: [],
+      maxAccounts: 0,
     };
   },
   created () {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
+    ob () {
+      return {
+        ...this.templateHelpers,
+        currentCount: this.collection.length,
+        max: this.maxAccounts,
+      };
+    }
   },
   methods: {
     loadData (options = {}) {
-      if (!this.collection) {
+      if (!options.collection) {
         throw new Error('Please provide a collection.');
       }
 
@@ -73,26 +68,46 @@ export default {
       }
 
       this.baseInit(options);
+      this.accountViews = [];
+      this.maxAccounts = options.maxAccounts;
 
-      // if the collection is empty on render, add a blank account to the form
-      if (this.collection.length === 0) {
-        this.collection.add(new SocialAccountMd());
-      }
+      this.listenTo(this.collection, 'add', (md) => {
+        const view = this.createAccountView(md);
+        this.accountViews.push(view);
+        $('.js-socialWrapper').append(view.render().el);
+        this.showLimit();
+      });
+
+      this.listenTo(this.collection, 'remove', (md, cl, removeOpts) => {
+        this.accountViews.splice(removeOpts.index, 1)[0].remove();
+        this.showLimit();
+      });
+    },
+
+    get lastIndex () {
+      return this.collection.length ? this.collection.length - 1 : 0;
     },
 
     addBlankAccount () {
-      const lastIndex = this.collection.length ? this.collection.length - 1 : 0;
-
       const notEmpty = !!this.collection.length;
       let name = 'type';
-      const blank = notEmpty ? this.$refs.accountViews[lastIndex].firstBlankField : '';
+      const blank = notEmpty ? this.accountViews[this.lastIndex].firstBlankField : '';
       // if the current last account isn't completely filled in, don't add a new one
       if (!blank) {
         this.collection.add(new SocialAccountMd());
       } else {
         name = blank;
       }
-      this.$refs.accountViews[lastIndex].setFocus(name);
+      this.accountViews[this.lastIndex]
+        .$(`input[name=${name}]`)
+        .focus();
+    },
+
+    showLimit (show = this.accountViews.length >= this.maxAccounts) {
+      if (show !== this._showLimit) {
+        this._showLimit = show;
+        $('.js-addAccount').toggleClass('hide', show);
+      }
     },
 
     onClickAddAccount () {
@@ -100,7 +115,7 @@ export default {
     },
 
     setCollectionData () {
-      (this.$refs.accountViews ?? []).forEach((account) => {
+      this.accountViews.forEach((account) => {
         account.setModelData();
         // remove blank accounts
         if (!account.model.get('type') && !account.model.get('username')) {
@@ -109,13 +124,44 @@ export default {
       });
     },
 
-    onRemoveAccount(md) {
-      this.collection.remove(md);
-      // if the last account is removed, replace it with a blank one
-      if (this.collection.length === 0) {
-        this.addBlankAccount();
-      }
+    createAccountView (model, options = {}) {
+      const view = this.createChild(SocialAccount, {
+        model,
+        ...options,
+      });
+
+      this.listenTo(view, 'remove-click', () => {
+        this.collection.remove(view.model);
+        // if the last account is removed, replace it with a blank one
+        if (this.collection.length === 0) {
+          this.addBlankAccount();
+        }
+      });
+
+      return view;
     },
+
+    render () {
+      this.accountViews.forEach((account) => account.remove());
+      this.accountViews = [];
+
+      const accountFrag = document.createDocumentFragment();
+
+      this.collection.forEach((account) => {
+        const view = this.createAccountView(account);
+        this.accountViews.push(view);
+        view.render().$el.appendTo(accountFrag);
+      });
+
+      $('.js-socialWrapper').append(accountFrag);
+
+      // if the collection is empty on render, add a blank account to the form
+      if (this.collection.length === 0) {
+        this.collection.add(new SocialAccountMd());
+      }
+
+      return this;
+    }
   }
 }
 </script>

@@ -8,31 +8,13 @@
 
       <div class="tabFormWrapper js-addressesWrap clrP">
         <div class="settingsTabFormWrapperInner">
-          <div class="js-listContainer">
-            <AddressesList
-              :key="addressesListKey"
-              :bb="() => {
-                return {
-                  collection: settings.get('shippingAddresses')
-                };
-              }"
-              @deleteAddress="onDeleteAddress"
-            />
-          </div>
-          <div class="js-formContainer">
-            <AddressesForm ref="addressesForm"
-              :bb="() => {
-                return {
-                  model: addressesFormModel
-                };
-              }"
-            />
-          </div>
+          <div class="js-listContainer"></div>
+          <div class="js-formContainer"></div>
         </div>
       </div>
 
       <div class="flexHRight">
-        <ProcessingButton :className="`btn clrP clrBAttGrad clrBrDec1 clrTOnEmph ${isAdding ? 'processing' : ''}`" @click="saveNewAddress"
+        <ProcessingButton className="btn clrP clrBAttGrad clrBrDec1 clrTOnEmph" @click="saveNewAddress"
           :btnText="ob.polyT('settings.btnAddAddress')" />
       </div>
     </div>
@@ -41,18 +23,13 @@
 
 <script>
 import app from '../../../../backbone/app';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../SimpleMessage';
+import AddressesForm from './AddressesForm';
+import AddressesList from './AddressesList';
 import ShippingAddress from '../../../../backbone/models/settings/ShippingAddress';
-
-import AddressesForm from './AddressesForm.vue';
-import AddressesList from './AddressesList.vue';
 
 
 export default {
-  components: {
-    AddressesForm,
-    AddressesList,
-  },
   props: {
     options: {
       type: Object,
@@ -62,26 +39,20 @@ export default {
   },
   data () {
     return {
-      isAdding: false,
-
-      addressesFormModel: new ShippingAddress(),
-
-      addressesListKey: 0,
     };
   },
   created () {
-    this.initEventChain();
-  
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
   },
   computed: {
     ob () {
       return {
         ...this.templateHelpers,
         errors: {},
-        ...this.settings.toJSON(),
+        ...this._settings,
       };
     }
   },
@@ -94,13 +65,18 @@ export default {
       this.settings = app.settings.clone();
 
       // Sync our clone with any changes made to the global settings model.
-      this.listenTo(app.settings, 'someChange', (md, opts) => {
-        this.settings.set(opts.setAttrs)
-      });
+      this.listenTo(app.settings, 'someChange', (md, opts) =>
+        this.settings.set(opts.setAttrs));
 
       // Sync the global settings model with any changes we save via our clone.
       this.listenTo(this.settings, 'sync', (md, resp, opts) =>
         app.settings.set(this.settings.toJSON(opts.attrs)));
+
+      this.addressForm = this.createChild(AddressesForm, { model: new ShippingAddress() });
+
+      this.addressList = this.createChild(AddressesList,
+        { collection: this.settings.get('shippingAddresses') });
+      this.listenTo(this.addressList, 'deleteAddress', this.onDeleteAddress);
     },
 
     onDeleteAddress (address) {
@@ -161,16 +137,13 @@ export default {
               type: 'warning',
             });
           })
-          .always(() => {
-            this.addressesListKey += 1;
-            setTimeout(() => statusMessage.remove(), 3000)}
-          );
+          .always(() => setTimeout(() => statusMessage.remove(), 3000));
       }
     },
 
     saveNewAddress () {
-      const model = this.addressesFormModel;
-      const formData = this.$refs.addressesForm.getFormData();
+      const model = this.addressForm.model;
+      const formData = this.addressForm.getFormData();
 
       model.set(formData);
       model.set(formData, { validate: true });
@@ -187,7 +160,7 @@ export default {
         });
 
         if (save) {
-          this.isAdding = true;
+          this.$btnAddAddress.addClass('processing');
           const truncatedName = model.get('name').slice(0, 30);
 
           const msg = {
@@ -208,7 +181,8 @@ export default {
               type: 'confirmed',
             });
 
-            this.addressesFormModel = new ShippingAddress();
+            this.addressForm.model = new ShippingAddress();
+            this.addressForm.render();
           }).fail((...args) => {
             // remove the address that failed to add
             // todo: can't remove by passing in model instance from above because of some
@@ -230,13 +204,14 @@ export default {
               type: 'warning',
             });
           }).always(() => {
-            this.isAdding = false;
-            this.addressesListKey += 1;
-
+            this.$btnAddAddress.removeClass('processing');
             setTimeout(() => statusMessage.remove(), 3000);
           });
         }
       }
+
+      // render so errors are shown / cleared
+      this.addressForm.render();
 
       if (this.settings.validationError || model.validationError) {
         const $firstFormErr = $('.js-formContainer .errorList:first');
@@ -248,6 +223,25 @@ export default {
         }
       }
     },
+
+    get $btnAddAddress () {
+      return this._$btnAddAddress || $('.js-addAddress');
+    },
+
+    render () {
+      $('.js-formContainer').html(
+        this.addressForm.render().el
+      );
+
+      $('.js-listContainer').html(
+        this.addressList.render().el
+      );
+
+      this._$btnAddAddress = null;
+
+      return this;
+    }
+
   }
 }
 </script>

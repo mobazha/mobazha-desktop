@@ -21,6 +21,7 @@
 
 <script>
 import app from '../../../../../backbone/app';
+import loadTemplate from '../../../../../backbone/utils/loadTemplate';
 import { showMetricsModal, isMetricRestartNeeded, recordEvent } from '../../../../../backbone/utils/metrics';
 
 export default {
@@ -32,20 +33,15 @@ export default {
   },
   data () {
     return {
-      updateKey: 0,
     };
   },
   created () {
-    this.initEventChain();
-    
-    this.listenTo(app.localSettings, 'change:shareMetrics', () => this.updateKey += 1);
+    this.loadData(this.options);
   },
   mounted () {
   },
   computed: {
     ob () {
-      let access = this.updateKey;
-
       return {
         ...this.templateHelpers,
         shareMetrics: app.localSettings.get('shareMetrics'),
@@ -54,10 +50,17 @@ export default {
     }
   },
   methods: {
+    loadData (options = {}) {
+      this.baseInit(options);
+
+      this.listenTo(app.localSettings, 'change:shareMetrics', () => this.render());
+    },
+
     onClickChangeSharing () {
       recordEvent('Settings_Advanced_ChangeSharing');
       showMetricsModal();
     },
+
   }
 }
 </script>

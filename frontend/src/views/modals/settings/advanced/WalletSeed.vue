@@ -27,17 +27,19 @@ export default {
   props: {
     options: {
       type: Object,
-      default: {
-        seed: '',
-        isFetching: false,
-      },
+      default: {},
     },
   },
   data () {
     return {
+      _state: {
+        seed: '',
+        isFetching: false,
+      }
     };
   },
   created () {
+    this.loadData(this.options);
   },
   mounted () {
   },
@@ -45,16 +47,28 @@ export default {
     ob () {
       return {
         ...this.templateHelpers,
-        seed: '',
-        isFetching: false,
-        ...this.options,
+        ...this._state,
       };
     }
   },
   methods: {
+    loadData (options = {}) {
+      const opts = {
+        initialState: {
+          seed: '',
+          isFetching: false,
+          ...options.initialState || {},
+        },
+        ...options,
+      };
+
+      this.baseInit(opts);
+    },
+
     onClickShowSeed () {
       this.$emit('clickShowSeed');
     },
+
   }
 }
 </script>

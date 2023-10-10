@@ -8,14 +8,16 @@
     <div class="posR">
       <div class="flexRow gutterH">
         <div class="col6">
-          <input type="text" class="clrBr clrSh2" ref="type" v-model="formData.type" :placeholder="ob.polyT('settings.socialAccounts.accountPlaceholder')">
+          <input type="text" class="clrBr clrSh2" name="type" :value="ob.type"
+            :placeholder="ob.polyT('settings.socialAccounts.accountPlaceholder')">
         </div>
         <div class="col6">
-          <input type="text" class="clrBr clrSh2" ref="username" v-model="formData.username" :placeholder="ob.polyT('settings.socialAccounts.usernamePlaceholder')">
+          <input type="text" class="clrBr clrSh2" name="username" :value="ob.username"
+            :placeholder="ob.polyT('settings.socialAccounts.usernamePlaceholder')">
         </div>
       </div>
       <div class="deleteAccountWrapper margL">
-        <button class="iconBtn form ion-trash-b clrP clrBr " @click.stop="onClickRemove"></button>
+        <button class="iconBtn form ion-trash-b clrP clrBr " @click="onClickRemove"></button>
       </div>
     </div>
 
@@ -23,6 +25,8 @@
 </template>
 
 <script>
+import $ from 'jquery';
+import _ from 'underscore';
 
 export default {
   props: {
@@ -34,10 +38,6 @@ export default {
   },
   data () {
     return {
-      formData: {
-        type: '',
-        username: '',
-      }
     };
   },
   created () {
@@ -49,16 +49,9 @@ export default {
     ob () {
       return {
         ...this.templateHelpers,
+        ...this._model,
         errors: this.model.validationError || {},
       };
-    },
-    firstBlankField() {
-      if (!this.formData.type) {
-        return 'type';
-      } else if (!this.formData.username) {
-        return 'username';
-      }
-      return '';
     }
   },
   methods: {
@@ -68,26 +61,26 @@ export default {
       }
 
       this.baseInit(options);
-      this.formData = {
-        type: this.model.get('type'),
-        username: this.model.get('username'),
-      }
-    },
-
-    setFocus(fieldName) {
-      if (this.$refs[fieldName]) {
-        this.$refs[fieldName].focus();
-      }
     },
 
     onClickRemove () {
-      this.$emit('remove-click');
+      this.$emit('remove-click', { view: this });
+    },
+
+    getFormDataEx (fields = $('input[name]')) {
+      return this.getFormData(fields);
+    },
+
+    get firstBlankField () {
+      const formData = this.getFormDataEx();
+      return _.findKey(formData, val => !val);
     },
 
     // Sets the model based on the current data in the UI.
     setModelData () {
-      this.model.set(this.formData);
+      this.model.set(this.getFormDataEx());
     },
+
   }
 }
 </script>

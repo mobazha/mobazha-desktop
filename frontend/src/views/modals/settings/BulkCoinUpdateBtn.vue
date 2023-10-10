@@ -6,19 +6,19 @@
     <div class="flexNoShrink" style="width: 240px">
       <ProcessingButton
         :className="`btn clrP clrBr clrT clrSh2 ${ob.isBulkCoinUpdating ? 'processing' : ''} js-applyToCurrent`"
-        @click.stop="clickApplyToCurrent" :btnText="ob.polyT('settings.storeTab.bulkListingCoinUpdate.mainButton')" />
-      <template v-if="showConfirmTooltip">
-        <div class="confirmBox arrowBoxTop clrBr clrP clrT clrSh1 js-confirmBox" @click.stop.prevent>
+        @click="clickApplyToCurrent" :btnText="ob.polyT('settings.storeTab.bulkListingCoinUpdate.mainButton')" />
+      <template v-if="ob.showConfirmTooltip">
+        <div class="confirmBox arrowBoxTop clrBr clrP clrT clrSh1 js-confirmBox">
           <div class="tx3 txB rowSm">{{ ob.polyT('settings.storeTab.bulkListingCoinUpdate.confirmTitle') }}</div>
           <div class="posR padSm">{{ ob.polyT('settings.storeTab.bulkListingCoinUpdate.confirmMessage') }}</div>
           <hr class="clrBr row" />
           <div class="flexVCent gutterHLg">
             <div class="flexExpand">
               <!-- // The cancel button is just cosmetic, cancelling is handled by the click on the document -->
-              <a class="clrT2" @click.stop="clickApplyToCurrentCancel">{{
+              <a class="clrT2" @click="clickApplyToCurrentCancel">{{
                 ob.polyT('settings.storeTab.bulkListingCoinUpdate.cancel') }}</a>
             </div>
-            <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph" @click.stop="clickApplyToCurrentConfirm">{{
+            <a class="btn clrBAttGrad clrBrDec1 clrTOnEmph" @click="clickApplyToCurrentConfirm">{{
               ob.polyT('settings.storeTab.bulkListingCoinUpdate.apply') }}</a>
           </div>
         </div>
@@ -49,8 +49,7 @@ export default {
       _state: {
         isBulkCoinUpdating: false,
         error: '',
-      },
-      showConfirmTooltip: false,
+      }
     };
   },
   created () {
@@ -113,21 +112,25 @@ export default {
     },
 
     clickApplyToCurrent () {
-      this.showConfirmTooltip = true;
+      this.setState({ showConfirmTooltip: true });
+      return false;
     },
 
     clickApplyToCurrentCancel () {
-      this.showConfirmTooltip = false;
+      this.setState({ showConfirmTooltip: false });
+      return false;
     },
 
     clickApplyToCurrentConfirm () {
       this.$emit('bulkCoinUpdateConfirm');
-      this.showConfirmTooltip = false;
+      return false;
     },
 
-    onDocumentClick () {
-      if (this.showConfirmTooltip) {
-        this.showConfirmTooltip = false;
+    onDocumentClick (e) {
+      if (this.getState().showConfirmTooltip &&
+        !$(e.target).hasClass('js-confirmBox') &&
+        !($.contains(this.getCachedEl('.js-confirmBox')[0], e.target))) {
+        this.setState({ showConfirmTooltip: false });
       }
     },
   }

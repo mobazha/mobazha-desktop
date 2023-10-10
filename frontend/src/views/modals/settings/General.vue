@@ -3,7 +3,7 @@
     <div class="contentBox padMd clrP clrBr clrSh3">
       <div class="flexHCent">
         <h2 class="h3 clrT">{{ ob.polyT('settings.generalTab.sectionName') }}</h2>
-        <ProcessingButton :className="`btn clrP clrBAttGrad clrBrDec1 clrTOnEmph modalContentCornerBtn js-save ${isSaving ? 'processing' : ''}`"
+        <ProcessingButton className="btn clrP clrBAttGrad clrBrDec1 clrTOnEmph modalContentCornerBtn js-save"
           @click="save" :btnText="ob.polyT('settings.btnSave')" />
       </div>
       <hr class="clrBr" />
@@ -17,15 +17,15 @@
             </div>
             <div class="col6">
               <FormError v-if="ob.errors['language']" :errors="ob.errors['language']" />
-              <Select2 id="settingsLanguageSelect" v-model="localData.language" class="clrSh2">
-                <template v-for="lang in ob.languageList" :key="lang.code">
-                  <option :value="lang.code" :selected="lang.code == localData.language">{{ lang.name }}</option>
+              <select id="settingsLanguageSelect" name="language" class="clrSh2" data-persistence-location="local">
+                <template v-for="(lang, j) in ob.languageList" :key="j">
+                  <option :value="lang.code" :selected="lang.code == ob.language">{{ lang.name }}</option>
                 </template>
-              </Select2>
-              <div class="clrT2 txSm padSm" v-html='ob.polyT("settings.generalTab.helperTranslations", {
-                helperTranslationsLink: `<a href="https://www.transifex.com/mobazha/mobazha/"
-                  class="clrTEm">${ob.polyT("settings.generalTab.helperTranslationsLink")}</a>`
-              })'></div>
+              </select>
+              <div class="clrT2 txSm padSm">{{ ob.polyT('settings.generalTab.helperTranslations', {
+                helperTranslationsLink: `<a href="https://www.transifex.com/ob1/openbazaar/"
+                  class="clrTEm">${ob.polyT('settings.generalTab.helperTranslationsLink')}</a>`
+              }) }}</div>
             </div>
           </div>
           <div class="flexRow gutterH">
@@ -35,11 +35,11 @@
             </div>
             <div class="col6">
               <FormError v-if="ob.errors['country']" :errors="ob.errors['country']" />
-              <Select2 id="settingsCountrySelect" v-model="formData.country" class="clrSh2">
-                <template v-for="country in ob.countryList" :key="country.dataName">
-                  <option :value="country.dataName" :selected="country.dataName == formData.country">{{ country.name }}</option>
+              <select id="settingsCountrySelect" name="country" class="clrSh2">
+                <template v-for="(country, j) in ob.countryList" :key="j">
+                  <option :value="country.dataName" :selected="country.dataName == ob.country">{{ country.name }}</option>
                 </template>
-              </Select2>
+              </select>
             </div>
           </div>
           <div class="flexRow gutterH">
@@ -49,14 +49,16 @@
             </div>
             <div class="col6">
               <FormError v-if="ob.errors['localCurrency']" :errors="ob.errors['localCurrency']" />
-              <Select2 id="settingsCurrencySelect" v-model="formData.localCurrency" class="clrSh2">
-                <template v-for="currency in ob.currencyList" :key="currency.code">
-                  <option :value="currency.code" :selected="currency.code == formData.localCurrency">{{ currency.nameWithCode }}</option>
+              <select id="settingsCurrencySelect" @change="onChangeCurrencySelect(val)" name="localCurrency"
+                class="clrSh2">
+                <template v-for="(currency, j) in ob.currencyList" :key="j">
+                  <option :value="currency.code" :selected="currency.code == ob.localCurrency">{{ currency.nameWithCode }}
+                  </option>
                 </template>
-              </Select2>
+              </select>
             </div>
           </div>
-          <div class="flexRow gutterH js-bitcoinUnitField" v-show="formData.localCurrency === 'BTC'">
+          <div class="flexRow gutterH js-bitcoinUnitField" v-show="!ob.localCurrency !== 'BTC'">
             <div class="col3">
               <label class="required">{{ ob.polyT('settings.generalTab.bitcoinUnit') }}</label>
               <div class="clrT2 txSm"></div>
@@ -65,19 +67,23 @@
               <FormError v-if="ob.errors['localCurrency']" :errors="ob.errors['localCurrency']" />
               <div class="btnStrip">
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="localData.bitcoinUnit" value="BTC" id="settingsBitcoinUnitBtc">
+                  <input type="radio" data-persistence-location="local" name="bitcoinUnit" value="BTC"
+                    id="settingsBitcoinUnitBtc" :checked="ob.bitcoinUnit === 'BTC'">
                   <label for="settingsBitcoinUnitBtc">{{ ob.polyT('settings.generalTab.bitcoinUnitTypes.BTC') }}</label>
                 </div>
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="localData.bitcoinUnit" value="MBTC" id="settingsBitcoinUnitMbtc">
+                  <input type="radio" data-persistence-location="local" name="bitcoinUnit" value="MBTC"
+                    id="settingsBitcoinUnitMbtc" :checked="ob.bitcoinUnit === 'MBTC'">
                   <label for="settingsBitcoinUnitMbtc">{{ ob.polyT('settings.generalTab.bitcoinUnitTypes.MBTC') }}</label>
                 </div>
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="localData.bitcoinUnit" value="UBTC" id="settingsBitcoinUnitUbtc">
+                  <input type="radio" data-persistence-location="local" name="bitcoinUnit" value="UBTC"
+                    id="settingsBitcoinUnitUbtc" :checked="ob.bitcoinUnit === 'UBTC'">
                   <label for="settingsBitcoinUnitUbtc">{{ ob.polyT('settings.generalTab.bitcoinUnitTypes.UBTC') }}</label>
                 </div>
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="localData.bitcoinUnit" value="SATOSHI" id="settingsBitcoinUnitSatoshi">
+                  <input type="radio" data-persistence-location="local" name="bitcoinUnit" value="SATOSHI"
+                    id="settingsBitcoinUnitSatoshi" :checked="ob.bitcoinUnit === 'SATOSHI'">
                   <label for="settingsBitcoinUnitSatoshi">{{ ob.polyT('settings.generalTab.bitcoinUnitTypes.SATOSHI')
                   }}</label>
                 </div>
@@ -92,11 +98,13 @@
               <FormError v-if="ob.errors['showNsfw']" :errors="ob.errors['showNsfw']" />
               <div class="btnStrip">
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="formData.showNsfw" value="true" id="settingsViewNSFWInputTrue">
+                  <input type="radio" name="showNsfw" value="true" id="settingsViewNSFWInputTrue" data-var-type="boolean"
+                    :checked="ob.showNsfw">
                   <label for="settingsViewNSFWInputTrue">{{ ob.polyT('settings.yes') }}</label>
                 </div>
                 <div class="btnRadio clrBr">
-                  <input type="radio" v-model="formData.showNsfw" value="false" id="settingsViewNSFWInputFalse">
+                  <input type="radio" name="showNsfw" value="false" id="settingsViewNSFWInputFalse"
+                    data-var-type="boolean" :checked="!ob.showNsfw">
                   <label for="settingsViewNSFWInputFalse">{{ ob.polyT('settings.no') }}</label>
                 </div>
               </div>
@@ -113,7 +121,8 @@
             </div>
             <div class="col9">
               <FormError v-if="ob.errors['verifiedModsProvider']" :errors="ob.errors['verifiedModsProvider']" />
-              <input class="clrP clrBr rowTn js-verifiedModsProvider" type="text" v-model="localData.verifiedModsProvider">
+              <input class="clrP clrBr rowTn js-verifiedModsProvider" data-persistence-location="local" type="text"
+                name="verifiedModsProvider" :value="ob.verifiedModsProvider">
             </div>
           </div>
         </form>
@@ -121,7 +130,7 @@
 
       <hr class="clrBr" />
       <div class="flexHRight">
-        <ProcessingButton :className="`btn clrP clrBAttGrad clrBrDec1 clrTOnEmph js-save ${isSaving ? 'processing' : ''}`" @click="save"
+        <ProcessingButton className="btn clrP clrBAttGrad clrBrDec1 clrTOnEmph js-save" @click="save"
           :btnText="ob.polyT('settings.btnSave')" />
       </div>
     </div>
@@ -135,7 +144,7 @@ import app from '../../../../backbone/app';
 import { translationLangs } from '../../../../backbone/data/languages';
 import { getTranslatedCountries } from '../../../../backbone/data/countries';
 import { getCurrencies } from '../../../../backbone/data/currencies';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../SimpleMessage';
 
 
 export default {
@@ -148,18 +157,6 @@ export default {
   },
   data () {
     return {
-      isSaving: false,
-
-      formData: {
-        country: '',
-        localCurrency: '',
-        showNsfw: 'false',
-      },
-      localData: {
-        language: '',
-        bitcoinUnit: 'SATOSHI',
-        verifiedModsProvider: '',
-      }
     };
   },
   created () {
@@ -168,6 +165,14 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    $('#settingsLanguageSelect').select2();
+    $('#settingsCountrySelect').select2();
+    $('#settingsCurrencySelect').select2();
+
+    this._$settingsFields = null;
+    this._$localSettingsFields = null;
+    this._$btnSave = null;
+    this._$bitcoinUnitField = null;
   },
   computed: {
     ob () {
@@ -180,6 +185,11 @@ export default {
           ...(this.settings.validationError || {}),
           ...(this.localSettings.validationError || {}),
         },
+        ...this._localSettings,
+        ...this._settings,
+        // local lang should be declared after the server model, so the local
+        // lang takes precedence over the deprecated server one
+        language: this.localSettings.get('language'),
       };
     }
   },
@@ -208,31 +218,31 @@ export default {
 
       this.countryList = getTranslatedCountries();
       this.currencyList = getCurrencies();
+    },
 
-      this.localData = {
-        language: this.localSettings.get('language'),
-        bitcoinUnit: this.localSettings.get('bitcoinUnit'),
-        verifiedModsProvider: this.localSettings.get('verifiedModsProvider'),
-      };
-
-      this.formData = {
-        country: this.settings.get('country'),
-        localCurrency: this.settings.get('localCurrency'),
-        showNsfw: this.settings.get('showNsfw'),
+    onChangeCurrencySelect (val) {
+      if (val === 'BTC') {
+        this.$bitcoinUnitField.removeClass('hide');
+      } else {
+        this.$bitcoinUnitField.addClass('hide');
       }
     },
 
     clickRestoreDefaultVerifiedModProvider () {
       // this is currently hidden in the template because it was taken out of the design for now
       const defaultVal = this.localSettings.defaults().verifiedModsProvider;
-      this.localData.verifiedModsProvider = defaultVal;
+      $('.js-verifiedModsProvider').val(defaultVal);
+    },
+
+    getFormDataEx (fields = this.$settingsFields) {
+      return this.getFormData(fields);
     },
 
     save () {
-      this.localSettings.set(this.localData);
+      this.localSettings.set(this.getFormDataEx(this.$localSettingsFields));
       this.localSettings.set({}, { validate: true });
 
-      const settingsFormData = this.formData;
+      const settingsFormData = this.getFormDataEx();
       this.settings.set(settingsFormData);
       this.settings.set({}, { validate: true });
 
@@ -277,14 +287,13 @@ export default {
             });
           })
           .always(() => {
-            this.isSaving = false;
-
+            this.$btnSave.removeClass('processing');
             setTimeout(() => statusMessage.remove(), 3000);
           });
       }
 
       if (!this.localSettings.validationError && !this.settings.validationError) {
-        this.isSaving = true;
+        this.$btnSave.addClass('processing');
       } else {
         const $firstErr = $('.errorList:first');
 
@@ -297,6 +306,29 @@ export default {
           this.$emit('unrecognizedModelError', this, models);
         }
       }
+    },
+
+    get $btnSave () {
+      return this._$btnSave ||
+        (this._$btnSave = $('.js-save'));
+    },
+
+    get $bitcoinUnitField () {
+      return this._$bitcoinUnitField ||
+        (this._$bitcoinUnitField = $('.js-bitcoinUnitField'));
+    },
+
+    get $settingsFields () {
+      return this._$settingsFields ||
+        (this._$settingsFields =
+          $('select[name], input[name], textarea[name]')
+            .not('[data-persistence-location="local"]'));
+    },
+
+    get $localSettingsFields () {
+      return this._$localSettingsFields ||
+        (this._$localSettingsFields =
+          $('[data-persistence-location="local"]'));
     },
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="modal settings tabbedModal modalScrollPage">
-    <BaseModal :modalInfo="{ removeOnClose: true, removeOnRoute: false, }" @close="close">
+    <BaseModal :modalInfo="{ removeOnClose: true, removeOnRoute: false, }">
       <template v-slot:component>
         <div class="topControls flex"></div>
         <div class="flex gutterH">
@@ -8,16 +8,12 @@
             <h1 class="h4 txUp clrT">{{ ob.polyT('settings.settingsLabel') }}</h1>
             <div class="boxList tx4 clrTx1Br">
               <template v-for="tab in ['general', 'page', 'store', 'addresses', 'blocked', 'moderation', 'advanced']">
-                <a :class="`tab row ${capitalize(tab) === activeTab ? 'clrT active' : ''}`" @click="tabClick(capitalize(tab))">{{ ob.polyT(`settings.${tab}Tab.sectionName`) }}</a>
+                <a :class="`tab clrT ${tab === activeTab ? 'row active' : ''}`" @click="tabClick(ob.capitalize(tab))">{{ ob.polyT(`settings.${tab}Tab.sectionName`) }}</a>
               </template>
             </div>
           </div>
           <div class="flexExpand posR">
-            <div class="js-settings-tabContent tabContent">
-              <template v-for="tab in ['General', 'Page', 'Store', 'Addresses', 'Blocked', 'Moderation', 'Advanced']">
-                <component :is="tab" :ref="tab" v-if="activeTab == tab" @unrecognizedModelError="onUnrecognizedModelError" />
-              </template>
-            </div>
+            <div class="js-tabContent tabContent"></div>
           </div>
         </div>
 
@@ -29,43 +25,29 @@
 <script>
 import $ from 'jquery';
 import app from '../../../../backbone/app';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
+import { openSimpleMessage } from '../SimpleMessage';
 import { recordEvent } from '../../../../backbone/utils/metrics';
-import { capitalize } from '../../../../backbone/utils/string';
-
-import General from './General.vue';
-import Page from './Page.vue';
-import Store from './Store.vue';
-import Addresses from './Addresses.vue';
-import Blocked from './Blocked.vue';
-import Moderation from './Moderation.vue';
-import Advanced from './advanced/Advanced.vue';
+import BaseModal from '../BaseModal';
+import General from './General';
+import Page from './Page';
+import Store from './Store';
+import Addresses from './Addresses';
+import Advanced from './advanced/Advanced';
+import Moderation from './Moderation';
+import Blocked from './Blocked';
 
 
 export default {
-  components: {
-    General,
-    Page,
-    Store,
-    Addresses,
-    Blocked,
-    Moderation,
-    Advanced,
-  },
   props: {
     options: {
       type: Object,
-      default: {
-        scrollTo: '',
-      },
+      default: {},
     },
   },
   data () {
     return {
-      initialTab: 'General',
-      activeTab: '',
-
-      currentTabView: undefined,
+      activeTab: 'General',
+      scrollTo: '',
     };
   },
   created () {
@@ -74,16 +56,15 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
-    this.$tabContent = $('.js-settings-tabContent');
+    this.$tabContent = $('.js-tabContent');
 
-    this.selectTab(this.initialTab, {
+    this.selectTab($(`.js-tab[data-tab="${this.activeTab}"]`), {
       scrollTo: this.options.scrollTo,
     });
   },
   computed: {
   },
   methods: {
-    capitalize,
     loadData (options = {}) {
       this.baseInit(options);
 
@@ -122,19 +103,25 @@ export default {
     },
 
     selectTab (targ, options = {}) {
-      const currentTab = this.activeTab;
-      const targetTab = targ;
+      const tabViewName = targ;
+      let tabView = this.tabViewCache[tabViewName];
 
-      if (!this.currentTabView || currentTab !== targetTab) {
-        this.activeTab = targetTab;
+      if (!this.currentTabView || this.currentTabView !== tabView) {
+        if (this.currentTabView) this.currentTabView.$el.detach();
 
-        this.$nextTick(() => {
-          this.currentTabView = this.$refs[targetTab];
+        if (!tabView) {
+          tabView = this.createChild(this.tabViews[tabViewName]);
+          this.tabViewCache[tabViewName] = tabView;
+          tabView.render();
+          this.listenTo(tabView, 'unrecognizedModelError', this.onUnrecognizedModelError);
+        }
 
-          if (options.scrollTo && typeof this.currentTabView.scrollTo === 'function') {
-            setTimeout(() => this.currentTabView.scrollTo(options.scrollTo));
-          }
-        }); 
+        this.$tabContent.append(tabView.$el);
+        this.currentTabView = tabView;
+
+        if (options.scrollTo && typeof tabView.scrollTo === 'function') {
+          setTimeout(() => tabView.scrollTo(options.scrollTo));
+        }
       }
     },
   }

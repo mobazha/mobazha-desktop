@@ -5,10 +5,9 @@
         <div class="flexHCent">
           <h2 class="h3 clrT">{{ ob.polyT('settings.storeTab.sectionName') }}</h2>
           <ProcessingButton
-            :className="`btn clrP clrBAttGrad clrBrDec1 clrTOnEmph modalContentCornerBtn js-save ${isSaving ? 'processing' : ''}`"
+            className="btn clrP clrBAttGrad clrBrDec1 clrTOnEmph modalContentCornerBtn js-save"
             @click="save"
-            :btnText="ob.polyT('settings.btnSave')"
-          />
+            :btnText="ob.polyT('settings.btnSave')" />
         </div>
         <hr class="clrBr" />
 
@@ -22,25 +21,24 @@
                 <FormError v-if="ob.errors['vendor']" :errors="ob.errors['vendor']" />
                 <div class="btnStrip">
                   <div class="btnRadio clrBr">
-                    <input
-                      type="radio"
-                      v-model="formData.vendor"
-                      :value="true"
+                    <input type="radio"
+                      name="vendor"
+                      value="true"
                       class="js-profileField"
                       id="settingsModerationStatusTrue"
                       data-var-type="boolean"
-                    />
+                      :checked="ob.vendor">
                     <label for="settingsModerationStatusTrue">{{ ob.polyT('settings.on') }}</label>
                   </div>
                   <div class="btnRadio clrBr">
                     <input
                       type="radio"
-                      v-model="formData.vendor"
-                      :value="false"
+                      name="vendor"
+                      value="false"
                       class="js-profileField"
                       id="settingsModerationStatusFalse"
-                      data-var-type="boolean"
-                    />
+                      :checked="!ob.vendor"
+                      data-var-type="boolean">
                     <label for="settingsModerationStatusFalse">{{ ob.polyT('settings.off') }}</label>
                   </div>
                 </div>
@@ -56,19 +54,9 @@
               </div>
               <div class="col9">
                 <FormError v-if="ob.errors['currencies']" :errors="ob.errors['currencies']" />
-                <div class="row js-currencySelector">
-                  <CryptoCurSelector
-                    :options="{
-                      currencies: supportedWalletCurs(),
-                      sort: true,
-                    }"
-                    v-model:activeCurs="formData.currencies"
-                  />
-                </div>
+                <div class="row js-currencySelector"></div>
                 <div class="flexHRight">
-                  <div class="js-bulkCoinUpdateBtn">
-                    <BulkCoinUpdateBtn ref="bulkCoinUpdateBtn" @bulkCoinUpdateConfirm="onBulkCoinUpdateConfirm" />
-                  </div>
+                  <div class="js-bulkCoinUpdateBtn"></div>
                 </div>
               </div>
             </div>
@@ -83,55 +71,22 @@
                 <div class="flexColRows gutterV">
                   <div class="row">
                     <h5>{{ ob.polyT('settings.storeTab.selectedModerators') }}</h5>
-                    <div class="js-modListSelected">
-                      <Moderators
-                        ref="modsSelected"
-                        :key="verifiedModsKey"
-                        :options="{
-                          cardState: 'selected',
-                          controlsOnInvalid: true,
-                          fetchErrorTitle: ob.polyT('settings.storeTab.errors.selectedModsTitle'),
-                          notSelected: 'deselected',
-                          showInvalid: true,
-                          showSpinner: false,
-                        }"
-                        :preferredCurs="formData.currencies"
-                      />
-                    </div>
+                    <div class="js-modListSelected"></div>
                   </div>
                   <ul class="unstyled errorList hide js-submitModByIDInputError">
-                    <li><i class="ion-alert-circled"></i><span class="js-submitModByIDInputErrorText" v-html="modByIDInputText"></span></li>
+                    <li><i class="ion-alert-circled"></i><span class="js-submitModByIDInputErrorText"></span> </li>
                   </ul>
                   <div class="flex gutterH">
                     <input
                       type="text"
                       class="btnHeight clrBr clrP clrSh2 js-submitModByIDInput"
-                      v-model="inputModID"
-                      :placeholder="ob.polyT('settings.storeTab.moderatorByIDPlaceholder')"
-                    />
+                      :placeholder="ob.polyT('settings.storeTab.moderatorByIDPlaceholder')">
                     <ProcessingButton
                       className="btn clrP clrBr clrSh2 flexNoShrink js-submitModByID"
                       @click="clickSubmitModByID"
-                      :btnText="ob.polyT('settings.storeTab.moderatoryByIDSubmit')"
-                    />
+                      :btnText="ob.polyT('settings.storeTab.moderatoryByIDSubmit')" />
                   </div>
-                  <div class="js-modListByID">
-                    <Moderators
-                      ref="modsByID"
-                      :key="verifiedModsKey"
-                      v-show="showModListByID"
-                      :options="{
-                        async: false,
-                        excludeIDs: currentMods,
-                        fetchErrorTitle: ob.polyT('settings.storeTab.errors.modNotFoundTitle'),
-                        showInvalid: true,
-                        showSpinner: false,
-                        wrapperClasses: 'noMin',
-                      }"
-                      :preferredCurs="formData.currencies"
-                      :noModsFound="noModsByIDFound"
-                    />
-                  </div>
+                  <div class="js-modListByID"></div>
                   <div>
                     <div class="rowLg">
                       <!-- // just a spacer -->
@@ -141,30 +96,16 @@
                     <div class="tx5 rowTn">
                       <div class="flexVCentClearMarg">
                         <h5 class="flexExpand">{{ ob.polyT('settings.storeTab.availableModerators') }}</h5>
-                        <input type="checkbox" id="storeVerifiedOnly" v-model="showVerifiedOnly" />
+                        <input type="checkbox" id="storeVerifiedOnly" :checked="ob.showVerifiedOnly" @click="onClickVerifiedOnly" >
                         <label class="tx5b" for="storeVerifiedOnly">{{ ob.polyT('settings.storeTab.verifiedOnly') }}</label>
                       </div>
                     </div>
                     <ul class="unstyled errorList hide js-modListAvailableError">
-                      <li><i class="ion-alert-circled"></i><span class="js-modListAvailableErrorText"></span></li>
+                      <li><i class="ion-alert-circled"></i><span class="js-modListAvailableErrorText"></span> </li>
                     </ul>
-                    <div class="js-modListAvailable">
-                      <Moderators
-                        ref="modsAvailable"
-                        :key="verifiedModsKey"
-                        v-show="showModListAvailable"
-                        :options="{
-                          apiPath: 'moderators',
-                          excludeIDs: currentMods,
-                          fetchErrorTitle: ob.polyT('settings.storeTab.errors.availableModsTitle'),
-                          showLoadBtn: true,
-                        }"
-                        :preferredCurs="formData.currencies"
-                        :showVerifiedOnly="showVerifiedOnly"
-                      />
-                    </div>
-                    <div class="noModsAdded flex clrBr js-noModsAdded" v-show="!showModListAvailable">
-                      <button class="btn clrP clrBr browseMods" @click="fetchAvailableModerators">
+                    <div class="js-modListAvailable"></div>
+                    <div class="noModsAdded flex clrBr js-noModsAdded" v-show="!ob.modsAvailable.length">
+                      <button class="btn clrP clrBr browseMods " @click="fetchAvailableModerators">
                         {{ ob.polyT('settings.storeTab.browseModerators') }}
                       </button>
                     </div>
@@ -180,58 +121,19 @@
               </div>
             </div>
           </div>
-          <div class="box padMdKids padStack">
-            <div class="flexRow gutterH">
-              <div class="col3">
-                <label class="required">{{ ob.polyT('editListing.sectionNames.shipping') }}</label>
-              </div>
-            </div>
-            <section ref="sectionShipping" class="shippingSection js-sectionShipping">
-              <FormError v-if="ob.errors['shippingOptions']" :errors="ob.errors['shippingOptions']" />
-              <div class="gutterVMd">
-                <div class="js-shippingOptionsWrap shippingOptionsWrap gutterVMd">
-                  <template v-for="(shipOpt, shipOptIndex) in shippingOptions" :key="shipOpt.cid">
-                    <ShippingOption
-                      ref="shippingOptionViews"
-                      :options="{
-                        getCurrency: () => formData.metadata.pricingCurrency.code,
-                        listPosition: shipOptIndex + 1,
-                      }"
-                      :bb="
-                        function () {
-                          return {
-                            model: shipOpt,
-                          };
-                        }
-                      "
-                      @click-remove="onRemoveShippingOption"
-                    />
-                  </template>
-                </div>
-
-                <div class="contentBox padMd clrP clrBr clrSh3 tx3 shipOptPlaceholder">
-                  <FormError v-if="ob.errors['shippingOptions']" :errors="ob.errors['shippingOptions']" :class="topLevelShipOptErrs" />
-                  <h2 class="h4 clrT js-addShipOptSectionHeading">
-                    {{ ob.polyT('settings.storeTab.shippingOptions.optionHeading', { listPosition: shippingOptions.length + 1 }) }}
-                  </h2>
-                  <hr class="clrBr rowMd" />
-                  <a class="btn clrBr clrP clrSh2 rowSm" @click="onClickAddShippingOption">{{
-                    ob.polyT('settings.storeTab.shippingOptions.btnAddShippingOption')
-                  }}</a>
-                  <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperShipping') }}</div>
-                </div>
-              </div>
-            </section>
-          </div>
         </div>
       </div>
 
       <div class="contentBox padMd clrP clrBr clrSh3">
         <div class="flexHRight">
-          <ProcessingButton :className="`btn clrP clrBAttGrad clrBrDec1 clrTOnEmph js-save ${isSaving ? 'processing' : ''}`" @click="save" :btnText="ob.polyT('settings.btnSave')" />
+          <ProcessingButton
+            className="btn clrP clrBAttGrad clrBrDec1 clrTOnEmph js-save"
+            @click="save"
+            :btnText="ob.polyT('settings.btnSave')" />
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -243,19 +145,13 @@ import app from '../../../../backbone/app';
 import '../../../../backbone/lib/whenAll.jquery';
 import { bulkCoinUpdate } from '../../../../backbone/utils/bulkCoinUpdate';
 import { supportedWalletCurs } from '../../../../backbone/data/walletCurrencies';
-import BulkCoinUpdateBtn from './BulkCoinUpdateBtn.vue';
-import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
-import ShippingOptionMd from '../../../../backbone/models/settings/ShippingOption';
-import ShippingOption from './ShippingOption.vue';
-import Moderators from '../../../components/global/moderators/Moderators.vue';
+import Moderators from '../../components/moderators/Moderators';
+import BulkCoinUpdateBtn from './BulkCoinUpdateBtn';
+import CurrencySelector from '../../components/CryptoCurSelector';
+import { openSimpleMessage } from '../SimpleMessage';
+
 
 export default {
-  name: 'Store',
-  components: {
-    BulkCoinUpdateBtn,
-    ShippingOption,
-    Moderators,
-  },
   props: {
     options: {
       type: Object,
@@ -263,56 +159,35 @@ export default {
     },
     bb: Function,
   },
-  data() {
+  data () {
     return {
-      app: app,
-
-      formData: {
-        vendor: false,
-        currencies: [...new Set(app.profile.get('currencies'))],
-      },
-
-      currentMods: [],
-
-      inputModID: '',
-
-      showModListByID: false,
-      showModListAvailable: false,
-
-      showModByIDInputError: false,
-      modByIDInputText: '',
-
-      verifiedModsKey: 0,
-
-      shippingOptions: [],
-
-      isSaving: false,
     };
   },
-  created() {
+  created () {
     this.initEventChain();
 
     this.loadData(this.options);
   },
-  mounted() {
+  mounted () {
     this.render();
   },
   computed: {
-    ob() {
+    ob () {
       return {
         ...this.templateHelpers,
+        modsAvailable: this.modsAvailable.allIDs,
+        showVerifiedOnly: this._showVerifiedOnly,
         errors: {
           ...(this.profile.validationError || {}),
           ...(this.settings.validationError || {}),
         },
-        ...this.profile.toJSON(),
-        ...this.settings.toJSON(),
+        ...this._profile,
+        ...this._settings,
       };
-    },
+    }
   },
   methods: {
-    supportedWalletCurs,
-    loadData(options = {}) {
+    loadData (options = {}) {
       this.baseInit(options);
 
       this.profile = app.profile.clone();
@@ -331,76 +206,146 @@ export default {
       // Sync the global settings model with any changes we save via our clone.
       this.listenTo(this.settings, 'sync', (md, resp, sOpts) => app.settings.set(this.settings.toJSON(sOpts.attrs)));
 
-      this.formData.vendor = this.profile.get('vendor');
+      const preferredCurs = [...new Set(app.profile.get('currencies'))];
+
+      this.currencySelector = this.createChild(CurrencySelector, {
+        initialState: {
+          currencies: supportedWalletCurs(),
+          activeCurs: preferredCurs,
+          sort: true,
+        },
+      });
+
+      this.listenTo(this.currencySelector, 'currencyClicked', (sOpts) => {
+        this.handleCurrencyClicked(sOpts);
+      });
 
       this.currentMods = this.settings.get('storeModerators');
-      this.showVerifiedOnly = true;
+      this._showVerifiedOnly = true;
 
-      this.listenTo(app.verifiedMods, 'update', () => this.verifiedModsKey += 1);
-      this.shippingOptions = this.settings.get('shippingOptions');
-    },
-    onClickAddShippingOption() {
-      this.shippingOptions.push(new ShippingOptionMd());
-    },
-    hasPhysicalListing() {
-      const stats = app.profile.get('stats');
-      return stats.get('physicalListingCount') > 0;
-    },
-    onRemoveShippingOption(md) {
-      if (this.hasPhysicalListing() && this.shippingOptions.length == 1 && this.shippingOptions.at(0).cid === md.cid) {
-        openSimpleMessage(app.polyglot.t('settings.storeTab.shippingOption.error'), app.polyglot.t('settings.storeTab.shippingOption.noShippingOption'));
-      } else {
-        this.shippingOptions.remove(md);
-      }
-    },
-    onBulkCoinUpdateConfirm() {
-      const newCoins = this.formData.currencies;
-      if (newCoins.length) {
-        bulkCoinUpdate(this.formData.currencies);
-        this.$refs.bulkCoinUpdateBtn.setState({
-          isBulkCoinUpdating: true,
-          showConfirmTooltip: false,
-          error: '',
+      this.modsSelected = new Moderators({
+        cardState: 'selected',
+        controlsOnInvalid: true,
+        fetchErrorTitle: app.polyglot.t('settings.storeTab.errors.selectedModsTitle'),
+        notSelected: 'deselected',
+        showInvalid: true,
+        showSpinner: false,
+        initialState: {
+          preferredCurs,
+        },
+      });
+
+      this.modsByID = new Moderators({
+        async: false,
+        excludeIDs: this.currentMods,
+        fetchErrorTitle: app.polyglot.t('settings.storeTab.errors.modNotFoundTitle'),
+        showInvalid: true,
+        showSpinner: false,
+        wrapperClasses: 'noMin',
+        initialState: {
+          preferredCurs,
+        },
+      });
+
+      this.listenTo(this.modsByID, 'noModsFound', (mOpts) => this.noModsByIDFound(mOpts.guids));
+
+      this.modsAvailable = new Moderators({
+        apiPath: 'moderators',
+        excludeIDs: this.currentMods,
+        fetchErrorTitle: app.polyglot.t('settings.storeTab.errors.availableModsTitle'),
+        showLoadBtn: true,
+        initialState: {
+          preferredCurs,
+          showVerifiedOnly: true,
+        },
+      });
+
+      const modsToCheckOnVerifiedUpdate = [
+        {
+          view: this.modsSelected,
+          hasVerifiedMods: app.verifiedMods.matched(this.modsSelected.allIDs).length > 0,
+        },
+        {
+          view: this.modsByID,
+          hasVerifiedMods: app.verifiedMods.matched(this.modsByID.allIDs).length > 0,
+        },
+        {
+          view: this.modsAvailable,
+          hasVerifiedMods: app.verifiedMods.matched(this.modsAvailable.allIDs).length > 0,
+        },
+      ];
+
+      this.listenTo(app.verifiedMods, 'update', () => {
+        modsToCheckOnVerifiedUpdate.forEach((obj) => {
+          const nowSelected = app.verifiedMods.matched(obj.view.allIDs).length > 0;
+          if (nowSelected !== obj.hasVerifiedMods) {
+            obj.hasVerifiedMods = nowSelected;
+            obj.view.render();
+          }
         });
-      } else {
-        this.$refs.bulkCoinUpdateBtn.setState({
-          isBulkCoinUpdating: false,
-          showConfirmTooltip: false,
-          error: 'NoCoinsError',
-        });
-      }
+      });
+
+      this.bulkCoinUpdateBtn = new BulkCoinUpdateBtn();
+      this.listenTo(this.bulkCoinUpdateBtn, 'bulkCoinUpdateConfirm', () => {
+        const newCoins = this.currencySelector.getState().activeCurs;
+        if (newCoins.length) {
+          bulkCoinUpdate(this.currencySelector.getState().activeCurs);
+          this.bulkCoinUpdateBtn.setState({
+            isBulkCoinUpdating: true,
+            showConfirmTooltip: false,
+            error: '',
+          });
+        } else {
+          this.bulkCoinUpdateBtn.setState({
+            isBulkCoinUpdating: false,
+            showConfirmTooltip: false,
+            error: 'NoCoinsError',
+          });
+        }
+      });
     },
 
-    noModsByIDFound({guids}) {
-      const modsNotFound = app.polyglot.t('settings.storeTab.errors.modsNotFound', { guids, smart_count: guids.length });
+    noModsByIDFound (guids) {
+      const modsNotFound = app.polyglot.t(
+        'settings.storeTab.errors.modsNotFound',
+        { guids, smart_count: guids.length },
+      );
       this.showModByIDError(modsNotFound);
-      if (this.$refs.modsByID.modCount === 0) {
-        this.showModListByID = false;
+      if (this.modsByID.modCount === 0) {
+        $('.js-modListByID').addClass('hide');
       }
     },
 
-    fetchAvailableModerators() {
+    fetchAvailableModerators () {
       // get the verified mods via POST
-      this.$refs.modsAvailable.getModeratorsByID({
+      this.modsAvailable.getModeratorsByID({
         moderatorIDs: app.verifiedMods.pluck('peerID'),
         useCache: true,
         method: 'POST',
         apiPath: 'fetchprofiles',
       });
       // get random mods via GET
-      this.$refs.modsAvailable.getModeratorsByID();
-      this.showModListAvailable = true;
+      this.modsAvailable.getModeratorsByID();
+      $('.js-modListAvailable').removeClass('hide');
+      $('.js-noModsAdded').addClass('hide');
     },
 
-    showModByIDError(msg) {
-      this.showModByIDInputError = true;
-      this.modByIDInputText = msg;
+    showModByIDError (msg) {
+      $('.js-submitModByIDInputError').removeClass('hide');
+      $('.js-submitModByIDInputErrorText').text(msg);
     },
 
-    clickSubmitModByID() {
-      let modID = this.inputModID;
+    handleCurrencyClicked (opts) {
+      const preferredCurs = opts.activeCurs;
+      this.modsSelected.setState({ preferredCurs });
+      this.modsByID.setState({ preferredCurs });
+      this.modsAvailable.setState({ preferredCurs });
+    },
 
-      this.showModByIDInputError = false;
+    clickSubmitModByID () {
+      let modID = $('.js-submitModByIDInput').val();
+
+      $('.js-submitModByIDInputError').addClass('hide');
 
       if (modID) {
         // trim unwanted copy and paste characters
@@ -411,8 +356,8 @@ export default {
         if (isIPFS.multihash(modID)) {
           if (!this.currentMods.includes(modID)) {
             if (modID !== app.profile.id) {
-              this.$refs.modsByID.getModeratorsByID({ moderatorIDs: [modID] });
-              this.showModListByID = true;
+              this.modsByID.getModeratorsByID({ moderatorIDs: [modID] });
+              $('.js-modListByID').removeClass('hide');
             } else {
               const ownGUID = app.polyglot.t('settings.storeTab.errors.ownGUID', { guid: modID });
               this.showModByIDError(ownGUID);
@@ -431,23 +376,27 @@ export default {
       }
     },
 
-    getSettingsData() {
-      let selected = app.settings.get('storeModerators');
-      // The mods may not have loaded in the interface yet. Subtract only explicitly de-selected ones.
-      selected = _.without(selected, ...this.$refs.modsSelected.unselectedIDs);
-      const byID = this.$refs.modsByID.selectedIDs;
-      const available = this.$refs.modsAvailable.selectedIDs;
-      return {
-        storeModerators: [...new Set([...selected, ...byID, ...available])],
-        shippingOptions: this.shippingOptions.toJSON(),
-      };
+    onClickVerifiedOnly (e) {
+      this.showVerifiedOnly = $(e.target).prop('checked');
     },
 
-    save() {
-      (this.$refs.shippingOptionViews ?? []).forEach((shippingOptionVw) => shippingOptionVw.setModelData());
+    getProfileFormData (subset = this.$profileFormFields) {
+      return this.getFormData(subset);
+    },
 
+    getSettingsData () {
+      let selected = app.settings.get('storeModerators');
+      // The mods may not have loaded in the interface yet. Subtract only explicitly de-selected ones.
+      selected = _.without(selected, ...this.modsSelected.unselectedIDs);
+      const byID = this.modsByID.selectedIDs;
+      const available = this.modsAvailable.selectedIDs;
+      return { storeModerators: [...new Set([...selected, ...byID, ...available])] };
+    },
+
+    save () {
       // this view saves to two different models
-      const profileFormData = this.formData;
+      const profileFormData = this.getProfileFormData();
+      profileFormData.currencies = this.currencySelector.getState().activeCurs;
       const settingsFormData = this.getSettingsData();
 
       this.profile.set(profileFormData);
@@ -456,7 +405,7 @@ export default {
       this.settings.set(settingsFormData, { validate: true });
 
       if (!this.profile.validationError && !this.settings.validationError) {
-        this.isSaving = true;
+        $('.js-save').addClass('processing');
 
         const msg = {
           msg: app.polyglot.t('settings.storeTab.status.saving'),
@@ -488,30 +437,33 @@ export default {
 
             // move the changed moderators
             this.currentMods = this.settings.get('storeModerators');
-            const unSel = this.$refs.modsSelected.unselectedIDs;
-            const remSel = this.$refs.modsSelected.removeModeratorsByID(unSel);
-            const remByID = this.$refs.modsByID.removeModeratorsByID(this.$refs.modsByID.selectedIDs);
-            const remAvail = this.$refs.modsAvailable.removeModeratorsByID(this.$refs.modsAvailable.selectedIDs);
+            const unSel = this.modsSelected.unselectedIDs;
+            const remSel = this.modsSelected.removeModeratorsByID(unSel);
+            const remByID = this.modsByID.removeModeratorsByID(this.modsByID.selectedIDs);
+            const remAvail = this.modsAvailable.removeModeratorsByID(this.modsAvailable.selectedIDs);
 
-            this.$refs.modsByID.excludeIDs = this.currentMods;
-            this.$refs.modsByID.showStatus = false;
+            this.modsByID.excludeIDs = this.currentMods;
+            this.modsByID.moderatorsStatus.setState({
+              hidden: true,
+            });
 
-            this.$refs.modsSelected.moderatorsCol.add([...remByID, ...remAvail]);
-            this.$refs.modsSelected.showStatus = false;
+            this.modsSelected.moderatorsCol.add([...remByID, ...remAvail]);
+            this.modsSelected.moderatorsStatus.setState({
+              hidden: true,
+            });
 
-            this.$refs.modsAvailable.excludeIDs = this.currentMods;
-            this.$refs.modsAvailable.moderatorsCol.add(remSel);
-            this.$refs.modsSelected.showStatus = true;
-            if (this.$refs.modsAvailable.$refs.moderatorsStatus) {
-              this.$refs.modsAvailable.$refs.moderatorsStatus.setState({
-                showSpinner: false,
-              });
-            }
+            this.modsAvailable.excludeIDs = this.currentMods;
+            this.modsAvailable.moderatorsCol.add(remSel);
+            this.modsAvailable.moderatorsStatus.setState({
+              hidden: false,
+              total: this.modsAvailable.modCount,
+              showSpinner: false,
+            });
 
             // If any of the mods moved to the available collect are unverified, show them
             if (app.verifiedMods.matched(unSel).length !== unSel.length) {
               // Don't render, the render is in the always handler
-              this.showVerifiedOnly = false;
+              this._showVerifiedOnly = false;
             }
           })
           .fail((...args) => {
@@ -525,7 +477,7 @@ export default {
             });
           })
           .always(() => {
-            this.isSaving = false;
+            $('.js-save').removeClass('processing');
             setTimeout(() => statusMessage.remove(), 3000);
             this.render();
           });
@@ -542,17 +494,39 @@ export default {
         }
       }
     },
-    render() {
-      if (this.$refs.modsSelected) {
-        this.$refs.modsSelected.getModeratorsByID({ moderatorIDs: this.currentMods });
+
+    set showVerifiedOnly (bool) {
+      this._showVerifiedOnly = bool;
+      this.modsAvailable.setState({ showVerifiedOnly: bool });
+    },
+
+    render () {
+      this.currencySelector.delegateEvents();
+      $('.js-currencySelector').append(this.currencySelector.render().el);
+
+      this.modsSelected.delegateEvents();
+      $('.js-modListSelected').append(this.modsSelected.render().el);
+      if (!this.modsSelected.modFetches.length) {
+        this.modsSelected.getModeratorsByID({ moderatorIDs: this.currentMods });
       }
 
-      this.showModListByID = !!this.$refs.modsByID?.allIDs?.length;
-      this.showModListAvailable = !!this.$refs.modsAvailable?.allIDs?.length;
+      this.modsByID.delegateEvents();
+      $('.js-modListByID')
+        .append(this.modsByID.render().el)
+        .toggleClass('hide', !this.modsByID.allIDs.length);
+
+      this.modsAvailable.delegateEvents();
+      $('.js-modListAvailable')
+        .append(this.modsAvailable.render().el)
+        .toggleClass('hide', !this.modsAvailable.allIDs.length);
+
+      this.bulkCoinUpdateBtn.delegateEvents();
+      $('.js-bulkCoinUpdateBtn').append(this.bulkCoinUpdateBtn.render().el);
 
       return this;
-    },
-  },
-};
+    }
+
+  }
+}
 </script>
 <style lang="scss" scoped></style>

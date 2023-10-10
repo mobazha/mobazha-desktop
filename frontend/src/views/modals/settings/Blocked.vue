@@ -6,7 +6,7 @@
       </div>
       <hr class="clrBr rowLg" />
 
-      <div :class="`flexColWide tx5 rowMd blockedListWrap ${ob.blocked.length ? 'padKids borderStackedAll' : ''}`">
+      <div class="flexColWide tx5 rowMd blockedListWrap <% if (ob.blocked.length) print('padKids borderStackedAll') %>">
         <template v-if="ob.blocked.length">
           <template v-for="peerID in ob.blocked">
             <div class="clrBr">
@@ -29,6 +29,7 @@
 </template>
 
 <script>
+import $ from 'jquery';
 import app from '../../../../backbone/app';
 import { unblock, isUnblocking, events as blockEvents } from '../../../../backbone/utils/block';
 
@@ -64,7 +65,8 @@ export default {
   },
   methods: {
     loadData (options = {}) {
-      const calcBlockedList = () => app.settings.get('blockedNodes').filter(peerID => !isUnblocking(peerID));
+      const calcBlockedList = () => app.settings.get('blockedNodes')
+        .filter(peerID => !isUnblocking(peerID));
 
       this.baseInit({
         ...options,
