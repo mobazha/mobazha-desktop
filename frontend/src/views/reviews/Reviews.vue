@@ -2,19 +2,15 @@
   <div class="reviews">
     <div class="contentBox padLg clrP clrBr clrSh3">
       <h2 class="txUnb title">{{ ob.polyT('listingDetail.reviews') }}</h2>
-      <template v-if="!options.isFetchingRatings">
-        <template v-if="reviewIDs.length">
-          <div ref="reviewWrapper" class="js-reviewWrapper" v-show="!!collection.length">
-            <template v-for="review in collection" :key="review.cid">
-              <Review :options="{ model: review, showListingData, }" />
-            </template>
-          </div>
-          <div class="clrTErr js-errors" v-html="errorMsg"></div>
-          <div class="flexHCent loadMore clrBr" v-show="!!collection.length && startIndex < reviewIDs.length">
-            <ProcessingButton :className="`btn clrP clrBr js-loadMoreBtn ${loadingMore ? 'processing' : ''}`" @click="clickLoadMore"
+      <template v-if="!ob.isFetchingRatings">
+        <template v-if="ob.reviewsLength">
+          <div class="js-reviewWrapper" v-show="!!ob.collectionLength"></div>
+          <div class="clrTErr js-errors"></div>
+          <div class="flexHCent loadMore clrBr" v-show="!!ob.collectionLength && startIndex < reviewIDs.length">
+            <ProcessingButton className="btn clrP clrBr js-loadMoreBtn" @click="clickLoadMore"
               :btnText="ob.polyT('listingDetail.review.loadMore')" />
           </div>
-          <div class="flexHCent js-reviewsSpinner" v-show="!collection.length">
+          <div class="flexHCent js-reviewsSpinner">
             <SpinnerSVG className="spinnerMd" />
           </div>
         </template>
@@ -32,46 +28,33 @@
         </div>
       </template>
     </div>
+
   </div>
 </template>
 
 <script>
 /* eslint-disable class-methods-use-this */
+import $ from 'jquery';
 import _ from 'underscore';
-import { myAjax } from '../../api/api';
+import loadTemplate from '../../../backbone/utils/loadTemplate';
 import { getSocket } from '../../../backbone/utils/serverConnect';
 import app from '../../../backbone/app';
 import Collection from '../../../backbone/collections/Reviews';
+import Review from './Review';
+import 'trunk8';
 
-import Review from './Review.vue';
 
 export default {
-  components: {
-    Review,
-  },
   props: {
     options: {
       type: Object,
       default: {},
     },
-    reviewIDs: {
-      type: Object,
-      default: [],
-    },
     bb: Function,
   },
   data () {
     return {
-      _collection: new Collection(),
-      _collectionKey: 0,
-
-      startIndex: 0,
-      initialPageSize: 3,
-      pageSize: 10,
-      showListingData: false,
-
-      loadingMore: false,
-      errorMsg: '',
+      reviewIDs: [],
     };
   },
   created () {
@@ -80,6 +63,8 @@ export default {
     this.loadData(this.options);
   },
   mounted () {
+    this.render();
+
     if (this.options.async) {
       this.listenForReviews();
     }
@@ -89,44 +74,42 @@ export default {
       return {
         ...this.templateHelpers,
         reviewsLength: this.reviewIDs.length,
+        collectionLength: this.collection.length,
         ...this._state,
       };
-    },
-
-    collection() {
-      let access = this._collectionKey;
-
-      return this._collection;
-    },
+    }
   },
   methods: {
     loadData (options = {}) {
-      this.baseInit(options);
+      const opts = {
+        ...options,
+        initialState: {
+          isFetchingRatings: false, // pass in true if ratings are provided after the first render
+          ...options.initialState || {},
+        },
+      };
+      this.baseInit(opts);
 
       this.startIndex = this.options.startIndex || 0;
       this.initialPageSize = this.options.pageSize || 3;
       this.pageSize = this.options.pageSize || 10;
+      this.reviewIDs = this.options.ratings || [];
       this.showListingData = this.options.showListingData;
-
-      this._collection.on('change', () => this._collectionKey += 1);
-
-      // load the reviews when data is available and the collection is empty
-      if (this.reviewIDs.length && !this._collection.length) {
-        this.loadReviews(this.startIndex, this.initialPageSize);
-      }
+      this.collection = new Collection();
+      this.listenTo(this.collection, 'add', (model) => this.addReview(model));
     },
 
     onSocketMessage (event) {
       const eventData = event.jsonData || {};
       if (this.reviewIDs && this.reviewIDs.indexOf(eventData.ratingId) !== -1) {
         if (!eventData.error) {
-          this._collection.add(eventData.rating.ratingData);
+          this.collection.add(eventData.rating.ratingData);
         } else {
           // add the error to the collection so it can be shown in place of the review
-          this._collection.add(eventData);
+          this.collection.add(eventData);
         }
-        if (this._collection.length >= this.startIndex) {
-          this.loadingMore = false;
+        if (this.collection.length >= this.startIndex) {
+          $('.js-loadMoreBtn').removeClass('processing');
         }
       }
     },
@@ -144,7 +127,7 @@ export default {
 
     appendError (error) {
       const msg = app.polyglot.t('listingDetail.errors.fetchReviews', { error });
-      this.errorMsg += `<p><i class="ion-alert-circled"> ${msg}</p>`;
+      $('.js-errors').append(`<p><i class="ion-alert-circled"> ${msg}</p>`);
     },
 
     loadReviews (start = this.startIndex, pageSize = this.pageSize, async = !!this.options.async) {
@@ -155,9 +138,9 @@ export default {
       const ps = start + pageSize <= revLength ? pageSize : revLength - start;
 
       if (start < revLength) {
-        this.loadingMore = true;
-        this.errorMsg = '';
-        myAjax({
+        $('.js-loadMoreBtn').addClass('processing');
+        $('.js-errors').html('');
+        $.ajax({
           url: app.getServerUrl(`ob/fetchratings?async=${asyncUpdate}`),
           data: JSON.stringify(this.reviewIDs.slice(start, start + ps)),
           dataType: 'json',
@@ -168,21 +151,63 @@ export default {
             this.startIndex = start + ps;
             if (!asyncUpdate) {
               this.collection.add(_.pluck(data, 'rating'));
-              this.loadingMore = false;
+              $('.js-loadMoreBtn').removeClass('processing');
             }
           })
           .fail((xhr) => {
             const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
             this.appendError(failReason);
-            this.errorMsg += `<p>${failReason}</p>`;
-            this.loadingMore = false;
+            $('.js-errors').append(`<p>${failReason}</p>`);
+            $('.js-loadMoreBtn').removeClass('processing');
           });
       }
+    },
+
+    addReview (model) {
+      const newReview = new Review({
+        model,
+        showListingData: this.showListingData,
+      });
+      const newRevieEl = newReview.render().$el;
+      const btnTxt = app.polyglot.t('listingDetail.review.showMore');
+      const truncLines = model.get('buyerID') !== undefined ? 5 : 6;
+
+      $('.js-reviewWrapper').append(newRevieEl);
+      $('.js-reviewWrapper').removeClass('hide');
+      $('.js-reviewsSpinner').addClass('hide');
+
+      // truncate any review text that is too long
+      newRevieEl.find('.js-reviewText').trunk8({
+        fill: `… <button class="btnTxtOnly trunkLink js-showMore">${btnTxt}</button>`,
+        lines: truncLines,
+      });
     },
 
     clickLoadMore () {
       this.loadReviews(this.startIndex);
     },
+
+    render () {
+      super.render();
+      loadTemplate('reviews/reviews.html', (t) => {
+        this.$el.html(t({
+          reviewsLength: this.reviewIDs.length,
+          collectionLength: this.collection.length,
+          ...this.getState(),
+        }));
+
+        // render any reviews that have already loaded
+        this.collection.each((review) => this.addReview(review));
+
+        // load the reviews when data is available and the collection is empty
+        if (this.reviewIDs.length && !this.collection.length) {
+          this.loadReviews(this.startIndex, this.initialPageSize);
+        }
+      });
+
+      return this;
+    }
+
   }
 }
 </script>
