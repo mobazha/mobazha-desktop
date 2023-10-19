@@ -1,16 +1,15 @@
 <template>
-  <div :class="`listingsGrid flex ${viewType === 'list' ? 'listingsGridListView' : ''}`" :key="viewType">
-    <template v-for="model in collection" :key="model.cid">
-      <ListingCard :options="getCardOptions(model)" :bb="function() {
-          return {
-            model,
-          }
-        }"
-      />
+  <div :class="`listingsGrid flex ${viewType === 'list' ? 'listingsGridListView' : ''}`">
+    <template v-for="model in collection">
+      <ListingCard :options="cardOptions(model)" :bb="function() {
+        return {
+          model,
+        }
+      }" />
     </template>
   </div>
 </template>
-
+  
 <script>
 import app from '../../../backbone/app';
 
@@ -31,24 +30,62 @@ export default {
     };
   },
   created () {
+    this.loadData(this.options);
   },
   mounted () { },
   computed: {
+    ob () {
+      return {
+        ...this.templateHelpers,
+        ...this.options,
+      };
+    },
+    listingCount() {
+      return this.collection.length;
+    },
   },
   watch: {
     viewType(type) {
-      if (['list', 'grid'].indexOf(type) === -1) {
+      if (['list', 'grid'].indexOf(type) === '-1') {
         throw new Error('The type provided is not one of the available types.');
       }
 
       // This just sets the flag. It's up to you to re-render to update the UI.
-      if (app.localSettings.get('listingsGridViewType') !== type) {
-        app.localSettings.save('listingsGridViewType', type);
-      }
+      app.localSettings.save('listingsGridViewType', type);
     },
   },
   methods: {
-    getCardOptions(model) {
+    loadData (options = {}) {
+      // If this grid is for a Store, pass in a storeOwnerProfile option
+      // with the Profile model of the store owner.
+
+      this.baseInit(options);
+
+      if (!this.collection) {
+        throw new Error('Please provide a collection.');
+      }
+
+      if (!this.options.listingBaseUrl && !this.storeOwnerProfile) {
+        let allHaveVendor = true;
+
+        try {
+          this.collection.forEach(md => {
+            if (!md.get('vendor')) throw new Error();
+          });
+        } catch (e) {
+          allHaveVendor = false;
+        }
+
+        if (!allHaveVendor) {
+          throw new Error('I am unable to determine a listingBaseUrl for one or more of the ' +
+            'provided listings. Please either pass in a listingBaseUrl option or it can be ' +
+            'derived if you provid a storeOwnerProfile option or every model has an embedded ' +
+            ' Vendor object.');
+        }
+      }
+    },
+
+    cardOptions(model) {
       let listingBaseUrl;
 
       // The listingBaseUrl can be directly provided as an option or we
@@ -57,29 +94,32 @@ export default {
       if (this.options.listingBaseUrl) {
         listingBaseUrl = this.options.listingBaseUrl;
       } else if (model.get('vendor')) {
-        const base = model.get('vendor').handle ? `@${model.get('vendor').handle}` : model.get('vendor').peerID;
+        const base = model.get('vendor').handle ?
+          `@${model.get('vendor').handle}` : model.get('vendor').peerID;
         listingBaseUrl = `${base}/store/`;
       } else if (this.storeOwnerProfile) {
-        const base = this.storeOwnerProfile.get('handle') ? `@${this.storeOwnerProfile.get('handle')}` : this.storeOwnerProfile.id;
+        const base = this.storeOwnerProfile.get('handle') ?
+          `@${this.storeOwnerProfile.get('handle')}` :
+          this.storeOwnerProfile.id;
         listingBaseUrl = `${base}/store/`;
       }
 
-      return {
+      const options = {
         listingBaseUrl,
         viewType: this.viewType,
-        vendor: {
-          peerID: this.storeOwnerProfile.id,
-          name: this.storeOwnerProfile.get('name'),
-          handle: this.storeOwnerProfile.get('handle'),
-          avatarHashes: this.storeOwnerProfile.get('avatarHashes').toJSON(),
-        },
+      };
 
+      if (this.storeOwnerProfile) {
+        options.profile = this.storeOwnerProfile;
         // Flag so the listing card knows it's on a store. This is useful to
         // the listing detail modal and will be passed into there.
-        onStore: true,
-      };
-    }
+        options.onStore = true;
+      }
+
+      return options;
+    },
   },
 };
 </script>
 <style lang="scss" scoped></style>
+  
