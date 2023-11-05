@@ -45,7 +45,7 @@
         bottom: 10px;
         padding: 0;
         line-height: 1;
-        @include center(true, false);
+        @include center(true, false)
       }
     }
 
@@ -59,8 +59,7 @@
             }
           }
 
-          .cryptoQuantityCoinType,
-          .cryptoPriceModifierPercentSymbol {
+          .cryptoQuantityCoinType, .cryptoPriceModifierPercentSymbol {
             position: absolute;
             right: 15px;
             top: 12px;
@@ -87,8 +86,7 @@
             cursor: move;
 
             &:nth-last-child(-n + 6):nth-child(6n + 1), // first element of the last row
-            &:nth-last-child(-n + 6):nth-child(6n + 1) ~ li {
-              // all its following elements
+            &:nth-last-child(-n + 6):nth-child(6n + 1) ~ li { // all its following elements
               margin-bottom: 0;
             }
 
@@ -260,8 +258,7 @@
         }
       }
 
-      .variantInventorySection,
-      .optionalFeatures {
+      .variantInventorySection {
         .inventoryTableWrap {
           overflow: auto;
           max-height: 500px;
@@ -275,16 +272,16 @@
           th {
             text-align: left;
           }
-          td,
-          th {
+
+          td, th {
             border-width: 1px;
             border-style: solid;
             padding: $pad;
             word-break: break-word;
-            min-width: 76px;
-            max-width: 145px;
-            box-sizing: border-box;
-            input[type='text'] {
+            min-width: 90px;
+            max-width: 125px;
+
+            input[type=text] {
               width: 100%;
             }
 
@@ -300,7 +297,7 @@
             }
 
             &.quantityCol {
-              input[type='number'] {
+              input[type=number] {
                 min-width: 75px;
               }
             }
@@ -329,8 +326,7 @@
   .tab-shipping,
   .shippingSection,
   .shippingFromSection,
-  .conditionWrap,
-  .weightWrap {
+  .conditionWrap {
     display: none;
   }
 
@@ -341,7 +337,6 @@
   &.TYPE_PHYSICAL_GOOD {
     .tab-shipping,
     .conditionWrap,
-    .weightWrap,
     .shippingSection {
       display: block;
     }
@@ -350,7 +345,6 @@
   &.TYPE_PHYSICAL_GOOD {
     .tab-shippingFrom,
     .conditionWrap,
-    .weightWrap,
     .shippingFromSection {
       display: block;
     }
@@ -367,7 +361,6 @@
       .variantsSection,
       .inventoryManagementSection,
       .variantInventorySection,
-      .optionalFeatures,
       .couponsSection {
         display: none;
       }
