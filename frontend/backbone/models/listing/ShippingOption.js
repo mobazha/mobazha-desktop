@@ -1,17 +1,14 @@
-import app from '../../app.js';
-import BaseModel from '../BaseModel.js';
+import app from '../../app';
+import BaseModel from '../BaseModel';
 import Services from '../../collections/Services.js';
 import is from 'is_js';
 
 export default class extends BaseModel {
   defaults() {
     return {
-      id: -1,
-      name: '',
       type: 'FIXED_PRICE',
-      currency: app.settings.get('localCurrency'),
-      serviceType: 'SAME_WEIGHT_SAME_FEE',
       regions: [],
+      name: '',
       services: new Services(),
     };
   }
@@ -84,12 +81,6 @@ export default class extends BaseModel {
     // countries, which is what our UI is designed to work with.
     if (response.regions && response.regions.length && response.regions[0] === 'ALL') {
       response.regions = Object.keys(getIndexedCountries());
-    }
-
-    if (response.services && response.services.length) {
-      response.services.forEach((service) => {
-        service.currency = response.currency;
-      });
     }
 
     return response;
