@@ -63,7 +63,7 @@
                   <i class="ion-social-github githubColor"></i>
                 </a>
                 <a href="https://mobazha.org/slack/" data-open-external>
-                  <img class="thumb non-ionic-icon" src="~@/../imgs/slack-icon.png" alt="Slack" />
+                  <i class="thumb non-ionic-icon" style="background-image: url(../imgs/slack-icon.png)"></i>
                 </a>
               </div>
             </div>
