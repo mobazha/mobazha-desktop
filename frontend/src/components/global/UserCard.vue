@@ -1,13 +1,15 @@
 <template>
   <div :class="`userCard ${isBlocked ? 'isBlocked' : ''}`">
     <div class="contentBox clrBr clrP clrSh2 <% if (ob.notFound) { %>disabled<% } %>">
-      <div class="shortHeader pointer Img-container" @click="nameClick">
-        <img class="bkgImg" :src="headerHash ? ob.getServerUrl(`ob/image/${headerHash}`) : ob.getImagePath('defaultHeader.png')"/>
+      <div class="shortHeader pointer " @click="nameClick"
+        :style="headerHash ? `background-image: url(${ob.getServerUrl(`ob/image/${headerHash}`)}), url('../imgs/defaultHeader.png')` : `background-image: url('../imgs/defaultHeader.png')`">
         <div class="blockedOverlay clrP flexCent tx5">
           <div>{{ ob.polyT('userShort.blockedUserOverlayText') }}</div>
         </div>
         <div class="userIconWrap">
-          <a><img class="userIcon disc clrBr2 clrSh1" :src="avatarHash ? ob.getServerUrl(`ob/image/${avatarHash}`) : ob.getImagePath('defaultAvatar.png')" /></a>
+          <a class="userIcon disc clrBr2 clrSh1"
+            :style="avatarHash ? `background-image: url(${ob.getServerUrl(`ob/image/${avatarHash}`)}), url('../imgs/defaultAvatar.png')` : `background-image: url('../imgs/defaultAvatar.png')`">
+          </a>
           <div class="blockedAvatarOverlay disc clrBr2 clrSh1 clrP clrT"><i class="ion-eye-disabled center"></i></div>
         </div>
         <template v-if="!ob.hideControls">
@@ -16,9 +18,9 @@
               <template v-if="ob.moderator && ob.crypto.anySupportedByWallet(ob.moderatorInfo.acceptedCurrencies)">
                 <ProcessingButton
                   :className="`iconBtnSm clrP clrBr toolTipNoWrap toolTipTop js-mod ${ob.ownMod ? 'active' : ''} ${processingMod ? 'processing' : ''}`"
-                  @click.stop="modClick()"
+                  @click.stop="modClick"
                   btnText='<i class="ion-briefcase"></i>'
-                  :data-tip="getModTip()" />
+                  :data-tip="ob.getModTip(ob.ownMod)" />
               </template>
               <ProcessingButton
                 :className="`iconBtnSm clrP clrBr toolTipNoWrap toolTipTop js-follow ${ob.followedByYou ? 'active' : ''} ${processingFollow ? 'processing' : ''}`"
@@ -69,16 +71,7 @@
         </template>
       </div>
     </div>
-    <Teleport to="#js-vueModal">
-      <ModeratorDetails v-if="showModeratorDetails"
-        :bb="() => {
-          return {
-            model,
-          }}"
-       @addAsModerator="onAddAsModerator"
-       @close="showModeratorDetails = false"
-      />
-    </Teleport>
+
   </div>
 </template>
 
@@ -89,15 +82,12 @@ import app from '../../../backbone/app';
 import { followedByYou, followUnfollow } from '../../../backbone/utils/follow';
 import Profile, { getCachedProfiles } from '../../../backbone/models/profile/Profile';
 import { isBlocked, events as blockEvents } from '../../../backbone/utils/block';
+import { launchModeratorDetailsModal } from '../../../backbone/utils/modalManager';
 import { openSimpleMessage } from '../../../backbone/views/modals/SimpleMessage';
 import { getModeratorOptions } from '@/utils/verifiedMod';
 
-import ModeratorDetails from '@/views/modals/ModeratorDetails.vue';
 
 export default {
-  components: {
-    ModeratorDetails,
-  },
   props: {
     options: {
       type: Object,
@@ -109,27 +99,12 @@ export default {
     return {
       isBlocked: false,
 
-      guid: '',
-      fetched: false,
-      fetchedModel: undefined,
-
-      loading: false,
-      notFound: false,
-
       updateKey: 0,
       processingMod: false,
       processingFollow: false,
-
-      followedByYou: false,
-
-      settings: undefined,
-
-      showModeratorDetails: false,
     };
   },
   created () {
-    this.initEventChain();
-
     this.loadData(this.options);
   },
   mounted () {
@@ -147,14 +122,14 @@ export default {
         loading: this.loading,
         notFound: this.notFound,
         guid: this.guid,
-        ownGuid: this.guid === app.profile.id,
+        ownGuid: this.ownGuid,
         followedByYou: this.followedByYou,
-        ownMod: this.isOwnMod(),
+        ownMod: this.ownMod,
         verifiedMod: app.verifiedMods.get(this.guid),
+        getModTip: this.getModTip,
         getFollowTip: this.getFollowTip,
         ...this.options,
-        ...((this.bb && this.model && this.model.toJSON()) || {}),
-        ...((this.fetchedModel && this.fetchedModel.toJSON()) || {}),
+        ...this.model.toJSON(),
       };
     },
     headerHash () {
@@ -165,12 +140,15 @@ export default {
       const ob = this.ob;
       return ob.avatarHashes ? ob.isHiRez() ? ob.avatarHashes.small : ob.avatarHashes.tiny : '';
     },
+    ownMod () {
+      return app.settings.ownMod(this.guid);
+    },
   },
   methods: {
     loadData (options = {}) {
       this.baseInit(options);
 
-      if (this.bb && this.model && this.model instanceof Profile) {
+      if (this.model instanceof Profile) {
         this.guid = this.model.id;
         this.fetched = true;
       } else {
@@ -179,13 +157,14 @@ export default {
       }
 
       if (!this.guid) {
-        if (_.has(this, 'model')) {
+        if (this.model) {
           throw new Error('The guid must be provided in the model.');
         } else {
           throw new Error('The guid must be provided in the options.');
         }
       }
 
+      this.ownGuid = this.guid === app.profile.id;
       this.followedByYou = followedByYou(this.guid);
 
       this.loading = !this.fetched;
@@ -215,12 +194,8 @@ export default {
       });
     },
 
-    isOwnMod() {
-      return app.settings.ownMod(this.guid);
-    },
-
-    getModTip () {
-      return this.isOwnMod()
+    getModTip (ownMod = this.ownMod) {
+      return ownMod
         ? `${app.polyglot.t('userShort.tipModRemove')}`
         : `${app.polyglot.t('userShort.tipModAdd')}`;
     },
@@ -231,20 +206,20 @@ export default {
         : `${app.polyglot.t('userShort.tipFollow')}`;
     },
 
-    loadUser () {
+    loadUser (guid = this.guid) {
       this.fetched = true;
 
-      if (this.guid === app.profile.id) {
+      if (guid === app.profile.id) {
         // don't fetch this user's own profile, since we have it already
         this.profileFetch = $.Deferred().resolve(app.profile);
       } else {
-        this.profileFetch = getCachedProfiles([this.guid])[0];
+        this.profileFetch = getCachedProfiles([guid])[0];
       }
 
       this.profileFetch.done((profile) => {
         this.loading = false;
         this.notFound = false;
-        this.fetchedModel = profile;
+        this.model = profile;
         this.updateKey += 1;
       }).fail(() => {
         this.loading = false;
@@ -272,18 +247,18 @@ export default {
     },
 
     modClick () {
-      if (this.isOwnMod()) {
+      if (this.ownMod) {
         // remove this user from the moderator list
         this.processingMod = true;
         this.saveModeratorList(false);
       } else {
         // show the moderator details modal
-        this.showModeratorDetails = true;
+        const modModal = launchModeratorDetailsModal({ model: this.model });
+        this.listenTo(modModal, 'addAsModerator', () => {
+          this.processingMod = true;
+          this.saveModeratorList(true);
+        });
       }
-    },
-    onAddAsModerator() {
-      this.processingMod = true;
-      this.saveModeratorList(true);
     },
 
     onClickImageHeader () {
@@ -301,9 +276,9 @@ export default {
 
     saveModeratorList (add = false) {
       // clone the array, otherwise it is a reference
-      let modList = _.clone((app.settings && app.settings.get('storeModerators')) || []);
+      let modList = _.clone(app.settings.get('storeModerators'));
 
-      if (add && !this.isOwnMod()) {
+      if (add && !this.ownMod) {
         modList.push(this.guid);
       } else {
         modList = _.without(modList, this.guid);
@@ -358,16 +333,4 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
-.Img-container {
-  position: relative;
-}
-.bkgImg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-</style>
+<style lang="scss" scoped></style>
