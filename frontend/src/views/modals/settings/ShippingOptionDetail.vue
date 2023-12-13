@@ -1,34 +1,34 @@
 <template>
   <div class="detail-wrapper">
     <div class="template-name">{{ `${this.shippingOption.get('name')}: ${templateName}` }}</div>
-    <div class="tips" v-if="formData.serviceType"><span class="tips-btn">{{ ob.polyT('settings.storeTab.shippingOptions.services.notice') }}</span>{{ serviceTypeTip }}</div>
+    <div class="tips" v-if="formData.serviceType"><span class="tips-btn">说明!</span>{{ serviceTypeTip }}</div>
     <table class="table" width="100%" border="1" cellpadding="0" cellspacing="0">
+      <tr>
+        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.nameLabel') }}</th>
+        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.estimatedDeliveryLabel') }}</th>
+        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.weightRange') }}</th>
+        <template v-if="formData.serviceType === 'FIRST_RENEWAL_FEE'">
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.firstWeightAndFee') }}</th>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.renewalUnitWeightAndFee') }}</th>
+        </template>
+        <template v-else>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.Fee') }}</th>
+        </template>
+        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.registrationFee') }}</th>
+      </tr>
       <tbody>
-        <tr>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.nameLabel') }}</th>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.estimatedDeliveryLabel') }}</th>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.weightRange') }}</th>
-          <template v-if="formData.serviceType === 'FIRST_RENEWAL_FEE'">
-            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.firstWeightAndFee') }}</th>
-            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.renewalUnitWeightAndFee') }}</th>
-          </template>
-          <template v-else>
-            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.fee') }}</th>
-          </template>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.registrationFee') }}</th>
-        </tr>
         <tr v-for="(item, index) in formData.services" :key="index">
           <td>{{ item.name }}</td>
           <td>{{ item.estimatedDelivery }}</td>
           <td>{{ `${item.startWeight}g ~ ${item.endWeight}g` }}</td>
           <template v-if="formData.serviceType === 'FIRST_RENEWAL_FEE'">
-            <td>{{ `${item.firstWeight}g / ${formatCurrency(item.firstFreight, currency)}` }}</td>
-            <td>{{ `${item.renewalUnitWeight}g / ${formatCurrency(item.renewalUnitPrice, currency)}` }}</td>
+            <td>{{ `${item.firstWeight}g / ${item.firstFreight}` }}</td>
+            <td>{{ `${item.renewalUnitWeight}g / ${item.renewalUnitPrice}` }}</td>
           </template>
           <template v-else>
-            <td>{{ formatCurrency(item.firstFreight, currency) }}</td>
+            <td>{{ item.firstFreight }}</td>
           </template>
-          <td>{{ formatCurrency(item.registrationFee, currency) }}</td>
+          <td>{{ item.registrationFee }}</td>
         </tr>
       </tbody>
     </table>
@@ -46,9 +46,6 @@
   </el-table> -->
 </template>
 <script>
-
-import { formatCurrency } from '../../../../backbone/utils/currency';
-
 export default {
   props: {
     bb: Function,
@@ -63,7 +60,6 @@ export default {
         { label: app.polyglot.t('settings.storeTab.shippingOptions.services.firstRenewalTemplate'), value: 'FIRST_RENEWAL_FEE' },
         { label: app.polyglot.t('settings.storeTab.shippingOptions.services.sameWeightTemplate'), value: 'SAME_WEIGHT_SAME_FEE' },
       ],
-      currency: ''
     };
   },
   created() {
@@ -84,8 +80,6 @@ export default {
     },
   },
   methods: {
-    formatCurrency,
-
     loadData() {
       if (!this.shippingOption) {
         throw new Error('Please provide a shippingOption model.');
@@ -103,8 +97,6 @@ export default {
         serviceType: optionData.serviceType,
         services: optionData.services,
       };
-
-      this.currency = this.shippingOption.get('currency');
     },
   },
 };

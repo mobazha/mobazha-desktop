@@ -1,5 +1,5 @@
 <template>
-  <el-dialog class="form-dialog" :title="ob.polyT('settings.storeTab.shippingOptions.modal.addService')" v-model="visible" width="1080px" append-to-body :before-close="onCancel">
+  <el-dialog class="form-dialog" title="添加服务" v-model="visible" width="1080px" append-to-body :before-close="onCancel">
     <el-form ref="form" size="small" :model="formData" :rules="rules" label-width="0">
       <div class="form-head">
         <div class="form-head__select">
@@ -8,9 +8,9 @@
               <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
-          <el-button class="add-btn" link type="success" @click="doAdd">{{ ob.polyT('settings.storeTab.shippingOptions.modal.add') }}</el-button>
+          <el-button class="add-btn" link type="success" @click="doAdd">+添加</el-button>
         </div>
-        <div class="tips" v-if="formData.serviceType"><span class="tips-btn">{{ ob.polyT('settings.storeTab.shippingOptions.services.notice') }}</span>{{ serviceTypeTip }}</div>
+        <div class="tips" v-if="formData.serviceType"><span class="tips-btn">说明!</span>{{ serviceTypeTip }}</div>
       </div>
       <el-table :data="formData.services" :border="true" row-class-name="form-table" cell-class-name="cell-form-table">
         <el-table-column :label="ob.polyT('settings.storeTab.shippingOptions.services.nameLabel')" width="130">
@@ -139,7 +139,6 @@ export default {
     },
   },
   data() {
-    const pleaseInput = app.polyglot.t('settings.storeTab.shippingOptions.modal.pleaseInput');
     return {
       options: [
         { label: app.polyglot.t('settings.storeTab.shippingOptions.services.firstRenewalTemplate'), value: 'FIRST_RENEWAL_FEE' },
@@ -159,37 +158,34 @@ export default {
             trigger: ['change', 'blur'],
           },
         ],
-        name: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
-          { validator: this.checkNameDuplicate, trigger: ['change'] },
-        ],
-        estimatedDelivery: [{ required: true, message: 'pleaseInput', trigger: ['change', 'blur'] }],
-        startWeight: [{ required: true, message: 'pleaseInput', trigger: ['change', 'blur'] }],
+        name: [{ required: true, message: '请输入服务', trigger: ['change', 'blur'] }],
+        estimatedDelivery: [{ required: true, message: '请输入运送时间', trigger: ['change', 'blur'] }],
+        startWeight: [{ required: true, message: '请输入开始重量', trigger: ['change', 'blur'] }],
         endWeight: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入结束重量', trigger: ['change', 'blur'] },
           { type: 'number', message: 'Input must be a number' },
           { validator: checkPositiveVal, trigger: ['change', 'blur'] },
         ],
         firstWeight: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入首重', trigger: ['change', 'blur'] },
           { type: 'number', message: 'Input must be a number' },
           { validator: checkNonNegtiveVal, trigger: ['change', 'blur'] },
         ],
         firstFreight: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入首重运费', trigger: ['change', 'blur'] },
           { validator: checkNonNegtiveVal, trigger: ['change', 'blur'] },
         ],
         renewalUnitWeight: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入续重单位重量', trigger: ['change', 'blur'] },
           { type: 'number', message: 'Input must be a number' },
-          { validator: checkPositiveVal, trigger: ['change', 'blur'] },
+          { validator: checkNonNegtiveVal, trigger: ['change', 'blur'] },
         ],
         renewalUnitPrice: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入单价', trigger: ['change', 'blur'] },
           { validator: checkNonNegtiveVal, trigger: ['change', 'blur'] },
         ],
         registrationFee: [
-          { required: true, message: pleaseInput, trigger: ['change', 'blur'] },
+          { required: true, message: '请输入挂号费', trigger: ['change', 'blur'] },
           { validator: checkNonNegtiveVal, trigger: ['change', 'blur'] },
         ],
       },
@@ -218,7 +214,7 @@ export default {
         serviceType: optionData.serviceType,
         services: optionData.services,
       };
-      if (optionData.services && optionData.services.length > 0) {
+      if (optionData.services.length > 0) {
         this.formData.services = optionData.services;
       } else {
         this.formData.services = [this.createEmptyService()];
@@ -231,10 +227,10 @@ export default {
         startWeight: 0,
         endWeight: 0,
         firstWeight: 0,
-        firstFreight: 0,
-        renewalUnitWeight: 0,
-        renewalUnitPrice: 0,
-        registrationFee: 0,
+        firstFreight: '',
+        renewalUnitWeight: '',
+        renewalUnitPrice: '',
+        registrationFee: '',
       };
     },
     onCancel() {
@@ -266,20 +262,6 @@ export default {
           this.visible = false;
         }
       });
-    },
-    checkNameDuplicate(rule, value, callback) {
-      for (let i = 0; i < this.formData.services.length; i++) {
-        if (`services.${i}.name` === rule.field) {
-          // skip self check
-          continue;
-        }
-
-        if (this.formData.services[i].name === value) {
-          callback(new Error(app.polyglot.t('settings.storeTab.shippingOptions.modal.serviceNameDuplicate')));
-          return;
-        }
-      }
-      callback();
     },
   },
 };
