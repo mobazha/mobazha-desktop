@@ -352,9 +352,8 @@
                 <!-- <div class="js-receipt"></div> -->
                 <Receipt
                   v-if="order"
-                  :key="orderKey"
                   :options="{
-                    prices,
+                    prices: prices,
                     coupons: couponObj,
                     showTotalTip: _state.phase === 'pay',
                     totalShippingPrice: selectedShippingPrice,
@@ -471,7 +470,6 @@ export default {
       cart: {},
       vendor: {},
       order: undefined,
-      orderKey: 0,
 
       listings: undefined,
       moderators: undefined,
@@ -504,6 +502,8 @@ export default {
   created () {
     this.initEventChain();
 
+    // for shopping cart
+    // this.init();
     this.loadData(this.options);
   },
   mounted () {
@@ -533,6 +533,7 @@ export default {
           .at(0)
           .constraints,
         vendor: this.vendor,
+        prices: this.prices,
         quantity: uiQuantity,
         isCrypto: this.oneListing.isCrypto,
         phaseClass: `phase${capitalize(this._state.phase)}`,
@@ -555,8 +556,6 @@ export default {
       return this.formData.activeCurs[0];
     },
     prices () {
-      let access = this.orderKey;
-
       // return an array of price objects that matches the items in the order
       return this.order.get('items').map((item) => {
         const shipping = item.get('shipping');
@@ -692,6 +691,28 @@ export default {
       return {price: firstFreight.plus(renewalFee).plus(bigNumber(sService.registrationFee)), currency: sOption.currency};
     },
 
+    init() {
+      let options = {};
+      let cart = this.$store.state.cart.cart;
+
+      options.vendor = {
+        peerID: cart.vendorID,
+        name: cart.profile.name,
+        handle: cart.profile.handle,
+        avatarHashes: cart.profile.avatarHashes,
+      };
+      
+      options.listings = toRaw(cart.listings);
+      options.listing = cart.listings[0];
+
+      options.variants = cart.items[0].options;
+
+      this.loadData(options);
+
+      // const coinType = this.oneListing.listing.item.cryptoListingCurrencyCode;
+      // const coinTranslationKey = `cryptoCurrencies.${coinType}`;
+      // this.coinName = ob.polyT(coinTranslationKey) === coinTranslationKey ? coinType : ob.polyT(coinTranslationKey);
+    },
     loadData (options = {}) {
       if (!this.itemsToPurchase || !(this.itemsToPurchase instanceof OrderListings)) {
         throw new Error('Please provide a OrderListings model');
@@ -724,8 +745,7 @@ export default {
         {
           shippable: !!(this.shippingOptions && this.shippingOptions.length),
           moderated: this.moderatorIDs.length && app.verifiedMods.matched(this.moderatorIDs).length,
-        }
-      );
+        });
 
       /*
          to support multiple items in a purchase in the future, pass in listings in the options,
@@ -887,8 +907,6 @@ export default {
       }
 
       this.order.get('items').at(idx).set({ quantity });
-
-      this.orderKey += 1;
     },
 
     onChangeCryptoAmount(e) {
@@ -906,7 +924,7 @@ export default {
       }
 
       this.quantityKeyUpTimer = setTimeout(() => {
-        let { quantity } = this.formData.itemsData[idx];
+        let { quantity } = this.formData.itemsData[0];
         if (!_.isEmpty(quantity)) {
           quantity = bigNumber(quantity);
         }
