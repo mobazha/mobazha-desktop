@@ -118,6 +118,9 @@
         </div>
       </template>
     </BaseModal>
+    <Teleport to="#js-vueModal">
+      <Purchase ref="purchaseModal" v-if="showPurchase" :options="purchaseOptions" :bb="purchaseBBFunc" @close="onPurchaseClose" />
+    </Teleport>
   </div>
 </template>
 
@@ -146,6 +149,9 @@ export default {
       table: {},
       selectors: {}, //选中的商品
       loading: false,
+      showPurchase: false,
+      purchaseOptions: {},
+      itemsToPurchase: {},
 
       emptyInfo: {
         type: 'shoppingCart',
@@ -314,9 +320,13 @@ export default {
         purchaseInfo.push({quantity: row.quantity, variants: row.options});
       });
 
-      window.vueApp.launchPurchaseModal({itemsInfo: purchaseInfo, vendor, origin: 'ShoppingCart'}, () => {
-        return {itemsToPurchase};
-      });
+      this.purchaseOptions = {itemsInfo: purchaseInfo, vendor, origin: 'ShoppingCart'};
+      this.itemsToPurchase = itemsToPurchase;
+      this.showPurchase = true;
+    },
+
+    onPurchaseClose() {
+      this.showPurchase = false;
     },
 
     //修改头部样式
