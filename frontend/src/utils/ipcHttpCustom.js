@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 import { Events } from 'backbone';
 
@@ -23,7 +22,7 @@ class IpcHttpCustom {
         break;
 
       case 'controller.system.openExternal':
-        break;
+      
 
       case 'controller.mainwindow.setProxy': {
         this.trigger('proxy-set', args, args?.id);
@@ -31,24 +30,9 @@ class IpcHttpCustom {
       }
 
       case 'controller.mainwindow.setActiveServer':
-        const server = args;
-        if (server.authenticate) {
-          // $.ajaxSetup({
-          //   beforeSend: function(jqXHR, settings) {
-          //     if (settings.url.startsWith(server.httpUrl) || settings.url.startsWith(server.socketUrl)){
-          //       const un = server.username;
-          //       const pw = server.password;
-  
-          //       jqXHR.setRequestHeader('Authorization', `Basic ${btoa(`${un}:${pw}`)}}`); 
-          //     }
-          //   }
-          // });
-        };
-        
-        break;
 
       case 'controller.system.writeToClipboard':
-        navigator.clipboard.writeText(args);
+        
         break;
     
       default:
@@ -78,8 +62,9 @@ class IpcHttpCustom {
           case 'localServer':
             return undefined;
           default:
-            return undefined;
+            break;
         }
+        break;
       }
       case 'controller.system.getPlatform':
         return undefined;
@@ -94,11 +79,11 @@ class IpcHttpCustom {
         return undefined;
 
       case 'controller.system.readTemplateFileSync':
-        return this.synchronousRequest("/backbone/templates/"+args);
+        return this.synchronousRequest("/templates/"+args);
       case 'controller.system.getlanguageFileContent':
-        return JSON.parse(this.synchronousRequest("/backbone/languages/"+args));
+        return JSON.parse(this.synchronousRequest("/languages/"+args));
       default:
-        return undefined;
+        break;
     }
   }
 
