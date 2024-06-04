@@ -8,13 +8,15 @@
       <div class="inventoryTableWrap rowSm">
         <table>
           <tr>
+            <th class="clrBr">图片</th>
             <template v-for="(column, j) in ob.columns" :key="j">
               <th class="clrBr">{{ column }}</th>
             </template>
-            <th class="clrBr">{{ ob.polyT('editListing.variantInventory.surcharge') }}</th>
-            <th class="clrBr">{{ ob.polyT('editListing.variantInventory.totalPrice') }}</th>
+            <th class="clrBr surcharge">{{ ob.polyT('editListing.variantInventory.surcharge') }}</th>
+            <th class="clrBr totalPrice">{{ ob.polyT('editListing.variantInventory.totalPrice') }}</th>
             <th class="clrBr">{{ ob.polyT('editListing.variantInventory.sku') }}</th>
             <th class="clrBr quantityCol">{{ ob.polyT('editListing.variantInventory.quantity') }}</th>
+            <th class="clrBr">操作</th>
           </tr>
           <template v-for="item in collection" :key="item.cid">
             <VariantInventoryItem
@@ -23,18 +25,19 @@
                 basePrice: options.basePrice,
                 listingCurrency: options.listingCurrency,
               }"
-              :bb="function() {
-                return {
-                  model: item,
+              :bb="
+                function () {
+                  return {
+                    model: item,
+                  };
                 }
-              }"
-              />
+              "
+            />
           </template>
         </table>
       </div>
       <div class="clrT2 txSm helper">{{ ob.polyT('editListing.variantInventory.helperText') }}</div>
     </template>
-
   </div>
 </template>
 
@@ -42,7 +45,6 @@
 import _ from 'underscore';
 import Sku from '../../../../backbone/models/listing/Sku';
 import VariantInventoryItem from './VariantInventoryItem.vue';
-
 
 export default {
   components: {
@@ -55,17 +57,15 @@ export default {
     },
     bb: Function,
   },
-  data () {
-    return {
-    };
+  data() {
+    return {};
   },
-  created () {
+  created() {
     this.loadData(this.options);
   },
-  mounted () {
-  },
+  mounted() {},
   computed: {
-    ob () {
+    ob() {
       const inventoryData = this.inventoryData;
       this.collection.set(inventoryData.inventory);
 
@@ -75,8 +75,9 @@ export default {
       };
     },
     // todo: good unit test candidate
-    inventoryData () {
-      const options = this.optionsCl.toJSON()
+    inventoryData() {
+      const options = this.optionsCl
+        .toJSON()
         // only process options that have at least one variant
         .filter((option) => option.variants && option.variants.length);
 
@@ -122,7 +123,7 @@ export default {
             // defaults get into the data
             data = {
               ...data,
-              ...((new Sku()).toJSON()),
+              ...new Sku().toJSON(),
               mappingId: id,
             };
           }
@@ -137,7 +138,7 @@ export default {
     },
   },
   methods: {
-    loadData () {
+    loadData() {
       if (!this.collection) {
         throw new Error('Please provide a Skus collection.');
       }
@@ -156,13 +157,13 @@ export default {
       }
     },
 
-    setCollectionData () {
+    setCollectionData() {
       (this.$refs.itemViews ?? []).forEach((item) => item.setModelData());
     },
 
     // Inpsired by: http://stackoverflow.com/a/4331218/632806
     // TODO: would be nice to unit test this guy
-    allPossibleCombos (arr) {
+    allPossibleCombos(arr) {
       let returnVal;
 
       if (!arr.length) {
@@ -170,7 +171,7 @@ export default {
       }
 
       if (arr.length === 1) {
-        returnVal = arr[0].map((val, index) => (index));
+        returnVal = arr[0].map((val, index) => index);
       } else {
         const result = [];
         const allCasesOfRest = this.allPossibleCombos(arr.slice(1)); // recur with the rest of array
@@ -185,7 +186,7 @@ export default {
       return returnVal;
     },
 
-    buildIdFromSelections (selections, options = this.optionsCl) {
+    buildIdFromSelections(selections, options = this.optionsCl) {
       if (!_.isArray(selections)) {
         throw new Error('Please provide a selections as an array.');
       }
@@ -202,7 +203,14 @@ export default {
 
       return id;
     },
-  }
-}
+  },
+};
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.surcharge {
+  width: 100px;
+}
+.totalPrice {
+  min-width: 120px !important;
+}
+</style>
