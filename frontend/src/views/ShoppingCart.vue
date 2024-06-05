@@ -85,13 +85,13 @@
                             </div>
                           </template>
                         </el-table-column>
-                        <el-table-column prop="price"></el-table-column>
+                        <el-table-column prop="price" show-overflow-tooltip></el-table-column>
                         <el-table-column width="100">
                           <template v-slot="{ row }">
                             <el-input class="input-number" v-model="row.quantity" />
                           </template>
                         </el-table-column>
-                        <el-table-column>
+                        <el-table-column show-overflow-tooltip>
                           <template v-slot="{ row }">{{ countRowPrice(row) }}</template>
                         </el-table-column>
                         <el-table-column width="100">
@@ -119,9 +119,15 @@
       </template>
     </BaseModal>
     <Teleport to="#js-vueModal">
-      <Purchase v-if="showPurchase" :key="itemsToPurchase" :options="purchaseOptions" :bb="() => {
-          return {itemsToPurchase};
-        }"
+      <Purchase
+        v-if="showPurchase"
+        :key="itemsToPurchase"
+        :options="purchaseOptions"
+        :bb="
+          () => {
+            return { itemsToPurchase };
+          }
+        "
         @close="onPurchaseClose"
       />
     </Teleport>
@@ -234,7 +240,7 @@ export default {
                   item.priceAmount = listing.item.price;
                   item.price = convertAndFormatCurrency(item.priceAmount, item.pricingCurrency.code, this.localCurrency);
 
-                  item.type = app.polyglot.t(`formats.${listing.metadata.contractType}`)
+                  item.type = app.polyglot.t(`formats.${listing.metadata.contractType}`);
 
                   item.available = true;
                 } else {
@@ -311,7 +317,7 @@ export default {
         peerID: item.vendorID,
         name: item.profile?.name,
         handle: item.profile?.handle,
-        avatarHashes:  item.profile?.avatarHashes,
+        avatarHashes: item.profile?.avatarHashes,
       };
 
       const itemsToPurchase = new OrderListings();
@@ -321,10 +327,10 @@ export default {
       rows.forEach((row) => {
         itemsToPurchase.push(row.listingExt);
 
-        purchaseInfo.push({quantity: row.quantity, variants: row.options});
+        purchaseInfo.push({ quantity: row.quantity, variants: row.options });
       });
 
-      this.purchaseOptions = {itemsInfo: purchaseInfo, vendor, origin: 'ShoppingCart'};
+      this.purchaseOptions = { itemsInfo: purchaseInfo, vendor, origin: 'ShoppingCart' };
       this.itemsToPurchase = itemsToPurchase;
       this.showPurchase = true;
     },
