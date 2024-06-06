@@ -9,19 +9,28 @@
       <input type="number" class="clrBr clrP clrSh2" v-model="formData.surcharge" placeholder="0.00" data-var-type="bignumber" />
     </td>
     <td class="clrBr">
-      <FormError v-if="ob.errors['skuID']" :errors="ob.errors['skuID']" />
+      <FormError v-if="ob.errors['productID']" :errors="ob.errors['productID']" />
       <input
         type="text"
         class="clrBr clrP clrSh2"
-        name="skuID"
-        v-model="formData.skuID"
+        name="productID"
+        v-model="formData.productID"
         :placeholder="ob.polyT('editListing.variantInventory.placeholderSKU')"
         :maxlength="ob.max?.productIdLength"
       />
     </td>
     <td class="clrBr">
-      <FormError v-if="ob.errors['image']" :errors="ob.errors['image']" />
-      <UploadPhoto2 :image="formData.images[0]" @imageChange="onImageChange" />
+      <FormError v-if="ob.errors['images']" :errors="ob.errors['images']" />
+      <input type="file" id="inputPhotoUpload" ref="inputPhotoUpload" @change="onChangePhotoUploadInput" accept="image/*" class="hide" multiple />
+      <ul ref="photoUploadItems" class="unstyled uploadItems clrBr rowSm js-photoUploadItems">
+        <li class="addElement tile js-addPhotoWrap">
+          <span class="imagesIcon ion-images clrT4"></span>
+          <button class="btn clrP clrBr clrT tx6" @click="$refs.inputPhotoUpload.click()">{{ ob.polyT('editListing.btnAddPhoto') }}</button>
+        </li>
+        <template v-for="(image, j) in formData.images" :key="image.id">
+          <UploadPhoto :image="image" @closeIcon="onClickRemoveImage(j)" />
+        </template>
+      </ul>
     </td>
     <td class="clrBr">
       <a class="iconBtn clrBr clrP clrSh2 margLSm btnRemoveVariant" @click="onClickRemove"><i class="ion-trash-b"></i> </a>
@@ -30,33 +39,27 @@
 </template>
 
 <script>
+import _ from 'underscore';
 import bigNumber from 'bignumber.js';
-import UploadPhoto2 from './UploadPhoto2.vue';
 
 export default {
-  components: {
-    UploadPhoto2,
-  },
   props: {
     options: {
       type: Object,
       default: {},
     },
-    bb: Function,
   },
   data() {
     return {
       formData: {
         name: '',
         surcharge: 0,
-        skuID: '',
-        images: [undefined],
+        productID: '',
+        images: [],
       },
     };
   },
-  created() {
-    this.loadData();
-  },
+  created() {},
   mounted() {},
   computed: {
     ob() {
@@ -70,44 +73,19 @@ export default {
     },
   },
   methods: {
-    initFormData() {
-      const model = this.model.toJSON();
-      this.formData = {
-        name: model.name,
-        surcharge: model.surcharge,
-        skuID: model.skuID,
-        images: model.images,
-      };
-    },
-    loadData() {
-      if (!this.model) {
-        throw new Error('Please provide a model.');
-      }
-
-      this.initFormData();
-    },
-
-    onClickRemove() {
-      this.$emit('removeClick', this.model);
-    },
-
     // Sets the model based on the current data in the UI.
     setModelData() {
       const formData = this.formData;
-      if (formData.surcharge != null) {
+      if (!_.isEmpty(formData.surcharge)) {
         formData.surcharge = bigNumber(formData.surcharge);
       }
       this.model.set(formData, { validate: true });
     },
-
-    onImageChange(image) {
-      this.formData.images[0] = image;
-    }
   },
 };
 </script>
 <style lang="scss" scoped>
-.imageIcon {
+.imagesIcon {
   font-size: 50px;
   position: absolute;
   top: 50%;
