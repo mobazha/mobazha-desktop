@@ -1,30 +1,36 @@
 import is from 'is_js';
 import bigNumber from 'bignumber.js';
 import BaseModel from '../BaseModel';
-import ListingImages from '../../collections/listing/ListingImages';
+import Image from './Image';
 
 export default class extends BaseModel {
   defaults() {
     return {
+      featureID: '',
       name: '',
       surcharge: bigNumber('0'),
       skuID: '',
-      images: new ListingImages(),
     };
   }
 
   get nested() {
     return {
-      images: ListingImages,
+      image: Image,
     };
   }
 
   get idAttribute() {
-    return '_clientID';
+    return 'featureID';
   }
 
   static get maxFilenameLength() {
     return 255;
+  }
+
+  get max() {
+    return {
+      featureIDLength: 40,
+    };
   }
 
   validate(attrs) {
@@ -33,6 +39,10 @@ export default class extends BaseModel {
       errObj[fieldName] = errObj[fieldName] || [];
       errObj[fieldName].push(error);
     };
+
+    if (attrs.featureID.length > this.max.featureIDLength) {
+      addError('featureID', `The featureID cannot exceed ${this.max.featureIDLength} characters.`);
+    }
 
     if (!attrs.name) {
       addError('name', 'Please provide a feature name.');
