@@ -5,12 +5,12 @@
     </div>
     <input type="file" ref="inputPhotoUpload" @change="onChangePhotoUploadInput" accept="image/*" class="hide" />
 
-    <div class="unstyled clrBr">
-      <div v-if="!image" class="addElement customTile">
+    <div class="unstyled clrBr rowSm">
+      <div v-if="!image" class="addElement tile js-addPhotoWrap">
         <span class="imageIcon ion-images clrT4"></span>
         <button class="btn clrP clrBr clrT tx6" @click="$refs.inputPhotoUpload.click()">{{ ob.polyT('editListing.btnAddPhoto') }}</button>
       </div>
-      <div v-if="!!image" class="customTile">
+      <div v-if="!!image" class="tile">
         <el-image
           :src="ob.getServerUrl(`ob/image/${image.small}`)"
           fit="cover"
@@ -25,24 +25,21 @@
 </template>
 
 <script>
-import { myAjax } from '../../../api/api';
+import $ from 'jquery';
 import { truncateImageFilename } from '../../../../backbone/utils/index';
 
 export default {
   props: {
-    image: {
-      type: Object,
-      default: undefined,
-    },
   },
   data () {
     return {
+      image: undefined,
       imageUpload: undefined,
     };
   },
   methods: {
-    onImageChange(image) {
-      this.$emit('imageChange', image);
+    onImageChange() {
+      this.$emit('imageChange', this.image);
     },
 
     onChangePhotoUploadInput() {
@@ -68,7 +65,7 @@ export default {
     },
 
     uploadImage(image) {
-      this.imageUpload = myAjax({
+      this.imageUpload = $.ajax({
         url: app.getServerUrl('ob/productimages'),
         type: 'POST',
         data: JSON.stringify([image]),
@@ -78,15 +75,16 @@ export default {
         .done((uploadedImages) => {
           if (this.isRemoved()) return;
 
-          const resultImage = uploadedImages[0];
-          this.onImageChange({
-              filename: resultImage.filename,
-              original: resultImage.original,
-              large: resultImage.large,
-              medium: resultImage.medium,
-              small: resultImage.small,
-              tiny: resultImage.tiny,
-            });
+          this.image = uploadedImages.map((image) => ({
+              filename: image.filename,
+              original: image.original,
+              large: image.large,
+              medium: image.medium,
+              small: image.small,
+              tiny: image.tiny,
+            }))[0];
+          
+          this.onImageChange();
         })
         .fail((jqXhr) => {
           openSimpleMessage(
@@ -103,43 +101,17 @@ export default {
       }
     },
 
+    onClickRemoveImage() {
+      this.image = undefined
+      
+      this.onImageChange();
+    },
+
     onCloseIcon() {
-      this.onImageChange(undefined);
+      this.$emit('closeIcon')
     }
   },
 }
 
 </script>
-<style lang="scss" scoped>
-@import '../../../../styles/variables';
-@import '../../../../styles/mixins';
-.customTile {
-  // width: 60px;
-  // height: 60px;
-  border: 1px solid;
-  border-color: inherit;
-  border-radius: $corner;
-  float: left;
-  margin-right: $pad;
-  margin-bottom: $pad;
-  position: relative;
-
-  .closeIcon {
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-
-  .btn {
-    width: 35px;
-    height: 28px;
-    position: absolute;
-    bottom: 10px;
-    padding: 0;
-    line-height: 1;
-    @include center(true, false);
-  }
-}
-</style>
+<style lang="scss" scoped></style>
