@@ -15,11 +15,9 @@
             </div> -->
           </div>
           <div class="page-body" v-loading="loading">
-            <div>
-              <p>{{ ob.polyT('shoppingCart.header.notice') }}</p>
-              <p>{{ ob.polyT('shoppingCart.header.notice1') }}</p>
-              <p>{{ ob.polyT('shoppingCart.header.notice2') }}</p>
-            </div>
+            <el-alert class="notice" :title="ob.polyT('shoppingCart.header.notice')" type="info" :closable="false">
+              <template #default> {{ ob.polyT('shoppingCart.header.notice1') }}<br />{{ ob.polyT('shoppingCart.header.notice2') }} </template>
+            </el-alert>
             <template v-if="tableData.length > 0">
               <div class="table-hc">
                 <el-table :header-row-style="headerRowStyle" :data="[]" :height="38">
@@ -35,7 +33,11 @@
               </div>
               <div class="card">
                 <div class="card-item" v-for="(item, index) in tableData" :key="index">
-                  <el-table ref="table" :header-cell-style="headerCellStyle" class="table-hearder-one" :data="item.items"
+                  <el-table
+                    ref="table"
+                    :header-cell-style="headerCellStyle"
+                    class="table-hearder-one"
+                    :data="item.items"
                     @selection-change="handleSelectionChange($event, index)"
                   >
                     <el-table-column>
@@ -72,6 +74,7 @@
                                 </div>
                               </div>
                             </div>
+                            <OptionalFeatureLine :optionalFeatures="getRowOptionalFeatures(row)" :pricingCurrency="row.pricingCurrency?.code" :displayCurrency="localCurrency" />
                           </template>
                         </el-table-column>
                         <el-table-column prop="type" width="150"></el-table-column>
@@ -92,7 +95,7 @@
                           </template>
                         </el-table-column>
                         <el-table-column show-overflow-tooltip>
-                          <template v-slot="{ row }">{{ countRowPrice(row) }}</template>
+                          <template v-slot="{ row }">{{ countRowPrice(row).price }}</template>
                         </el-table-column>
                         <el-table-column width="100">
                           <template v-slot="{ row }">
@@ -135,6 +138,7 @@
 </template>
 
 <script>
+import _ from 'underscore';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import $ from 'jquery';
 import app from '../../backbone/app';
@@ -145,6 +149,7 @@ import { convertCurrency, formatCurrency, convertAndFormatCurrency } from '../..
 import Purchase from './modals/purchase/Purchase.vue';
 import Listing from '../../backbone/models/listing/Listing';
 import OrderListings from '../../backbone/collections/OrderListings';
+import { bigNumber } from '../../backbone/utils/templateHelpers';
 
 export default {
   components: {
@@ -182,8 +187,23 @@ export default {
 
     //每个商品总价
     countRowPrice() {
-      return (row) =>
-        row.priceAmount ? convertAndFormatCurrency(row.priceAmount * row.quantity, row.pricingCurrency?.code, this.localCurrency) : 0;
+      return (row) => {
+        if (!row.priceAmount) {
+          return 0;
+        }
+
+        let itemPrice = bigNumber(row.priceAmount || 0);
+
+        const optionalFeatures = this.getRowOptionalFeatures(row);
+        optionalFeatures.forEach((feature) => {
+          if (feature.surcharge) {
+            itemPrice = itemPrice.plus(bigNumber(feature.surcharge));
+          }
+        });
+
+        let total = convertCurrency(itemPrice * row.quantity, row.pricingCurrency?.code, this.localCurrency)
+        return {total, price: formatCurrency(total, this.localCurrency)};
+      };
     },
 
     //每个商店商品总价
@@ -192,7 +212,7 @@ export default {
         let list = this.selectors[index];
         if (!list) return 0;
 
-        const total = list.reduce((cur, next) => cur + convertCurrency(next.priceAmount * next.quantity, next.pricingCurrency?.code, this.localCurrency), 0);
+        const total = list.reduce((cur, next) => cur + this.countRowPrice(next).total, 0);
         return { quantity: list.length, total: formatCurrency(total, this.localCurrency) };
       };
     },
@@ -235,9 +255,16 @@ export default {
               cart.items?.forEach((item) => {
                 let listing = item.listingExt.toJSON();
                 item.listing = listing;
+
+                const selections = item.options?.map((option) => ({
+                  option: option.name,
+                  variant: option.value,
+                }));
+                item.sku = selections ? listing.item.skus?.find((v) => _.isEqual(v.selections, selections)) : undefined;
+
                 item.pricingCurrency = listing.metadata?.pricingCurrency;
                 if (listing.item?.price && item.pricingCurrency) {
-                  item.priceAmount = listing.item.price;
+                  item.priceAmount = bigNumber(listing.item.price).plus(item.sku?.surcharge || 0) ;
                   item.price = convertAndFormatCurrency(item.priceAmount, item.pricingCurrency.code, this.localCurrency);
 
                   item.type = app.polyglot.t(`formats.${listing.metadata.contractType}`);
@@ -275,15 +302,18 @@ export default {
         callback: (action) => {
           if (action === 'confirm') {
             //this.tableData.splice(index, 1)为展示效果，调用删除接口，再刷新
-            api.removeCartItem(row.vendorID, {
-              slug: row.listing?.slug,
-              options: row.options,
-            }).then(() => {
-              ElMessage({ type: 'success', message: app.polyglot.t('shoppingCart.deleteConfirm.tip', {item: row.listing?.item.title}) });
-              this.loadData();
-            }).fail((jqXHR) => {
-              ElMessage({ type: 'error', message: jqXHR?.responseJSON?.reason });
-            })
+            api
+              .removeCartItem(row.vendorID, {
+                slug: row.listing?.slug,
+                options: row.options,
+              })
+              .then(() => {
+                ElMessage({ type: 'success', message: app.polyglot.t('shoppingCart.deleteConfirm.tip', { item: row.listing?.item.title }) });
+                this.loadData();
+              })
+              .fail((jqXHR) => {
+                ElMessage({ type: 'error', message: jqXHR?.responseJSON?.reason });
+              });
           }
         },
       });
@@ -308,6 +338,21 @@ export default {
       });
     },
 
+    getRowOptionalFeatures(row) {
+      if (!row.listing) return [];
+
+      const optionalFeatures = [];
+      if (row.optionalFeatures) {
+        row.optionalFeatures.forEach((featureName) => {
+          const match = row.listing.item.optionalFeatures?.find((v) => v.name === featureName);
+          if (match) {
+            optionalFeatures.push(match);
+          }
+        });
+      }
+      return optionalFeatures;
+    },
+
     //提交当前选中的商店商品
     pay(index) {
       this.$store.commit('cart/updateCart', this.tableData[0], { module: 'cart' });
@@ -327,7 +372,9 @@ export default {
       rows.forEach((row) => {
         itemsToPurchase.push(row.listingExt);
 
-        purchaseInfo.push({ quantity: row.quantity, variants: row.options });
+        const optionalFeatures = this.getRowOptionalFeatures(row);
+
+        purchaseInfo.push({ quantity: row.quantity, variants: row.options, optionalFeatures });
       });
 
       this.purchaseOptions = { itemsInfo: purchaseInfo, vendor, origin: 'ShoppingCart' };
@@ -381,13 +428,18 @@ export default {
     }
   }
 }
-
+.notice {
+  margin-bottom: 10px;
+}
 .card {
+  overflow-y: auto;
+  height: calc(100vh - 290px);
+  box-sizing: border-box;
+  padding-bottom: 20px;
   &-item {
     padding: 0 20px 20px 20px;
     border: 1px solid #e0e0e0;
     background: #fff;
-
     &:not(:last-child) {
       margin-bottom: 20px;
     }
