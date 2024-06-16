@@ -1,4 +1,4 @@
-import BaseCollection from '../BaseCollection';
+import { Collection } from 'backbone';
 import isUrl from 'is-url';
 import Provider from '../../models/search/SearchProvider';
 import LocalStorageSync from '../../utils/lib/backboneLocalStorage';
@@ -16,7 +16,7 @@ function baseUrl(url) {
   return (`${tempUrl.host}${tempUrl.pathname}`).replace(/\/$/, '');
 }
 
-export default class extends BaseCollection {
+export default class extends Collection {
   localStorage() {
     return new LocalStorageSync('__searchProviders');
   }
