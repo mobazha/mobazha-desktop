@@ -49,6 +49,7 @@
     "jquery-zoom": "^1.7.21",
     "microplugin": "^0.0.3",
     "moment": "^2.29.4",
+    "multicoin-address-validator": "^0.5.22",
     "multihashes": "^4.0.3",
     "node-polyglot": "2.4.2",
     "object-sizeof": "1.6.3",
