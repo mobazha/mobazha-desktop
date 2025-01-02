@@ -11,11 +11,15 @@ export default defineConfig(({ command, mode }) => {
       host: true,
       port: 8088,
       proxy: {
+        '/api': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          secure: false,
+        },
         '/v1': {
           target: 'http://127.0.0.1:5102',
           changeOrigin: true,
           secure: false,
-          // rewrite: (path) => path.replace(/^\/api/, '')
         },
         '/info': {
           target: 'https://mobazha.info',
