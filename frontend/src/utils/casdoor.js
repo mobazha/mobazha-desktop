@@ -1,16 +1,24 @@
 import Sdk from "casdoor-js-sdk";
 
-const sdkConfig = {
-  serverUrl: "https://login.mobazha.org",
-  clientId: "44b16199e0b7b1d64b25",
-  organizationName: "mobazha",
-  appName: "app_mobazha",
-  redirectPath: "/callback",
-};
+const sdkConfig = import.meta.env.DEV
+  ? {
+    serverUrl: "http://localhost:7001",
+    clientId: "22649a5edc7cabcb4398",
+    organizationName: "built-in",
+    appName: "app-built-in",
+    redirectPath: "/callback",
+  }
+  : {
+    serverUrl: "https://login.mobazha.org",
+    clientId: "44b16199e0b7b1d64b25",
+    organizationName: "mobazha",
+    appName: "app_mobazha",
+    redirectPath: "/callback",
+  };
   
 export const CasdoorSdk = new Sdk(sdkConfig);
 
-export const hosting_server = 'https://store.mobazha.org';
+export const hosting_server = import.meta.env.DEV ? 'http://localhost:8088' : 'https://store.mobazha.org';
 
 export const isLoggedIn = () => {
   const token = localStorage.getItem("token");

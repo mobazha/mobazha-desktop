@@ -759,12 +759,13 @@ if (location.pathname === '/callback') {
       } else {
         // Use API to get the socket port.
         myGet('/api/serverInfo').done((serverInfo) => {
+          const devMode = import.meta.env.DEV;
           const serverConfig = new ServerConfig({
             name: 'HostingServer',
             id: 'backend',
-            serverIp: 'store.mobazha.org',
-            SSL: true,
-            port: 443,
+            serverIp: devMode ? 'localhost' : 'store.mobazha.org',
+            SSL: !devMode,
+            port: devMode ? 8080 : 443,
             innerPort: serverInfo.gatewayPort,
             authenticate: false,
           });
