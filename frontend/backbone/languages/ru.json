@@ -1548,6 +1548,12 @@
     "cryptoAddressHelperWarning2": "This address cannot be changed.",
     "directPayment": "Оплатить напрямую",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
+    "loginConfirm": {
+      "title": "Требуется вход",
+      "body": "Для совершения покупки необходимо войти в систему. Войти сейчас?",
+      "btnLogin": "Войти",
+      "btnCancel": "Отмена"
+    },
     "confirmPayment": {
       "title": "Все выглядит хорошо ?",
       "msg": "If yes, please proceed to the final step.",

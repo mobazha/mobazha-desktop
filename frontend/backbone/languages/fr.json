@@ -1550,6 +1550,12 @@
     "cryptoAddressHelperWarning2": "Cette adresse ne peut pas être changée.",
     "directPayment": "Paiement direct",
     "directPaymentDetails": "L'envoi des fonds se fait directement au vendeur sans modérateur. Vous ne devez utiliser cette option qu'avec des vendeurs de confiance. Vous ne pourrez pas contester la commande si quelque chose se passe mal.",
+    "loginConfirm": {
+      "title": "Connexion requise",
+      "body": "Vous devez d'abord vous connecter pour acheter. Voulez-vous vous connecter maintenant?",
+      "btnLogin": "Se connecter",
+      "btnCancel": "Annuler"
+    },
     "confirmPayment": {
       "title": "Tout semble ok ?",
       "msg": "Si c'est le cas, merci de procéder à la dernière étape.",

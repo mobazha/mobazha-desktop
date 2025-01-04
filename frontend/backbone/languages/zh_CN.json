@@ -1548,6 +1548,12 @@
     "cryptoAddressHelperWarning2": "该地址不能被更改。",
     "directPayment": "直接付款",
     "directPaymentDetails": "无需仲裁人，直接向卖家付款。只应在是信任的卖家时选择此项，如果出现问题，您将无法对订单提出争议申诉。",
+    "loginConfirm": {
+      "title": "需要登录", 
+      "body": "购买商品需要先登录,是否现在登录?",
+      "btnLogin": "去登录",
+      "btnCancel": "取消"
+    },
     "confirmPayment": {
       "title": "订单信息确认无误？",
       "msg": "如果是，请继续进行最后一步。",

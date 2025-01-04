@@ -1548,6 +1548,12 @@
     "cryptoAddressHelperWarning2": "Esta dirección no puede ser cambiada.",
     "directPayment": "Pago Directo",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
+    "loginConfirm": {
+      "title": "Inicio de sesión requerido",
+      "body": "Necesitas iniciar sesión primero para comprar. ¿Te gustaría iniciar sesión ahora?",
+      "btnLogin": "Iniciar sesión",
+      "btnCancel": "Cancelar"
+    },
     "confirmPayment": {
       "title": "Todo luce bien?",
       "msg": "Si es si, por favor proceda al paso final.",
