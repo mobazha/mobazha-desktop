@@ -33,6 +33,9 @@
               <a class="iconBtn  toolTipNoWrap" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
                 <i class="ion-refresh"></i>
               </a>
+              <a v-if="!showFullNav" class="iconBtn toolTipNoWrap" @click="navLoginClick" :data-tip="ob.polyT('pageNav.toolTip.login')">
+                <i class="ion-log-in"></i>
+              </a>
             </div>
           </div>
           <div class="rowDivV clrBrBk"></div>
@@ -787,6 +790,10 @@ export default {
     },
     closeEditListingModal() {
       this.showEditListing = false;
+    },
+
+    navLoginClick() {
+      window.location.href = casdoor.getSigninUrl();
     }
   }
 }
