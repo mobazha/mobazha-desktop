@@ -219,6 +219,7 @@
     "help": "Aiuto",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Indietro",
       "forward": "Inoltra",
       "refresh": "Aggiorna",

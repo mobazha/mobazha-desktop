@@ -219,6 +219,7 @@
     "help": "Help",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Terug",
       "forward": "Verder",
       "refresh": "Ververs",

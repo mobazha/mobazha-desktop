@@ -219,6 +219,7 @@
     "help": "Pomoc",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Zpět",
       "forward": "Přeposlat",
       "refresh": "Znovu načíst",

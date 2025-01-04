@@ -1,10 +1,14 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import routerMap from './routerMap'
+import { createRouter, createWebHashHistory } from 'vue-router';
+import routerMap from './routerMap';
+import { setupRouterGuard } from './guard';
 
-const Router = createRouter({
+const router = createRouter({
   history: createWebHashHistory(),
   routes: routerMap,
+  strict: true
 })
 
+// 设置路由守卫
+setupRouterGuard(router);
 
-export default Router
+export default router

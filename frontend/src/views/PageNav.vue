@@ -1,11 +1,12 @@
 <template>
+  <!-- <div v-if="showFullNav" -->
   <div
     :class="`pageNav ${!navigable ? 'notNavigable' : ''} ${torIndicatorOn ? 'torIndicatorOn' : ''} ${windowStyle === 'mac' ? 'macStyleWindowControls' : 'winStyleWindowControls'}`"
     @click="onDocClick">
     <header>
       <nav class="bar clrBr clrP navBar">
         <div class="flexVCent">
-          <div class="windowControlsHolder">
+          <div class="windowControlsHolder" v-show="showFullNav">
             <div class="windowControls">
               <a class="winControl navClose" @click="navCloseClick">
                 <i class="ion-ios-close-empty"></i>
@@ -20,6 +21,9 @@
           </div>
           <div>
             <div class="flexVCent iconPad">
+              <a v-if="!showFullNav" class="iconBtn  toolTipNoWrap" @click="navHomeClick" :data-tip="ob.polyT('pageNav.toolTip.home')">
+                <i class="ion-home"></i>
+              </a>
               <a class="iconBtn  toolTipNoWrap" @click="navBackClick" :data-tip="ob.polyT('pageNav.toolTip.back')">
                 <i class="ion-chevron-left"></i>
               </a>
@@ -32,7 +36,7 @@
             </div>
           </div>
           <div class="rowDivV clrBrBk"></div>
-          <div class="pageNavCenter">
+          <div class="pageNavCenter" v-show="showFullNav">
             <div class="flexVCent gutterHSm">
               <div class="searchWrapper">
                 <input type="text" class="js-addressBar flexExpand addressBar clrSh2 clrBr4"
@@ -53,7 +57,7 @@
             </div>
           </div>
           <div class="rowDivV clrBrBk"></div>
-          <div>
+          <div v-show="showFullNav">
             <div class="flexVCent box margLSm posR">
               <a href="#search" class="toolTipNoWrap js-discover" :data-tip="ob.polyT('pageNav.toolTip.discover')" id="Nav_Discover">
                 <img class="discoverBtn navBtn" src="~@/../imgs/obVectorIconSmall2.png" />
@@ -346,6 +350,13 @@ export default {
         ? this.ob.polyT('pageNav.walletConnecting')
         : this.onboard.connectedWallet ? this.ob.polyT('pageNav.disconnectWallet') : this.ob.polyT('pageNav.connectWallet');
     },
+
+    showFullNav() {
+      if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
+        return false;
+      }
+      return true;
+    }
   },
   methods: {
     loadData (options) {
@@ -414,6 +425,10 @@ export default {
       if (shoppingCart) {
         this.cartItemsCount = shoppingCart.itemsCount;
       }
+    },
+
+    navHomeClick () {
+      app.router.navigate(`/`, { trigger: true });
     },
 
     navBackClick () {

@@ -219,6 +219,7 @@
     "help": "Hjælp",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Tilbage",
       "forward": "Frem",
       "refresh": "Genindlæs",

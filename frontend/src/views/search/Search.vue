@@ -1,6 +1,12 @@
 <template>
   <div class="search">
-    <nav id="pageTabBar" :class="`noTabs barLg clrP clrBr ${ob.fetching ? 'noTips' : ''}`">
+    <nav id="pageTabBar" ref="pageTabBar" :class="`noTabs barLg clrP clrBr ${ob.fetching ? 'noTips' : ''}`" :style="{
+      position: 'fixed',
+      top: showNav ? '50px' : '0',
+      left: '0',
+      right: '0',
+      zIndex: '1000'
+    }">
       <div class="pageTabs searchProviders flexRow gutterH">
         <div class="thumb discoverLogo flexNoShrink"></div>
         <div class="providersHeader flexNoShrink">
@@ -33,7 +39,7 @@
         </div>
       </div>
     </nav>
-
+    
     <div v-if="!ob.fetching" class="pageContent">
       <template v-if="!ob.showDataError">
         <div class="flexColRows row">
@@ -115,6 +121,8 @@ import Filters from './Filters.vue'
 import SortBy from './SortBy.vue'
 import Results from './Results.vue'
 
+import * as casdoor from '../../utils/casdoor';
+
 export default {
   name: 'Search',
   
@@ -156,6 +164,10 @@ export default {
   },
 
   computed: {
+    showNav() {
+      // return import.meta.env.VITE_APP || casdoor.isLoggedIn();
+      return true;
+    },
     ob() {
       const state = this._state;
       const data = state.data || {};
@@ -207,11 +219,25 @@ export default {
         viewType: this.getViewType(data),
         setHistory: true
       }
-    }
+    },
   },
 
   created() {
     this.fetchSearch(this._search);
+  },
+
+  mounted() {
+    if (this.$refs.pageTabBar) {
+      const height = this.$refs.pageTabBar.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+      
+      // 获取 PageNav 高度
+      const pageNav = document.querySelector('.pageNav');
+      if (pageNav) {
+        const navHeight = pageNav.offsetHeight;
+        document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
+      }
+    }
   },
 
   methods: {
@@ -344,7 +370,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .pageNav {
   padding: 10px 20px;
   border-bottom: 1px solid var(--border);
@@ -378,5 +404,15 @@ export default {
 .categories .btn:hover {
   background-color: var(--border);
   opacity: 0.8;
+}
+
+.search {
+  position: relative;
+  min-height: 710px;
+  
+  .pageContent {
+    margin-top: calc(var(--header-height) + (var(--nav-height, 34px)));
+    transition: margin-top 0.3s;
+  }
 }
 </style>
