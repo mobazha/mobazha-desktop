@@ -2,7 +2,8 @@
   <div class="search">
     <nav id="pageTabBar" ref="pageTabBar" :class="`noTabs barLg clrP clrBr ${ob.fetching ? 'noTips' : ''}`" :style="{
       position: 'fixed',
-      top: showNav ? '50px' : '0',
+      // top: hasLogin ? '50px' : '0',
+      top: '50px',
       left: '0',
       right: '0',
       zIndex: '1000'
@@ -29,7 +30,7 @@
           </a>
         </div>
         
-        <div>
+        <div v-if="hasLogin">
           <div class="flexVCent gutterHSm">
             <a class="btn barBtn flexNoShrink tx6 clrP clrBr clrSh2" href="#transactions/sales">{{
               ob.polyT('search.providers.transactions') }}</a>
@@ -164,9 +165,8 @@ export default {
   },
 
   computed: {
-    showNav() {
-      // return import.meta.env.VITE_APP || casdoor.isLoggedIn();
-      return true;
+    hasLogin() {
+      return import.meta.env.VITE_APP || casdoor.isLoggedIn();
     },
     ob() {
       const state = this._state;
