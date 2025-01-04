@@ -454,6 +454,9 @@ import Shipping from './Shipping.vue';
 
 import Settings from '@/views/modals/settings/Settings.vue';
 
+import { ElMessage, ElMessageBox } from 'element-plus';
+import * as casdoor from '../../../utils/casdoor';
+
 export default {
   components: {
     ActionBtn,
@@ -1000,6 +1003,27 @@ export default {
     },
 
     purchaseListing() {
+      // 检查是否需要登录
+      if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
+        ElMessageBox.confirm(
+          app.polyglot.t('purchase.loginConfirm.body'), 
+          app.polyglot.t('purchase.loginConfirm.title'),
+          {
+            confirmButtonText: app.polyglot.t('purchase.loginConfirm.btnLogin'),
+            cancelButtonText: app.polyglot.t('purchase.loginConfirm.btnCancel'),
+            type: 'info'
+          }
+        ).then(() => {
+          // 保存当前路径用于登录后跳回
+          const currentPath = location.pathname + location.hash;
+          const redirect = encodeURIComponent(currentPath);
+          window.location.href = casdoor.getSigninUrl() + `&redirect_uri=${redirect}`;
+        }).catch(() => {
+          // 取消登录,不做任何操作
+        });
+        return;
+      }
+
       // Clear any old errors.
       this.errors = {};
 

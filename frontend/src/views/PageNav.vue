@@ -33,6 +33,15 @@
               <a class="iconBtn  toolTipNoWrap" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
                 <i class="ion-refresh"></i>
               </a>
+              <a v-if="!showFullNav" class="navBtn toolTipNoWrap " @click="onClickShoppingCartBtn"
+                :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart0">
+                <i class="iconBtn ion-android-cart"></i>
+                <div
+                  :class="`discTn notifUnreadBadge js-cartItemsCountBadge clrE1 clrTOnEmph clrBr2 clrSh2 ${cartItemsCount > 99 ? 'ellipsisShown' : ''}`"
+                  v-show="serverConnected && cartItemsCount">
+                  {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
+                </div>
+              </a>
               <a v-if="!showFullNav" class="iconBtn toolTipNoWrap" @click="navLoginClick" :data-tip="ob.polyT('pageNav.toolTip.login')">
                 <i class="ion-log-in"></i>
               </a>

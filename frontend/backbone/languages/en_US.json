@@ -229,7 +229,6 @@
       "forward": "Forward",
       "refresh": "Refresh",
       "login": "Login",
-      "login": "Login",
       "discover": "Discover",
       "wallet": "Wallet",
       "notifications": "Notifications",
@@ -1560,6 +1559,12 @@
     "cryptoAddressHelperWarning2": "This address cannot be changed.",
     "directPayment": "Direct Payment",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
+    "loginConfirm": {
+      "title": "Login Required",
+      "body": "You need to login first to purchase. Would you like to login now?", 
+      "btnLogin": "Login",
+      "btnCancel": "Cancel"
+    },
     "confirmPayment": {
       "title": "Everything look good?",
       "msg": "If yes, please proceed to the final step.",

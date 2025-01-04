@@ -1548,6 +1548,12 @@
     "cryptoAddressHelperWarning2": "Diese Adresse kann nicht geändert werden.",
     "directPayment": "Direkte Zahlung",
     "directPaymentDetails": "Send funds directly to the seller without a moderator. You should only use this option with sellers you trust. You will not be able to dispute the order if something goes wrong.",
+    "loginConfirm": {
+      "title": "Anmeldung erforderlich",
+      "body": "Sie müssen sich zuerst anmelden, um einen Kauf zu tätigen. Möchten Sie sich jetzt anmelden?",
+      "btnLogin": "Anmelden",
+      "btnCancel": "Abbrechen"
+    },
     "confirmPayment": {
       "title": "Alles in Ordnung?",
       "msg": "Falls ja, machen Sie bitte mit dem abschließenden Schritt weiter.",
