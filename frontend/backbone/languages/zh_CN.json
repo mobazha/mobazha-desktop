@@ -220,6 +220,7 @@
     "help": "帮助",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "返回",
       "forward": "前进",
       "refresh": "刷新",

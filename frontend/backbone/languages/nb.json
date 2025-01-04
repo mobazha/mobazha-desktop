@@ -219,6 +219,7 @@
     "help": "Hjelp",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Tilbake",
       "forward": "Fremover",
       "refresh": "Oppdater",

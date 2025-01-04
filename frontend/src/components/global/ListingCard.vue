@@ -446,6 +446,8 @@ import LoadingUser from '../../views/modals/LoadingUser.vue';
 import ListingDetail from '../../views/modals/listingDetail/Listing.vue';
 import EditListing from '@/views/modals/editListing/EditListing.vue';
 
+import * as casdoor from '@/utils/casdoor';
+
 export default {
   components: {
 		BlockedWarning,
@@ -527,7 +529,7 @@ export default {
         ...this.model.toJSON(),
         ownListing: this.ownListing,
         coinType: this.model.get('currency') && this.model.get('currency').code,
-        shipsFreeToMe: this.model.shipsFreeToMe,
+        shipsFreeToMe: casdoor.isLoggedIn() ? this.model.shipsFreeToMe : false,
         viewType: this.viewType,
         displayCurrency: app.settings.get('localCurrency'),
         isBlocked,

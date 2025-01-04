@@ -224,6 +224,7 @@
     "help": "Help",
     "logout": "Logout",
     "toolTip": {
+      "home": "Home",
       "back": "Back",
       "forward": "Forward",
       "refresh": "Refresh",

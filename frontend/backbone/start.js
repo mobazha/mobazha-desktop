@@ -57,10 +57,12 @@ import * as casdoor from '../src/utils/casdoor';
 fixLinuxZoomIssue();
 handleServerShutdownRequests();
 
-$(function() {
+$(document).ready(() => {
   $.noConflict();
-
-  $.trumbowyg.svgPath = '../node_modules/trumbowyg/dist/ui/icons.svg';
+  
+  if ($.trumbowyg) {
+    $.trumbowyg.svgPath = '../node_modules/trumbowyg/dist/ui/icons.svg';
+  }
 });
 
 app.localSettings.on('change:language', (localSettings, lang) => {
@@ -557,12 +559,18 @@ function start() {
 
             printLog({content: `root page with externalRoute: ${externalRoute}`})
           } else if (location.pathname === '/' || !location.hash || location.hash === '#/home') {
-            // If for some reason the route to start on is empty, we'll change it to be
-            // the user's profile.
-            const href = location.href.replace(/(javascript:|#).*$/, '');
-            location.replace(`${href}#${app.profile.id}`);
+            if (!import.meta.env.VITE_APP) {
+              // If we're not in the app, we'll redirect to the search page.
+              location.hash = '#/search';
+              printLog({content: 'root page redirecting to search'})
+            } else {
+              // If for some reason the route to start on is empty, we'll change it to be
+              // the user's profile.
+              const href = location.href.replace(/(javascript:|#).*$/, '');
+              location.replace(`${href}#${app.profile.id}`);
 
-            printLog({content: `root page with home path: ${href}#${app.profile.id}`})
+              printLog({content: `root page with home path: ${href}#${app.profile.id}`})
+            }
           } else if (curConn.server
             && curConn.server.id !== localStorage.serverIdAtLastStart) {
             // When switching servers, we'll land on the user page of the new node
@@ -708,9 +716,25 @@ serverConnectEvents.on('disconnected', () => {
 
 // If we have a connection, close the Connection Management modal on a
 // will-route event.
-const onWillRouteCloseConnModal = () => app.connectionManagmentModal.close();
-serverConnectEvents.on('connected', () => app.router.on('will-route', onWillRouteCloseConnModal));
-serverConnectEvents.on('disconnected', () => app.router.off('will-route', onWillRouteCloseConnModal));
+const onWillRouteCloseConnModal = () => {
+  app.connectionManagmentModal.close();
+}
+
+serverConnectEvents.on('connected', () => {
+  window.vueApp.$router.beforeEach((to, from, next) => {
+    onWillRouteCloseConnModal();
+    next();
+  });
+});
+
+serverConnectEvents.on('disconnected', () => {
+  const router = window.vueApp.$router;
+  if (router) {
+    router.beforeHooks = router.beforeHooks.filter(hook => 
+      hook.toString().indexOf('onWillRouteCloseConnModal') === -1
+    );
+  }
+});
 
 const sendMainActiveServer = (activeServer) => {
   ipc.send('controller.mainwindow.setActiveServer', {
@@ -732,41 +756,39 @@ if (location.pathname === '/callback') {
   casdoor.signin().then((res) => {
     if (res.status === 'ok') {
       casdoor.setToken(res.data);
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect_uri');
+      window.location.href = redirect ? decodeURIComponent(redirect) : '/#/search';
     } else {
       console.log(`Login failed: ${res.msg}`);
+      window.location.href = '/#/search';
     }
-
-    window.location.href = '/'
-  })
+  });
 } else {
-  // Let's create our Connection Management modal so that it's
-  // available to show when needed.
-  app.connectionManagmentModal = new ConnectionManagement({
-    removeOnRoute: false,
-    dismissOnOverlayClick: false,
-    dismissOnEscPress: false,
-    showCloseButton: false,
-  }).render();
+  const initApp = () => {
+    // Let's create our Connection Management modal so that it's
+    // available to show when needed.
+    app.connectionManagmentModal = new ConnectionManagement({
+      removeOnRoute: false,
+      dismissOnOverlayClick: false,
+      dismissOnEscPress: false,
+      showCloseButton: false,
+    }).render();
 
-  // get the saved server configurations
-  app.serverConfigs.fetch().done(() => {
-    app.serverConfigs.migrate();
+    // get the saved server configurations
+    app.serverConfigs.fetch().done(() => {
+      app.serverConfigs.migrate();
 
-    // Web version
-    if (!import.meta.env.VITE_APP) {
-      if (!casdoor.isLoggedIn()) {
-        doLogin();
-      } else {
-        // Use API to get the socket port.
-        myGet('/api/serverInfo').done((serverInfo) => {
+      // Web version
+      if (!import.meta.env.VITE_APP) {
+        if (!casdoor.isLoggedIn()) {
           const devMode = import.meta.env.DEV;
           const serverConfig = new ServerConfig({
             name: 'HostingServer',
             id: 'backend',
             serverIp: devMode ? 'localhost' : 'store.mobazha.org',
             SSL: !devMode,
-            port: devMode ? 8080 : 443,
-            innerPort: serverInfo.gatewayPort,
+            port: 5103,
             authenticate: false,
           });
           serverConfig.save();
@@ -774,59 +796,92 @@ if (location.pathname === '/callback') {
           app.serverConfigs.add(serverConfig);
     
           connectToServer(serverConfig);
-        }).fail(() => {
-          doLogin();
-        })
-      }
-    } else if (!app.serverConfigs.length) {
-      // no saved server configurations
-      if (isBundledApp) {
-        // for a bundled app, we'll create a
-        // "default" one and try to connect
-        const serverConfig = new ServerConfig({
-          builtIn: true,
-          name: app.polyglot.t('connectionManagement.builtInServerName'),
-        });
-
-        serverConfig.save({}, {
-          success: (md) => {
-            setTimeout(() => {
-              app.serverConfigs.activeServer = app.serverConfigs.add(md);
-              connectToServer();
+        } else {
+          // Use API to get the socket port.
+          myGet('/api/serverInfo').done((serverInfo) => {
+            const devMode = import.meta.env.DEV;
+            const serverConfig = new ServerConfig({
+              name: 'HostingServer',
+              id: 'backend',
+              serverIp: devMode ? 'localhost' : 'store.mobazha.org',
+              SSL: !devMode,
+              port: devMode ? 8080 : 443,
+              innerPort: serverInfo.gatewayPort,
+              authenticate: false,
             });
-          },
-        });
+            serverConfig.save();
+            app.serverConfigs.reset();
+            app.serverConfigs.add(serverConfig);
+      
+            connectToServer(serverConfig);
+          }).fail(() => {
+            doLogin();
+          })
+        }
+      } else if (!app.serverConfigs.length) {
+        // no saved server configurations
+        if (isBundledApp) {
+          // for a bundled app, we'll create a
+          // "default" one and try to connect
+          const serverConfig = new ServerConfig({
+            builtIn: true,
+            name: app.polyglot.t('connectionManagement.builtInServerName'),
+          });
 
-        if (serverConfig.validationError) {
-          console.error('There was an error creating the builtIn server config:');
-          console.dir(serverConfig.validationError);
+          serverConfig.save({}, {
+            success: (md) => {
+              setTimeout(() => {
+                app.serverConfigs.activeServer = app.serverConfigs.add(md);
+                connectToServer();
+              });
+            },
+          });
+
+          if (serverConfig.validationError) {
+            console.error('There was an error creating the builtIn server config:');
+            console.dir(serverConfig.validationError);
+          }
+        } else {
+          app.connectionManagmentModal.open();
+          serverConnectEvents.once('connected', () => {
+            app.loadingModal.open();
+            start();
+          });
         }
       } else {
-        app.connectionManagmentModal.open();
-        serverConnectEvents.once('connected', () => {
-          app.loadingModal.open();
-          start();
-        });
+        let { activeServer } = app.serverConfigs;
+
+        if (activeServer) {
+          sendMainActiveServer(activeServer);
+        } else {
+          app.serverConfigs.activeServer = app.serverConfigs.at(0);
+          activeServer = app.serverConfigs.at(0);
+        }
+
+        if (activeServer.get('builtIn') && !isBundledApp) {
+          // Your active server is the locally bundled server, but you're
+          // not running the bundled app. You have bad data!
+          activeServer.set('builtIn', false);
+        }
+
+        connectToServer();
       }
+    });
+  };
+
+  // 检查是否需要登录
+  if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
+    const currentPath = location.pathname + location.hash;
+    if (currentPath === '/' || currentPath === '/#/' || currentPath === '/#/search') {
+      initApp();
     } else {
-      let { activeServer } = app.serverConfigs;
-
-      if (activeServer) {
-        sendMainActiveServer(activeServer);
-      } else {
-        app.serverConfigs.activeServer = app.serverConfigs.at(0);
-        activeServer = app.serverConfigs.at(0);
-      }
-
-      if (activeServer.get('builtIn') && !isBundledApp) {
-        // Your active server is the locally bundled server, but you're
-        // not running the bundled app. You have bad data!
-        activeServer.set('builtIn', false);
-      }
-
-      connectToServer();
+      // 其他页面需要登录
+      const redirect = encodeURIComponent(currentPath);
+      window.location.href = casdoor.getSigninUrl() + `&redirect_uri=${redirect}`;
     }
-  });
+  } else {
+    initApp();
+  }
 }
 
 // Clear localServer events on browser refresh.
