@@ -1,15 +1,11 @@
-import Moderators from './moderators/Moderators.vue';
+const components = {};
 
-const modules = import.meta.globEager('./*.vue')
-const map = {}
-Object.keys(modules).forEach(file => {
-  const modulesName = file.replace('./', '').replace('.vue', '')
-  map[modulesName] = modules[file].default
-})
+// 自动导入所有组件
+const modules = import.meta.glob('./*.vue', { eager: true });
 
-map['Moderators'] = Moderators;
-
-const globalComponents = {
-  ...map,
+for (const path in modules) {
+  const componentName = path.replace(/^\.\//, '').replace(/\.vue$/, '');
+  components[componentName] = modules[path].default;
 }
-export default globalComponents
+
+export default components;

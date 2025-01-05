@@ -5,8 +5,6 @@ import fs from 'fs';
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   return {
-    // 项目插件
-    plugins,
     server: {
       host: true,
       port: 8088,
@@ -63,9 +61,9 @@ export default defineConfig(({ command, mode }) => {
         },
       },
     },
-    define: {
-      global: {}
-    },
+    // define: {
+    //   global: {}
+    // },
     plugins: [
       ...plugins,
       {
@@ -88,7 +86,64 @@ export default defineConfig(({ command, mode }) => {
             next();
           });
         },
+      },
+      copyFoldersPlugin()
+    ],
+    esbuild: {
+      target: 'es2015',
+      supported: {
+        'top-level-await': true
       }
-    ]
+    }
   };
 });
+
+// 添加复制文件夹的插件
+function copyFoldersPlugin() {
+  return {
+    name: 'copy-folders',
+    closeBundle() {
+      const folders = [
+        'backbone/languages',
+        'backbone/templates',
+        'imgs'
+      ];
+      
+      folders.forEach(folder => {
+        const srcDir = path.resolve(__dirname, folder);
+        const destDir = path.resolve(__dirname, 'dist', folder);
+        
+        // 确保目标目录存在
+        if (!fs.existsSync(destDir)) {
+          fs.mkdirSync(destDir, { recursive: true });
+        }
+        
+        // 复制文件夹内容
+        copyFolderRecursiveSync(srcDir, path.resolve(__dirname, 'dist'));
+      });
+    }
+  };
+}
+
+// 递归复制文件夹的辅助函数
+function copyFolderRecursiveSync(source, target) {
+  const files = fs.readdirSync(source);
+  
+  files.forEach(file => {
+    const sourcePath = path.join(source, file);
+    const targetPath = path.join(target, path.relative(__dirname, sourcePath));
+    
+    if (fs.statSync(sourcePath).isDirectory()) {
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true });
+      }
+      copyFolderRecursiveSync(sourcePath, target);
+    } else {
+      const targetDir = path.dirname(targetPath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+  });
+}

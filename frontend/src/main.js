@@ -30,6 +30,9 @@ import * as templateHelpers from '../backbone/utils/templateHelpers';
 import cart from './store/cart.module';
 import VueScrollTo from 'vue-scrollto';
 
+import $ from 'jquery';
+window.jQuery = window.$ = $;
+
 // // init TUIKit
 // const TUIKit = TUICore.init({});
 // // TUIKit add TUIComponents
