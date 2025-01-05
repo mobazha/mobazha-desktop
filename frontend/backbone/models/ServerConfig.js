@@ -24,7 +24,8 @@ export default class extends BaseModel {
     return {
       serverIp: 'localhost',
       port: process.env.TESTNET === 'true' ? 4002 : 5102,
-      innerPort: undefined,
+      webVersion: false,
+      gateway: false,
       SSL: false,
       builtIn: false,
       useTor: false,
@@ -132,8 +133,17 @@ export default class extends BaseModel {
 
   get socketUrl() {
     const prefix = this.get('SSL') ? 'wss' : 'ws';
-    const innerPort = this.get('innerPort');
-    return `${prefix}://${this.get('serverIp')}:${this.get('port')}/ws${innerPort ? '?innerPort=' + innerPort : ''}`;
+    const baseUrl = `${prefix}://${this.get('serverIp')}:${this.get('port')}/ws`;
+
+    if (this.get('webVersion')) {
+      if (this.get('gateway')) {
+        return `${baseUrl}?Gateway=true`;
+      }
+      const token = localStorage.getItem('token');
+      return `${baseUrl}?token=${token}`;
+    }
+
+    return baseUrl;
   }
 
   /**

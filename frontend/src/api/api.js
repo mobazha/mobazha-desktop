@@ -15,6 +15,8 @@ if (!import.meta.env.VITE_APP) {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (!import.meta.env.VITE_APP) {
+      config.headers.Gateway = true;
     }
     return config;
   });
