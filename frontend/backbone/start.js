@@ -784,11 +784,13 @@ if (location.pathname === '/callback') {
         if (!casdoor.isLoggedIn()) {
           const devMode = import.meta.env.DEV;
           const serverConfig = new ServerConfig({
-            name: 'HostingServer',
-            id: 'backend',
+            name: 'GatewayServer',
+            id: 'gateway',
             serverIp: devMode ? 'localhost' : 'store.mobazha.org',
             SSL: !devMode,
-            port: 5103,
+            port: devMode ? 8080 : 443,
+            webVersion: true,
+            gateway: true,
             authenticate: false,
           });
           serverConfig.save();
@@ -806,7 +808,8 @@ if (location.pathname === '/callback') {
               serverIp: devMode ? 'localhost' : 'store.mobazha.org',
               SSL: !devMode,
               port: devMode ? 8080 : 443,
-              innerPort: serverInfo.gatewayPort,
+              webVersion: true,
+              gateway: false,
               authenticate: false,
             });
             serverConfig.save();
