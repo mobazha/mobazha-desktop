@@ -154,7 +154,7 @@ export default {
       listingsViewType: app.localSettings.get('listingsGridViewType'),
 
       inputTerm: '',
-      storeListingsCol: {},
+      storeListingsCol: new Listings([], { guid: this.bb().model.id }),
       listingsGridKey: 0,
 
       // Standard width grid has 3 columns, so best to leave this
@@ -242,7 +242,7 @@ export default {
         // todo: exceptionally tall screens may fit an entire page
         // with room to spare. Which means no scrollbar, which means subsequent
         // pages will not load. Handle that case.
-        this.storeListingsCol = new Listings(col.slice(0, this.LISTINGS_PER_PAGE), { guid: this.model.id });
+        this.storeListingsCol.reset(col.slice(0, this.LISTINGS_PER_PAGE));
         this.listingsGridKey += 1;
       }
 
@@ -520,10 +520,13 @@ export default {
     },
 
     _onStoreListingsScroll(e) {
-      let currentLength = this.storeListingsCol.length;
+      const currentLength = this.storeListingsCol.length;
       // if we've scrolled within a 150px of the bottom
       if (e.target.scrollTop + $(e.target).innerHeight() >= e.target.scrollHeight - 150) {
-        this.storeListingsCol.add(this.filteredCollection.slice(currentLength, currentLength + this.LISTINGS_PER_PAGE));
+        const newModels = this.filteredCollection.slice(currentLength, currentLength + this.LISTINGS_PER_PAGE);
+        if (newModels.length) {
+          this.storeListingsCol.add(newModels);
+        }
       }
     },
 
