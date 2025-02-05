@@ -1,4 +1,4 @@
-import BaseCollection from './BaseCollection';
+import { Collection } from 'backbone';
 
 export default class extends Collection {
   fetch(options = {}) {
