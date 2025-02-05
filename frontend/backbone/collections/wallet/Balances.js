@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
-import { Collection } from 'backbone';
+import BaseCollection from '../BaseCollection';
 import app from '../../app';
 import Balance from '../../models/wallet/Balance';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   constructor(models = [], options = {}) {
     super(models, options);
     this.guid = options.guid;

@@ -1,11 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import _ from 'underscore';
 import moment from 'moment';
-import { Collection } from 'backbone';
+import BaseCollection from './BaseCollection';
 import { capitalize } from '../utils/string';
 import app from '../app';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   url() {
     return app.getServerUrl('ob/notifications');
   }

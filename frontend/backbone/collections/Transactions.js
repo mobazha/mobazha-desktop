@@ -1,10 +1,10 @@
 // used for sales, purchases and cases
 import app from '../app';
-import { Collection } from 'backbone';
+import BaseCollection from './BaseCollection';
 import Transaction from '../models/transaction/Transaction';
 import Case from '../models/transaction/Case';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   constructor(models = [], options = {}) {
     const opts = {
       type: 'sales',

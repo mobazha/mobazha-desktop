@@ -1,8 +1,8 @@
 import { guid } from '../utils';
-import { Collection } from 'backbone';
+import BaseCollection from './BaseCollection';
 import Service from '../models/settings/Service';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   model(attrs, options) {
     return new Service({
       _clientID: attrs._clientID || guid(),

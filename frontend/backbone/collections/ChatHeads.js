@@ -1,9 +1,9 @@
 import { isBlocked, events as blockEvents } from '../utils/block';
-import { Collection } from 'backbone';
+import BaseCollection from './BaseCollection';
 import ChatHead from '../models/chat/ChatHead';
 import app from '../app';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   constructor(...args) {
     super(...args);
     this._blockedHeads = {};

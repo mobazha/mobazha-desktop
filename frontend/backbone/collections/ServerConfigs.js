@@ -1,12 +1,12 @@
 /* eslint-disable class-methods-use-this */
-import { Collection } from 'backbone';
+import BaseCollection from './BaseCollection';
 import process from 'process';
 import { ipc } from '../../src/utils/ipcRenderer.js';
 import app from '../app';
 import LocalStorageSync from '../utils/lib/backboneLocalStorage';
 import ServerConfig from '../models/ServerConfig';
 
-export default class extends Collection {
+export default class extends BaseCollection {
   localStorage() {
     return new LocalStorageSync('__serverConfigs');
   }
