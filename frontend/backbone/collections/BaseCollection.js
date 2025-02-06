@@ -4,7 +4,7 @@ export default class extends Collection {
   fetch(options = {}) {
     options.headers = {
       ...options.headers,
-      'X-Mobazha-User': 'test'
+      'X-Mobazha-Node': 'test'
     };
     return Collection.prototype.fetch.call(this, options);
   }

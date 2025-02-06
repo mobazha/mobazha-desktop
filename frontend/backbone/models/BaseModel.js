@@ -329,7 +329,7 @@ export default class extends Model {
     }
 
     options.headers = options.headers || {};
-    options.headers['X-Mobazha-User'] = 'test';
+    options.headers['X-Mobazha-Node'] = 'test';
 
     return super.sync(method, model, options);
   }

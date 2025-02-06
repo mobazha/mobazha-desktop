@@ -61,8 +61,9 @@ export default defineConfig(({ command, mode }) => {
         },
       },
     },
+    // for web
     // define: {
-    //   global: {}
+    //   global: 'globalThis'
     // },
     plugins: [
       ...plugins,

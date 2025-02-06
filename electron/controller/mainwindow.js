@@ -60,7 +60,7 @@ class MainWindowController extends Controller {
       }
 
       if (global.authCookie && server.builtIn) {
-        details.requestHeaders.Cookie = `OpenBazaar_Auth_Cookie=${global.authCookie}`;
+        details.requestHeaders.Cookie = `Mobazha_Auth_Cookie=${global.authCookie}`;
       }
 
       callback({ cancel: false, requestHeaders: details.requestHeaders });
