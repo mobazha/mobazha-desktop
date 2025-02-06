@@ -143,7 +143,7 @@ export default class extends BaseModel {
       return `${baseUrl}?token=${token}`;
     }
 
-    return `${baseUrl}/test`;
+    return `${baseUrl}/default`;
   }
 
   /**

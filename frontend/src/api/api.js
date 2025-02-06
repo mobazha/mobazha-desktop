@@ -5,8 +5,7 @@ import * as casdoor from '../utils/casdoor';
 const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'X-Mobazha-Node': 'test'
+    'Content-Type': 'application/json'
   },
 });
 
@@ -16,7 +15,7 @@ if (!import.meta.env.VITE_APP) {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else if (!import.meta.env.VITE_APP) {
+    } else {
       config.headers.Gateway = true;
     }
     return config;
@@ -34,7 +33,12 @@ if (!import.meta.env.VITE_APP) {
       return Promise.reject(error);
     },
   );
-}
+} else {
+  api.interceptors.request.use((config) => {
+    config.headers['X-Mobazha-Node'] = 'default';
+    return config;
+  });
+} 
 
 function handleError(deferred, error, options = {}) {
   const xhr = error.request || {};

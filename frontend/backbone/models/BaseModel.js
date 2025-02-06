@@ -329,7 +329,16 @@ export default class extends Model {
     }
 
     options.headers = options.headers || {};
-    options.headers['X-Mobazha-Node'] = 'test';
+    if (!import.meta.env.VITE_APP) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        options.headers.Authorization = `Bearer ${token}`;
+      } else {
+        options.headers.Gateway = true;
+      }
+    } else {
+      options.headers['X-Mobazha-Node'] = 'default';
+    }
 
     return super.sync(method, model, options);
   }
