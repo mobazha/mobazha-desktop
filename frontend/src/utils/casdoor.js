@@ -18,7 +18,7 @@ const sdkConfig = import.meta.env.DEV
   
 export const CasdoorSdk = new Sdk(sdkConfig);
 
-export const hosting_server = import.meta.env.DEV ? 'http://localhost:8088' : 'https://store.mobazha.org';
+export const hosting_server = import.meta.env.DEV ? 'http://localhost:8080' : 'https://store.mobazha.org';
 
 export const isLoggedIn = () => {
   const token = localStorage.getItem("token");
@@ -64,5 +64,11 @@ export const getUsers = () => {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
+  }).then((res) => res.json());
+};
+
+export const doTelegramLogin = () => {
+  return fetch(`${hosting_server}/api/telegramSignin${window.location.search}`, {
+    method: "POST"
   }).then((res) => res.json());
 };

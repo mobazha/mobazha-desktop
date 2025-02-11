@@ -752,8 +752,8 @@ function doLogin() {
   window.location.href = casdoor.getSigninUrl();
 }
 
-if (location.pathname === '/callback') {
-  casdoor.signin().then((res) => {
+const handleLoginCallback = (loginPromise) => {
+  loginPromise.then((res) => {
     if (res.status === 'ok') {
       casdoor.setToken(res.data);
       const params = new URLSearchParams(location.search);
@@ -764,6 +764,12 @@ if (location.pathname === '/callback') {
       window.location.href = '/#/search';
     }
   });
+};
+
+if (location.pathname === '/callback') {
+  handleLoginCallback(casdoor.signin());
+} else if (location.pathname === '/telegramCallback') {
+  handleLoginCallback(casdoor.doTelegramLogin());
 } else {
   const initApp = () => {
     // Let's create our Connection Management modal so that it's
