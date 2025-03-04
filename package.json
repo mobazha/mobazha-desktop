@@ -34,10 +34,7 @@
     "build-l-arm64": "electron-builder --config=./electron/config/builder.json -l=deb --arm64",
     "build-l-armv7l": "electron-builder --config=./electron/config/builder.json -l=deb --armv7l",
     "build-lr-64": "electron-builder --config=./electron/config/builder.json -l=rpm --x64",
-    "build-lp-64": "electron-builder --config=./electron/config/builder.json -l=pacman --x64",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish"
+    "build-lp-64": "electron-builder --config=./electron/config/builder.json -l=pacman --x64"
   },
   "repository": "https://github.com/mobazha/mobazha.git",
   "keywords": [
@@ -47,12 +44,6 @@
   "author": "Mogaolei <526567244@qq.com>",
   "license": "MGL",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.4",
-    "@electron-forge/maker-deb": "^6.0.4",
-    "@electron-forge/maker-dmg": "^6.0.4",
-    "@electron-forge/maker-rpm": "^6.0.4",
-    "@electron-forge/maker-squirrel": "^6.0.4",
-    "@electron-forge/publisher-github": "^6.1.1",
     "@electron/rebuild": "^3.2.13",
     "debug": "^4.3.3",
     "ee-bin": "1.8.3",
