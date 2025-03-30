@@ -80,6 +80,10 @@
                   <p>{{ ob.polyT('pageNav.discoverCalloutBody') }}</p>
                 </div>
               </template>
+              <a class="navBtn toolTipNoWrap" @click="navPaymentMethodsClick" :data-tip="ob.polyT('pageNav.toolTip.paymentMethods')"
+                id="Nav_PaymentMethods">
+                <i class="iconBtn ion-card"></i>
+              </a>
               <a class="navBtn toolTipNoWrap" @click="navWalletClick" :data-tip="ob.polyT('pageNav.toolTip.wallet')"
                 id="Nav_Wallet">
                 <div class="iconBtn navWalletBtn">
@@ -200,21 +204,17 @@
     <div :class="`navOverlay modal js-navOverlay ${navOverlayOpened ? 'open' :'' }`"></div>
     <Teleport v-if="navigable" to="#js-vueModal">
       <Settings v-show="showSettings" @close="closeSettings" />
-
       <WooImporter v-show="showWooImporter" @close="closeWooImporter" />
-
       <EditListing v-if="showEditListing" :bb="() => {
         return {
           model: editListingModel,
         };
       }" @close="closeEditListingModal" />
-
       <Wallet v-if="showWallet" :bb="() => {
         return {
           walletBalances: app.walletBalances,
         };
       }" @close="closeWallet" />
-
       <ShoppingCart v-if="showShoppingCart" @close="closeShoppingCart" />
     </Teleport>
   </div>
@@ -803,7 +803,12 @@ export default {
 
     navLoginClick() {
       window.location.href = casdoor.getSigninUrl();
-    }
+    },
+
+    navPaymentMethodsClick() {
+      recordEvent('NavClick', { target: 'paymentMethodsOpen' });
+      this.$router.push('/receiving-accounts');
+    },
   }
 }
 </script>
