@@ -4,7 +4,7 @@
       <div class="pageHeading">
         <h1>收款账户管理</h1>
         <div class="flexExpand"></div>
-        <div class="backLink" v-if="showApplyNewAccount || editingPaymentMethod || applyingPaymentMethod">
+        <div class="backLink" v-if="showApplyNewAccount || editingAccount || applyingAccount">
           <a class="btn clrP clrBr btnFlx" @click="backToList">
             <i class="ion-arrow-left-c"></i>
             <span>返回列表</span>
@@ -13,7 +13,7 @@
       </div>
 
       <!-- 空状态显示 -->
-      <div v-if="!hasAnyPaymentMethod && !showApplyNewAccount && !editingPaymentMethod && !applyingPaymentMethod" class="contentBox padLg clrP clrBr emptyStateContainer">
+      <div v-if="!hasAnyAccount && !showApplyNewAccount && !editingAccount && !applyingAccount" class="contentBox padLg clrP clrBr emptyStateContainer">
         <div class="emptyStateIcon">
           <i class="ion-ios-circle-outline"></i>
         </div>
@@ -27,130 +27,342 @@
         </div>
       </div>
 
-      <!-- 列表状态显示 -->
-      <div v-if="hasAnyPaymentMethod && !showApplyNewAccount && !editingPaymentMethod && !applyingPaymentMethod" class="contentBox padMd clrP clrBr">
-        <div class="flexRow rowMd">
+      <!-- 账户列表视图 -->
+      <div v-if="hasAnyAccount && !editingAccount && !applyingAccount && !showApplyNewAccount" class="accountListView contentBox padMd clrP clrBr">
+        <div class="listHeader">
           <h2 class="tx3 txB">收款账户列表</h2>
-          <div class="flexExpand"></div>
-          <a class="btn clrP clrBr btnFlx" @click="showApplyNewAccount = true">
+          <button @click="showApplyNewAccount = true" class="btn addAccountBtn">
             <i class="ion-plus-round"></i>
-            <span>申请收款账户</span>
-          </a>
+            添加收款账户
+          </button>
         </div>
-        <div class="tableContainer">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="colType">收款类型</th>
-                <th class="colAccount">收款账户</th>
-                <th class="colDate">最近入账时间</th>
-                <th class="colAmount">最近入账金额</th>
-                <th class="colActions">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- 表格内容保持不变 -->
-              <tr v-if="paymentMethods.ethereum.enabled">
-                <td>
-                  <div class="flexVCent">
-                    <i class="ion-social-bitcoin walletIcon"></i>
-                    <span>以太坊 ETH</span>
+        
+        <!-- 区块链账户 -->
+        <div class="accountSection">
+          <h3 class="sectionTitle">区块链钱包</h3>
+          <div class="accountGrid">
+            <div v-for="account in receivingAccounts.filter(a => a.chainType)" 
+                 :key="account.address" 
+                 class="accountCard" 
+                 :class="{ enabled: account.enabled }">
+              <div class="accountHeader">
+                <div class="accountType">{{ getChainTypeName(account.chainType) }}</div>
+                <div class="accountStatus">{{ account.enabled ? '已启用' : '未启用' }}</div>
                   </div>
-                </td>
-                <td class="txEll">{{ paymentMethods.ethereum.address }}</td>
-                <td>尚未入账</td>
-                <td>-</td>
-                <td>
-                  <a class="btn btnTxtOnly" @click="editPaymentMethod('ethereum')">详情</a>
-                  <a class="btn btnTxtOnly txAlert" @click="togglePaymentMethod('ethereum', false)">停用</a>
-                </td>
-              </tr>
-              <!-- 其他币种的列表项... -->
-            </tbody>
-          </table>
+              <div class="accountAddress">{{ account.address }}</div>
+              <div v-if="account._enabledTokens && account._enabledTokens.length > 0" class="accountTokens">
+                <span v-for="token in account._enabledTokens" :key="token" class="tokenTag">
+                  {{ token }}
+                </span>
+              </div>
+              <div class="accountActions">
+                <button @click="editAccount(account)" class="btn editBtn">编辑</button>
+                <button v-if="account.enabled" @click="disableAccount(account)" class="btn disableBtn">停用</button>
+                <button v-else @click="enableAccount(account)" class="btn enableBtn">启用</button>
+                <button @click="deleteAccount(account)" class="btn deleteBtn">删除</button>
+              </div>
+            </div>
         </div>
       </div>
 
-      <!-- 申请新收款账户 -->
-      <div v-if="showApplyNewAccount" class="contentBox padMd clrP clrBr">
-        <div class="flexRow rowMd">
-          <h2 class="tx3 txB">申请收款账户</h2>
-        </div>
-        
-        <div class="paymentMethodOptions">
-          <div class="pmOption" v-for="(info, key) in paymentMethodsInfo" :key="key" @click="applyPaymentMethod(key)">
-            <div :class="`pmIcon ${info.iconClass}`">
-              <i :class="info.icon"></i>
+        <!-- 其他支付方式 -->
+        <div class="accountSection">
+          <h3 class="sectionTitle">其他支付方式</h3>
+          <div class="accountGrid">
+            <div v-for="account in receivingAccounts.filter(a => !a.chainType)" 
+                 :key="account.name" 
+                 class="accountCard" 
+                 :class="{ enabled: account.enabled }">
+              <div class="accountHeader">
+                <div class="accountType">{{ getPaymentMethodName(account.name) }}</div>
+                <div class="accountStatus">{{ account.enabled ? '已启用' : '未启用' }}</div>
+              </div>
+              <div class="accountDetail">{{ account.email || account.accountId || '未设置' }}</div>
+              <div class="accountActions">
+                <button @click="editAccount(account)" class="btn editBtn">编辑</button>
+                <button v-if="account.enabled" @click="disableAccount(account)" class="btn disableBtn">停用</button>
+                <button v-else @click="enableAccount(account)" class="btn enableBtn">启用</button>
+                <button @click="deleteAccount(account)" class="btn deleteBtn">删除</button>
+              </div>
             </div>
-            <div class="pmInfo">
-              <h4>{{ info.name }}</h4>
-              <p>{{ info.description }}</p>
-            </div>
-            <i class="ion-chevron-right"></i>
           </div>
         </div>
+        </div>
+        
+      <!-- 编辑账户视图 -->
+      <div v-if="editingAccount" class="contentBox padMd clrP clrBr">
+        <h2 class="tx3 txB">设置 {{ getChainTypeName(editingAccount.chainType) || getPaymentMethodName(editingAccount.name) }} 收款账户</h2>
+        
+        <!-- 区块链账户设置 -->
+        <div v-if="editingAccount.chainType" class="walletSetupContainer">
+          <!-- 钱包图标和标题 -->
+          <div class="walletHeader">
+            <div class="walletIcon">
+              <i :class="getChainIcon(editingAccount.chainType)"></i>
+            </div>
+            <h3 class="walletName">{{ getChainTypeName(editingAccount.chainType) }}</h3>
+            </div>
+          
+          <!-- 钱包说明 -->
+          <div class="walletDescription">
+            通过{{ getChainTypeName(editingAccount.chainType) }}钱包接收 
+            <span v-if="editingAccount.chainType === 'Ethereum'">ETH 和 ERC-20 代币支付。</span>
+            <span v-else-if="editingAccount.chainType === 'Solana'">SOL 及相关代币支付。</span>
+            <span v-else-if="editingAccount.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
+            <span v-else-if="editingAccount.chainType === 'Base'">Base链上的代币支付。</span>
+            <span v-else>加密货币支付。</span>
+          </div>
+          
+          <!-- 步骤指引 -->
+          <div class="setupSteps">
+            <div class="setupStep">
+              <div class="stepNumber">1</div>
+              <div class="stepContent">
+                <h4>准备{{ getChainTypeName(editingAccount.chainType) }}钱包</h4>
+                <p>确保您已安装 
+                  <span v-if="editingAccount.chainType === 'Ethereum'">MetaMask 或其他支持以太坊的钱包</span>
+                  <span v-else-if="editingAccount.chainType === 'Solana'">Phantom 或其他支持Solana的钱包</span>
+                  <span v-else-if="editingAccount.chainType === 'BSC'">MetaMask 或其他支持BSC的钱包</span>
+                  <span v-else-if="editingAccount.chainType === 'Base'">MetaMask 或其他支持Base的钱包</span>
+                  <span v-else>相关钱包</span>
+                </p>
+        </div>
       </div>
 
-      <!-- 编辑收款账户 -->
-      <div v-if="editingPaymentMethod" class="contentBox padMd clrP clrBr">
-        <div class="flexRow rowMd">
-          <h2 class="tx3 txB">编辑收款账户</h2>
+            <div class="setupStep">
+              <div class="stepNumber">2</div>
+              <div class="stepContent">
+                <h4>连接钱包</h4>
+                <p>点击下方按钮连接您的钱包，获取收款地址</p>
+              </div>
+            </div>
         </div>
         
-        <PaymentMethodSetup 
-          :method="editingPaymentMethod"
-          :address="getAddressForMethod(editingPaymentMethod)"
-          :email="paymentMethods.paypal.email"
-          :accountId="paymentMethods.stripe.accountId"
-          @connect="connectWallet"
-          @connectStripe="connectStripe"
-          @updateEmail="updatePaypalEmail"
-          @copy="copyAddress"
-        />
-        
-        <div class="btnActions">
-          <button class="btn cancelBtn" @click="editingPaymentMethod = null">取消</button>
-          <button class="btn primaryBtn" @click="savePaymentMethod">保存</button>
+          <!-- 连接钱包按钮 -->
+          <div class="connectWalletBtnContainer">
+            <button @click="connectWallet(editingAccount.chainType)" class="btn connectWalletBtn" :disabled="isConnecting">
+              <i class="ion-link"></i>
+              <span>{{ isConnecting ? '连接中...' : '连接钱包' }}</span>
+            </button>
+          </div>
+          
+          <!-- 钱包地址输入 -->
+          <div v-if="editingAccount.address" class="walletAddressContainer">
+            <label>钱包地址</label>
+            <input type="text" v-model="editingAccount.address" readonly class="walletAddressInput" />
+          </div>
+          
+          <!-- 代币选择 -->
+          <div v-if="editingAccount.chainType === 'Ethereum' || editingAccount.chainType === 'Solana'" class="tokenSelectionContainer">
+            <label>接收代币</label>
+            <div class="tokenList">
+              <div v-for="token in getAvailableTokens(editingAccount.chainType)" :key="token.id" class="tokenItem">
+                <input type="checkbox" 
+                       :id="token.id" 
+                       :value="token.id" 
+                       v-model="editingTokens" />
+                <label :for="token.id">{{ token.name }}</label>
+              </div>
         </div>
       </div>
 
-      <!-- 设置新收款账户 -->
-      <div v-if="applyingPaymentMethod" class="contentBox padMd clrP clrBr">
-        <div class="flexRow rowMd">
-          <h2 class="tx3 txB">设置 {{ paymentMethodsInfo[applyingPaymentMethod]?.name }} 收款账户</h2>
+          <!-- 启用开关 -->
+          <div class="enableToggleContainer">
+            <input type="checkbox" id="enableAccount" v-model="editingAccount.enabled" />
+            <label for="enableAccount">启用此账户</label>
+          </div>
         </div>
         
-        <PaymentMethodSetup 
-          :method="applyingPaymentMethod"
-          :address="getAddressForMethod(applyingPaymentMethod)"
-          :email="paymentMethods.paypal.email"
-          :accountId="paymentMethods.stripe.accountId"
-          @connect="connectWallet"
-          @connectStripe="connectStripe"
-          @updateEmail="updatePaypalEmail"
-          @copy="copyAddress"
-        />
+        <!-- PayPal表单 -->
+        <div v-if="editingAccount && editingAccount.name === 'paypal'" class="paymentMethodSetupContainer">
+          <!-- PayPal 图标和标题 -->
+          <div class="paymentMethodHeader">
+            <div class="paymentMethodIcon paypalIcon">
+              <i class="ion-card"></i>
+            </div>
+            <h3 class="paymentMethodName">PayPal</h3>
+          </div>
+          
+          <!-- PayPal 说明 -->
+          <div class="paymentMethodDescription">
+            通过 PayPal 接收付款，支持全球范围内的买家付款。
+          </div>
+          
+          <!-- PayPal 设置 -->
+          <div class="paymentMethodSetup">
+            <div class="formGroup">
+              <label>PayPal 邮箱</label>
+              <input type="email" v-model="editingAccount.email" placeholder="输入您的 PayPal 邮箱地址" class="formInput" />
+              <p class="formHint">请确保输入正确的 PayPal 账户邮箱，买家将向此账户付款</p>
+            </div>
+            
+            <div class="enableToggleContainer">
+              <input type="checkbox" id="enablePaypal" v-model="editingAccount.enabled" />
+              <label for="enablePaypal">启用 PayPal 支付</label>
+            </div>
+          </div>
+        </div>
         
-        <div class="btnActions">
-          <button class="btn cancelBtn" @click="applyingPaymentMethod = null">取消</button>
-          <button class="btn primaryBtn" @click="savePaymentMethod">保存</button>
+        <!-- Stripe表单 -->
+        <div v-if="editingAccount && editingAccount.name === 'stripe'" class="paymentMethodSetupContainer">
+          <!-- Stripe 图标和标题 -->
+          <div class="paymentMethodHeader">
+            <div class="paymentMethodIcon stripeIcon">
+              <i class="ion-card"></i>
+            </div>
+            <h3 class="paymentMethodName">Stripe</h3>
+          </div>
+          
+          <!-- Stripe 说明 -->
+          <div class="paymentMethodDescription">
+            通过 Stripe 接收信用卡付款，支持全球范围内的买家使用信用卡付款。
+          </div>
+          
+          <!-- Stripe 设置 -->
+          <div class="paymentMethodSetup">
+            <div v-if="!editingAccount.accountId" class="stripeConnectContainer">
+              <p class="stripeConnectInfo">您需要连接您的 Stripe 账户以接收付款。如果您还没有 Stripe 账户，将会引导您创建一个。</p>
+              <button @click="connectStripe" class="connectStripeBtn">
+                <i class="ion-link"></i>
+                <span>连接 Stripe 账户</span>
+              </button>
+            </div>
+            
+            <div v-else class="stripeAccountInfo">
+              <div class="formGroup">
+                <label>Stripe 账户 ID</label>
+                <input type="text" v-model="editingAccount.accountId" readonly class="formInput" />
+                <p class="formHint">您的 Stripe 账户已连接</p>
+              </div>
+              
+              <button @click="connectStripe" class="reconnectStripeBtn">
+                <i class="ion-refresh"></i>
+                <span>重新连接 Stripe 账户</span>
+              </button>
+            </div>
+            
+            <div class="enableToggleContainer">
+              <input type="checkbox" id="enableStripe" v-model="editingAccount.enabled" :disabled="!editingAccount.accountId" />
+              <label for="enableStripe">启用 Stripe 支付</label>
+              <p v-if="!editingAccount.accountId" class="enableHint">请先连接 Stripe 账户</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 底部按钮 -->
+        <div class="actionButtons">
+          <button v-if="editingAccount.address || editingAccount.email || editingAccount.accountId" 
+                  @click="deleteAccount(editingAccount)" 
+                  class="btn deleteBtn">
+            删除账户
+          </button>
+          <div class="flexExpand"></div>
+          <button @click="backToList" class="btn cancelBtn">取消</button>
+          <button @click="saveReceivingAccounts" class="btn saveBtn" :disabled="isSaving">
+            {{ isSaving ? '保存中...' : '保存' }}
+          </button>
         </div>
       </div>
 
       <!-- 成功提示 -->
-      <div v-if="saveSuccess" class="saveSuccessToast">
+      <div v-if="saveSuccess" class="successMessage">
         <i class="ion-checkmark-circled"></i>
-        <span>保存成功</span>
+        <span>保存成功!</span>
+      </div>
+
+      <!-- 添加申请新账户的视图 -->
+      <div v-if="showApplyNewAccount && !editingAccount && !applyingAccount" class="contentBox padMd clrP clrBr">
+        <h2 class="tx3 txB">申请新收款账户</h2>
+        
+        <div class="paymentMethodList">
+          <!-- 区块链钱包 -->
+          <div class="sectionTitle">区块链钱包</div>
+          
+          <!-- 以太坊 -->
+          <div class="pmItem" @click="applyAccount('Ethereum')">
+            <div class="pmIcon">
+              <i class="ion-social-bitcoin"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>以太坊钱包</h4>
+              <p>接收ETH、USDT、USDC等代币</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+          
+          <!-- BSC -->
+          <div class="pmItem" @click="applyAccount('BSC')">
+            <div class="pmIcon bscIcon">
+              <i class="ion-social-usd"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>BSC钱包</h4>
+              <p>接收BNB、BUSD等代币</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+          
+          <!-- Solana -->
+          <div class="pmItem" @click="applyAccount('Solana')">
+            <div class="pmIcon solanaIcon">
+              <i class="ion-social-usd"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>Solana钱包</h4>
+              <p>接收SOL及相关代币</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+          
+          <!-- Base -->
+          <div class="pmItem" @click="applyAccount('Base')">
+            <div class="pmIcon baseIcon">
+              <i class="ion-social-usd"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>Base钱包</h4>
+              <p>接收Base链上的代币</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+          
+          <!-- 其他支付方式 -->
+          <div class="sectionTitle">其他支付方式</div>
+          
+          <!-- PayPal -->
+          <div class="pmItem" @click="applyPaymentMethod('paypal')">
+            <div class="pmIcon paypalIcon">
+              <i class="ion-card"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>PayPal</h4>
+              <p>通过PayPal接收付款</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+          
+          <!-- Stripe -->
+          <div class="pmItem" @click="applyPaymentMethod('stripe')">
+            <div class="pmIcon stripeIcon">
+              <i class="ion-card"></i>
+            </div>
+            <div class="pmInfo">
+              <h4>Stripe</h4>
+              <p>通过Stripe接收信用卡付款</p>
+            </div>
+            <i class="ion-chevron-right"></i>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { useOnboard } from '@web3-onboard/vue';
+import { useAppKit, useAppKitAccount, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import PaymentMethodSetup from '../modals/receiving/PaymentMethodSetup.vue';
 import app from '../../../backbone/app.js';
-import { myGet } from '../../api/api.js';
+import { myGet, myPut } from '../../api/api.js';
 import { recordEvent } from '../../../backbone/utils/metrics.js';
 
 export default {
@@ -159,48 +371,38 @@ export default {
   },
   data() {
     return {
-      paymentMethods: {
-        ethereum: {
-          address: '',
-          enabled: false
-        },
-        bsc: {
-          address: '',
-          enabled: false
-        },
-        solana: {
-          address: '',
-          enabled: false
-        },
-        base: {
-          address: '',
-          enabled: false
-        },
-        paypal: {
-          email: '',
-          enabled: false
-        },
-        stripe: {
-          accountId: '',
-          enabled: false
-        }
-      },
+      // 初始化状态
+      receivingAccounts: [],
+      editingAccount: null,
+      applyingAccount: null,
+      showApplyNewAccount: false,
       isSaving: false,
       saveSuccess: false,
-      showApplyNewAccount: false,
-      editingPaymentMethod: null,
-      applyingPaymentMethod: null,
-      onboard: {},
-      paymentMethodsInfo: {
+      
+      // 支持的链类型
+      supportedChainTypes: [
+        { id: 'Ethereum', name: '以太坊/ERC-20代币' },
+        { id: 'BSC', name: 'BSC/BEP-20代币' },
+        { id: 'Solana', name: 'Solana' },
+        { id: 'Base', name: 'Base' }
+      ],
+      
+      // 支持的非区块链支付方式
+      supportedPaymentMethods: [
+        { id: 'paypal', name: 'PayPal' },
+        { id: 'stripe', name: 'Stripe' }
+      ],
+      
+      chainTypeInfo: {
         ethereum: {
-          name: '以太坊',
-          description: '接收ETH和ERC-20代币交易',
+          name: '以太坊/ERC-20代币',
+          description: '接收ETH和基于以太坊的代币交易',
           icon: 'ion-social-bitcoin',
-          iconClass: ''
+          iconClass: 'ethereumIcon'
         },
         bsc: {
-          name: '币安智能链',
-          description: '接收BNB和BEP-20代币交易',
+          name: 'BSC/BEP-20代币',
+          description: '接收BNB和币安智能链上的代币交易',
           icon: 'ion-social-bitcoin',
           iconClass: 'bscIcon'
         },
@@ -229,12 +431,36 @@ export default {
           iconClass: 'stripeIcon'
         }
       },
-      templateHelpers: {}
+      templateHelpers: {},
+      editingTokens: [],
+      isConnecting: false
+    };
+  },
+  setup() {
+    // 使用 Reown AppKit 的组合式 API
+    const appKit = useAppKit();
+    const accountData = useAppKitAccount();
+    const appKitState = useAppKitState();
+    const appKitEvents = useAppKitEvents();
+    const { disconnect } = useDisconnect();
+    
+    return {
+      appKit,
+      accountData,
+      appKitState,
+      appKitEvents,
+      disconnect
     };
   },
   created() {
-    this.onboard = useOnboard();
-    this.fetchPaymentMethods();
+    this.fetchReceivingAccounts();
+    console.log('appKitEvents: ', this.appKitEvents);
+  },
+  mounted() {
+    // 检查钱包是否已连接，如果已连接则断开
+    this.$nextTick(() => {
+      this.disconnectWallet();
+    });
   },
   computed: {
     ob() {
@@ -242,360 +468,236 @@ export default {
         ...this.templateHelpers,
       };
     },
-    hasEthAddress() {
-      return !!this.paymentMethods.ethereum.address;
+    hasAnyAccount() {
+      return this.receivingAccounts && this.receivingAccounts.length > 0;
     },
-    hasBscAddress() {
-      return !!this.paymentMethods.bsc.address;
+    accountsByChainType() {
+      const result = {};
+      if (this.receivingAccounts) {
+        this.receivingAccounts.forEach(account => {
+          if (account.chainType) {
+            if (!result[account.chainType]) {
+              result[account.chainType] = [];
+            }
+            result[account.chainType].push(account);
+          }
+        });
+      }
+      return result;
     },
-    hasSolanaAddress() {
-      return !!this.paymentMethods.solana.address;
+    nonBlockchainAccounts() {
+      return this.receivingAccounts ? this.receivingAccounts.filter(a => !a.chainType) : [];
+    }
+  },
+  watch: {
+    // 监听钱包连接状态变化
+    'accountData.isConnected': function(newValue, oldValue) {
+      if (newValue && !oldValue && this.editingAccount) {
+        // 钱包连接成功，更新地址
+        this.editingAccount.address = this.accountData.address;
+        
+        // 默认启用一些代币
+        if (this.editingAccount.chainType === 'Ethereum' && (!this.editingTokens || this.editingTokens.length === 0)) {
+          this.editingTokens = ['ETH', 'USDT', 'USDC'];
+        } else if (this.editingAccount.chainType === 'Solana' && (!this.editingTokens || this.editingTokens.length === 0)) {
+          this.editingTokens = ['SOL', 'SOLUSDT', 'SOLUSDC'];
+        } else if (this.editingAccount.chainType === 'BSC' && (!this.editingTokens || this.editingTokens.length === 0)) {
+          this.editingTokens = ['BNB', 'BUSD'];
+        } else if (this.editingAccount.chainType === 'Base' && (!this.editingTokens || this.editingTokens.length === 0)) {
+          this.editingTokens = ['ETH'];
+        }
+        
+        this.isConnecting = false;
+      }
     },
-    hasBaseAddress() {
-      return !!this.paymentMethods.base.address;
-    },
-    hasStripeAccount() {
-      return !!this.paymentMethods.stripe.accountId;
-    },
-    hasAnyPaymentMethod() {
-      return (
-        (this.paymentMethods.ethereum.enabled && this.paymentMethods.ethereum.address) ||
-        (this.paymentMethods.bsc.enabled && this.paymentMethods.bsc.address) ||
-        (this.paymentMethods.solana.enabled && this.paymentMethods.solana.address) ||
-        (this.paymentMethods.base.enabled && this.paymentMethods.base.address) ||
-        (this.paymentMethods.paypal.enabled && this.paymentMethods.paypal.email) ||
-        (this.paymentMethods.stripe.enabled && this.paymentMethods.stripe.accountId)
-      );
+    
+    // 监听模态框关闭事件
+    'appKitState.open': function(newValue, oldValue) {
+      if (!newValue && oldValue && this.isConnecting) {
+        // 模态框关闭但未连接成功
+        setTimeout(() => {
+          this.isConnecting = false;
+        }, 500);
+      }
     }
   },
   methods: {
     backToList() {
+      this.editingAccount = null;
+      this.editingTokens = [];
       this.showApplyNewAccount = false;
-      this.editingPaymentMethod = null;
-      this.applyingPaymentMethod = null;
+      this.applyingAccount = null;
     },
     
-    async fetchPaymentMethods() {
+    async fetchReceivingAccounts() {
       try {
-        // 假设这里调用后端API获取当前用户的支付方式
-        const response = await myGet(app.getServerUrl('ob/payment-methods'));
-        
-        if (response && response.paymentMethods) {
-          this.paymentMethods = response.paymentMethods;
+        const response = await myGet(app.getServerUrl('wallet/receiving-accounts'));
+        if (response && Array.isArray(response)) {
+          // 处理每个账户的enabledTokens字段
+          this.receivingAccounts = response.map(account => {
+            if (account.enabledTokens) {
+              try {
+                account._enabledTokens = JSON.parse(account.enabledTokens);
+              } catch (e) {
+                account._enabledTokens = [];
+              }
+            } else {
+              account._enabledTokens = [];
+            }
+            return account;
+          });
         }
       } catch (error) {
-        console.error('获取支付方式失败:', error);
-        
-        // 确保初始化时所有支付方式都是禁用状态
-        this.resetPaymentMethods();
+        console.error('获取收款账户失败:', error);
       }
     },
     
-    resetPaymentMethods() {
-      // 重置所有支付方式为初始状态（未启用）
-      this.paymentMethods = {
-        ethereum: { address: '', enabled: false },
-        bsc: { address: '', enabled: false },
-        solana: { address: '', enabled: false },
-        base: { address: '', enabled: false },
-        paypal: { email: '', enabled: false },
-        stripe: { accountId: '', enabled: false }
-      };
-    },
-    
-    async savePaymentMethod() {
-      if (this.isSaving) return;
-      
-      this.isSaving = true;
-      this.saveSuccess = false;
-      
+    async saveReceivingAccounts() {
       try {
-        // 假设这里调用后端API保存支付方式
-        // await myPut(app.getServerUrl('ob/payment-methods'), {
-        //   paymentMethods: this.paymentMethods
-        // });
+        this.isSaving = true;
         
-        // 如果有正在编辑的方法，确保它被启用
-        if (this.editingPaymentMethod && this.paymentMethods[this.editingPaymentMethod]) {
-          this.paymentMethods[this.editingPaymentMethod].enabled = true;
+        // 处理代币列表
+        if (this.editingAccount && this.editingTokens) {
+          this.editingAccount.enabledTokens = this.editingTokens;
         }
         
-        // 如果是申请新方法，也确保它被启用
-        if (this.applyingPaymentMethod && this.paymentMethods[this.applyingPaymentMethod]) {
-          this.paymentMethods[this.applyingPaymentMethod].enabled = true;
-        }
-        
-        // 演示环境下，先不调用后端API
-        // 在实际项目中，应该取消这里的注释，调用真实的后端API
-        /*
-        await myPut(app.getServerUrl('ob/payment-methods'), {
-          paymentMethods: this.paymentMethods
+        const response = await myPut('/wallet/receiving-accounts', {
+          receivingAccounts: this.receivingAccounts
         });
-        */
         
-        // 模拟成功
-        setTimeout(() => {
-          this.saveSuccess = true;
+        if (response.success) {
+          console.log('收款账户保存成功');
           
-          // 重置状态
-          this.editingPaymentMethod = null;
-          this.applyingPaymentMethod = null;
+          // 重置编辑状态
+          this.editingAccount = null;
+          this.editingTokens = [];
+          this.applyingAccount = null;
           this.showApplyNewAccount = false;
           
-          // 2秒后移除成功提示
-          setTimeout(() => {
-            this.saveSuccess = false;
-            this.isSaving = false;
-          }, 2000);
-        }, 500);
-        
+          // 重新获取最新数据
+          await this.fetchReceivingAccounts();
+        } else {
+          console.error('保存收款账户失败:', response);
+          alert('保存失败，请重试');
+        }
       } catch (error) {
-        console.error('保存支付方式失败:', error);
-        this.isSaving = false;
+        console.error('保存收款账户失败:', error);
         alert('保存失败，请重试');
+      } finally {
+        this.isSaving = false;
       }
     },
     
-    editPaymentMethod(method) {
-      this.editingPaymentMethod = method;
-      this.showApplyNewAccount = false;
-      this.applyingPaymentMethod = null;
+    editAccount(account) {
+      this.editingAccount = account;
+      
+      // 如果是区块链账户，设置编辑的代币列表
+      if (account.chainType && account._enabledTokens) {
+        this.editingTokens = [...account._enabledTokens];
+      }
+    },
+    
+    enableAccount(account) {
+      account.enabled = true;
+      this.saveReceivingAccounts();
+    },
+    
+    applyAccount(chainType) {
+      // 创建新账户
+      const newAccount = {
+        name: chainType.toLowerCase(),
+        chainType: chainType,
+        address: '',
+        enabledTokens: '[]', // 初始化为空数组的 JSON 字符串
+        _enabledTokens: [], // 前端使用的内部属性
+        enabled: false
+      };
+      
+      this.receivingAccounts.push(newAccount);
+      this.editAccount(newAccount);
     },
     
     applyPaymentMethod(method) {
-      this.applyingPaymentMethod = method;
+      // 查找是否已存在该支付方式
+      const existingAccount = this.nonBlockchainAccounts.find(a => a.name === method);
       
-      // 如果已有地址，设置为编辑模式而不是申请模式
-      if ((method === 'ethereum' && this.hasEthAddress) ||
-          (method === 'bsc' && this.hasBscAddress) ||
-          (method === 'solana' && this.hasSolanaAddress) ||
-          (method === 'base' && this.hasBaseAddress)) {
-        this.editPaymentMethod(method);
-        return;
-      }
-      
-      // 如果是新申请，重置状态
-      this.showApplyNewAccount = false;
-    },
-    
-    togglePaymentMethod(method, enabled) {
-      if (this.paymentMethods[method]) {
-        this.paymentMethods[method].enabled = enabled;
-        
-        if (enabled) {
-          // 如果是启用操作，但没有地址，则进入设置流程
-          if (['ethereum', 'bsc', 'solana', 'base'].includes(method) && 
-              !this.paymentMethods[method].address) {
-            this.applyPaymentMethod(method);
-            return;
-          }
-          
-          if (method === 'paypal' && !this.paymentMethods.paypal.email) {
-            this.applyPaymentMethod(method);
-            return;
-          }
-          
-          if (method === 'stripe' && !this.paymentMethods.stripe.accountId) {
-            this.applyPaymentMethod(method);
-            return;
-          }
-        }
-        
-        // 直接保存状态变更
-        this.savePaymentMethod();
-      }
-    },
-    
-    getAddressForMethod(method) {
-      if (!method || !this.paymentMethods[method]) return '';
-      
-      if (['ethereum', 'bsc', 'solana', 'base'].includes(method)) {
-        return this.paymentMethods[method].address || '';
-      }
-      
-      return '';
-    },
-    
-    updatePaypalEmail(email) {
-      this.paymentMethods.paypal.email = email;
-    },
-    
-    async connectWallet(chain) {
-      recordEvent('PaymentMethods_ConnectWallet', { chain });
-      
-      try {
-        let chainId;
-        switch (chain) {
-          case 'ethereum':
-            chainId = '0x1'; // 以太坊主网
-            break;
-          case 'bsc':
-            chainId = '0x38'; // 币安智能链主网
-            break;
-          case 'solana':
-            // Solana使用不同的连接方式
-            await this.connectSolanaWallet();
-            return;
-          case 'base':
-            chainId = '0x2105'; // Base主网
-            break;
-          default:
-            console.error('不支持的链类型:', chain);
-            return;
-        }
-        
-        // 使用web3-onboard连接钱包
-        if (!this.onboard) {
-          console.error('Onboard未初始化');
-          
-          // 模拟地址（仅用于演示）
-          const mockAddresses = {
-            ethereum: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-            bsc: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-            base: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
-          };
-          
-          if (mockAddresses[chain]) {
-            this.paymentMethods[chain].address = mockAddresses[chain];
-            this.paymentMethods[chain].enabled = true;
-            
-            // 强制UI更新
-            this.$forceUpdate();
-          }
-          
-          return;
-        }
-        
-        // 连接钱包
-        const wallets = await this.onboard.connectWallet();
-        
-        if (wallets && wallets.length > 0) {
-          const connectedWallet = wallets[0];
-          
-          if (connectedWallet && connectedWallet.accounts && connectedWallet.accounts.length > 0) {
-            const address = connectedWallet.accounts[0].address;
-            
-            // 更新对应的地址和启用状态
-            switch (chain) {
-              case 'ethereum':
-                this.paymentMethods.ethereum.address = address;
-                this.paymentMethods.ethereum.enabled = true;
-                break;
-              case 'bsc':
-                this.paymentMethods.bsc.address = address;
-                this.paymentMethods.bsc.enabled = true;
-                break;
-              case 'base':
-                this.paymentMethods.base.address = address;
-                this.paymentMethods.base.enabled = true;
-                break;
-              default:
-                break;
-            }
-            
-            // 强制UI更新
-            this.$forceUpdate();
-            
-            // 尝试切换到指定的链
-            try {
-              if (connectedWallet.provider && typeof connectedWallet.provider.request === 'function') {
-                await connectedWallet.provider.request({
-                  method: 'wallet_switchEthereumChain',
-                  params: [{ chainId }],
-                });
-              }
-            } catch (error) {
-              console.error('切换链失败:', error);
-              
-              // 如果是因为链未添加导致的错误，可以提示用户添加链
-              if (error.code === 4902) {
-                try {
-                  // 这里可以添加请求添加链的代码
-                  // 例如，对于BSC:
-                  if (chain === 'bsc') {
-                    await connectedWallet.provider.request({
-                      method: 'wallet_addEthereumChain',
-                      params: [{
-                        chainId: '0x38',
-                        chainName: 'Binance Smart Chain',
-                        nativeCurrency: {
-                          name: 'BNB',
-                          symbol: 'BNB',
-                          decimals: 18
-                        },
-                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                        blockExplorerUrls: ['https://bscscan.com/']
-                      }]
-                    });
-                  }
-                  // 类似地，可以为其他链添加相应的请求
-                } catch (addError) {
-                  console.error('添加链失败:', addError);
-                }
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('连接钱包失败:', error);
-        
-        // 模拟地址（仅用于演示）
-        const mockAddresses = {
-          ethereum: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-          bsc: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-          base: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
+      if (existingAccount) {
+        // 如果已存在，编辑它
+        this.editAccount(existingAccount);
+      } else {
+        // 创建新的非区块链支付方式
+        const newAccount = {
+          name: method,
+          email: '',
+          accountId: '',
+          enabled: false
         };
         
-        if (mockAddresses[chain]) {
-          this.paymentMethods[chain].address = mockAddresses[chain];
-          this.paymentMethods[chain].enabled = true;
-          
-          // 强制UI更新
-          this.$forceUpdate();
-        }
+        this.receivingAccounts.push(newAccount);
+        this.editAccount(newAccount);
       }
     },
     
-    async connectSolanaWallet() {
-      // Solana使用不同的连接方式
-      try {
-        // 这里是Solana连接的示例代码，实际实现可能不同
-        if (window.solana && window.solana.isPhantom) {
-          const connection = await window.solana.connect();
-          const address = connection.publicKey.toString();
-          
-          this.paymentMethods.solana.address = address;
-          this.paymentMethods.solana.enabled = true;
-        } else {
-          alert('请安装Phantom钱包来连接Solana');
-          window.open('https://phantom.app/', '_blank');
-        }
-      } catch (error) {
-        console.error('连接Solana钱包失败:', error);
+    disableAccount(account) {
+      account.enabled = false;
+      this.saveReceivingAccounts();
+    },
+    
+    getChainIcon(chainType) {
+      switch (chainType) {
+        case 'Ethereum':
+          return 'ion-social-bitcoin'; // 使用适当的图标
+        case 'Solana':
+          return 'ion-social-bitcoin'; // 使用适当的图标
+        case 'BSC':
+          return 'ion-social-bitcoin'; // 使用适当的图标
+        case 'Base':
+          return 'ion-social-bitcoin'; // 使用适当的图标
+          default:
+          return 'ion-social-bitcoin';
       }
+    },
+    
+    getChainTypeName(chainType) {
+      switch (chainType) {
+        case 'Ethereum':
+          return '以太坊/ERC-20代币';
+        case 'Solana':
+          return 'Solana';
+        case 'BSC':
+          return 'BSC/BEP-20代币';
+        case 'Base':
+          return 'Base';
+              default:
+          return chainType;
+      }
+    },
+    
+    getPaymentMethodIcon(methodId) {
+      switch (methodId) {
+        case 'paypal':
+          return 'ion-card'; // 使用适当的图标
+        case 'stripe':
+          return 'ion-card'; // 使用适当的图标
+        default:
+          return 'ion-card';
+      }
+    },
+    
+    getPaymentMethodName(methodId) {
+      const method = this.supportedPaymentMethods.find(m => m.id === methodId);
+      return method ? method.name : methodId;
     },
     
     async connectStripe() {
-      recordEvent('PaymentMethods_ConnectStripe');
-      
       try {
-        // 这里是调用Stripe API的示例代码
         const response = await myGet(app.getServerUrl('ob/stripe/connect-url'));
-        
         if (response && response.url) {
-          // 重定向到Stripe OAuth页面
-          window.location.href = response.url;
-        } else {
-          // 模拟Stripe连接（仅用于演示）
-          this.paymentMethods.stripe.accountId = 'acct_' + Math.random().toString(36).substring(2, 10);
-          this.paymentMethods.stripe.enabled = true;
+          window.open(response.url, '_blank');
         }
       } catch (error) {
         console.error('获取Stripe连接URL失败:', error);
-        
-        // 模拟Stripe连接（仅用于演示）
-        this.paymentMethods.stripe.accountId = 'acct_' + Math.random().toString(36).substring(2, 10);
-        this.paymentMethods.stripe.enabled = true;
+        alert('连接Stripe失败，请重试');
       }
     },
     
@@ -623,7 +725,116 @@ export default {
         
         document.body.removeChild(textArea);
       }
+    },
+    
+    getAvailableTokens(chainType) {
+      if (chainType === 'Ethereum') {
+        return [
+          { id: 'ETH', name: '以太坊 (ETH)' },
+          { id: 'USDT', name: 'Tether (USDT)' },
+          { id: 'USDC', name: 'USD Coin (USDC)' },
+          { id: 'MBZ', name: 'Mobazha (MBZ)' }
+        ];
+      } else if (chainType === 'Solana') {
+        return [
+          { id: 'SOL', name: 'Solana (SOL)' },
+          { id: 'SOLUSDT', name: 'Solana USDT' },
+          { id: 'SOLUSDC', name: 'Solana USDC' },
+          { id: 'SOLMBZ', name: 'Solana MBZ' }
+        ];
+      } else if (chainType === 'BSC') {
+        return [
+          { id: 'BNB', name: 'Binance Coin (BNB)' },
+          { id: 'BUSD', name: 'Binance USD (BUSD)' },
+          { id: 'BSCUSDT', name: 'BSC USDT' },
+          { id: 'BSCUSDC', name: 'BSC USDC' }
+        ];
+      } else if (chainType === 'Base') {
+        return [
+          { id: 'ETH', name: 'Ethereum (ETH)' },
+          { id: 'BASEUSDC', name: 'Base USDC' }
+        ];
+      }
+      return [];
+    },
+    
+    async connectWallet(chainType) {
+      this.disconnectWallet();
+
+      try {
+        this.isConnecting = true;
+        
+        let namespace;
+        
+        switch(chainType) {
+          case 'Ethereum':
+            namespace = 'eip155';
+            break;
+          case 'BSC':
+            namespace = 'eip155';
+            break;
+          case 'Solana':
+            namespace = 'solana';
+            break;
+          case 'Base':
+            namespace = 'eip155';
+            break;
+          default:
+            throw new Error('不支持的链类型');
+        }
+
+        this.appKit.open({ view: 'Connect', namespace});
+      } catch (error) {
+        console.error('连接钱包失败:', error);
+        alert('连接钱包失败，请重试');
+        this.isConnecting = false;
+      }
+    },
+    
+    // 添加断开钱包连接的方法
+    async disconnectWallet() {
+      try {
+        if (this.accountData.isConnected) {
+          await this.disconnect();
+          console.log('钱包已断开连接');
+        }
+      } catch (error) {
+        console.error('断开钱包连接失败:', error);
+      }
+    },
+    
+    deleteAccount(account) {
+      if (!confirm(`确定要删除此${account.chainType ? '钱包' : '支付方式'}账户吗？删除后将无法恢复。`)) {
+        return;
+      }
+      
+      // 从数组中移除账户
+      const index = this.receivingAccounts.findIndex(a => {
+        if (account.chainType) {
+          return a.chainType === account.chainType && a.address === account.address;
+        } else {
+          return a.name === account.name;
+        }
+      });
+      
+      if (index !== -1) {
+        this.receivingAccounts.splice(index, 1);
+        
+        // 如果正在编辑的是被删除的账户，返回列表视图
+        if (this.editingAccount === account) {
+          this.editingAccount = null;
+          this.editingTokens = [];
+        }
+        
+        // 保存更改
+        this.saveReceivingAccounts();
+      }
     }
+  },
+  
+  beforeUnmount() {
+    // 在组件销毁前断开钱包连接
+    this.disconnectWallet();
   }
 };
 </script>
@@ -663,227 +874,591 @@ export default {
     }
   }
   
-  .tableContainer {
-    overflow-x: auto;
-    margin-top: 16px;
-    
-    .table {
-      width: 100%;
-      border-collapse: collapse;
+  .accountListView {
+    .listHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
       
-      th, td {
-        padding: 12px;
-        text-align: left;
+      .addAccountBtn {
+        display: flex;
+        align-items: center;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        
+        i {
+          margin-right: 8px;
+        }
+        
+        &:hover {
+          background-color: darken(#2196F3, 10%);
+        }
+      }
+    }
+    
+    .accountSection {
+      margin-bottom: 30px;
+      
+      .sectionTitle {
+        font-size: 18px;
+        margin-bottom: 15px;
+        padding-bottom: 5px;
         border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       }
       
-      th {
+      .accountGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+    }
+  }
+  
+  .accountCard {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    background-color: white;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.enabled {
+      border-color: #4CAF50;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+    }
+    
+    .accountHeader {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      
+      .accountType {
         font-weight: bold;
-        background-color: rgba(0, 0, 0, 0.02);
       }
       
-      .colType {
-        width: 18%;
+      .accountStatus {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
       }
+    }
+    
+    .accountAddress, .accountDetail {
+      font-family: monospace;
+      background-color: #f5f5f5;
+      padding: 8px;
+      border-radius: 4px;
+      word-break: break-all;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .accountTokens {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
       
-      .colAccount {
-        width: 40%;
+      .tokenTag {
+        background-color: #e0e0e0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
       }
+    }
+    
+    .accountActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
       
-      .colDate, .colAmount {
-        width: 15%;
-      }
-      
-      .colActions {
-        width: 12%;
-        text-align: center;
-      }
-      
-      .txEll {
-        max-width: 280px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      
-      .btnTxtOnly {
-        background: none;
-        border: none;
-        padding: 5px 10px;
+      .btn {
+        padding: 6px 12px;
+        border-radius: 4px;
         cursor: pointer;
-        color: #2196F3;
+        font-size: 14px;
         
-        &.txAlert {
+        &.editBtn {
+          background-color: transparent;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+        }
+        
+        &.disableBtn {
+          background-color: #f44336;
+    color: white;
+          border: none;
+          
+          &:hover {
+            background-color: darken(#f44336, 10%);
+          }
+        }
+        
+        &.enableBtn {
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          
+          &:hover {
+            background-color: darken(#4CAF50, 10%);
+          }
+        }
+        
+        &.deleteBtn {
+          background-color: transparent;
           color: #f44336;
+          border: 1px solid #f44336;
+          
+          &:hover {
+            background-color: rgba(244, 67, 54, 0.1);
+          }
         }
       }
     }
   }
   
-  .walletIcon {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    text-align: center;
-    background-color: #627eea;
-    color: white;
-    border-radius: 50%;
-    margin-right: 8px;
+  .paymentMethodList {
+    margin-top: 20px;
     
-    &.bscIcon {
-      background-color: #f8bc17;
+    .sectionTitle {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
     
-    &.solanaIcon {
-      background-color: #9945ff;
-    }
-    
-    &.baseIcon {
-      background-color: #0052ff;
-    }
-    
-    &.paypalIcon {
-      background-color: #003087;
-    }
-    
-    &.stripeIcon {
-      background-color: #6772e5;
-    }
-  }
-  
-  /* 支付方式选项列表样式 */
-  .paymentMethodOptions {
-    margin-top: 16px;
-    
-    .pmOption {
+    .pmItem {
       display: flex;
       align-items: center;
-      padding: 16px;
+      padding: 15px;
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       
       &:hover {
-        background-color: rgba(0, 0, 0, 0.02);
         transform: translateY(-2px);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       }
       
       .pmIcon {
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background-color: #627eea;
-        color: white;
+        background-color: #f0f0f0;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-right: 15px;
         font-size: 20px;
-        margin-right: 16px;
-        flex-shrink: 0;
         
         &.bscIcon {
-          background-color: #f8bc17;
+          background-color: #F3BA2F;
+          color: white;
         }
         
         &.solanaIcon {
-          background-color: #9945ff;
+          background-color: #9945FF;
+          color: white;
         }
         
         &.baseIcon {
-          background-color: #0052ff;
+          background-color: #0052FF;
+          color: white;
         }
         
         &.paypalIcon {
           background-color: #003087;
+          color: white;
         }
         
         &.stripeIcon {
-          background-color: #6772e5;
+          background-color: #635BFF;
+          color: white;
         }
       }
       
       .pmInfo {
-        flex: 1;
+        flex-grow: 1;
         
         h4 {
-          margin: 0 0 4px 0;
-          font-weight: 600;
+          margin: 0 0 4px;
+          font-size: 16px;
         }
         
         p {
           margin: 0;
-          color: rgba(0, 0, 0, 0.6);
           font-size: 14px;
+          color: rgba(0, 0, 0, 0.6);
         }
       }
       
-      i.ion-chevron-right {
-        font-size: 16px;
-        opacity: 0.5;
+      .ion-chevron-right {
+        color: rgba(0, 0, 0, 0.3);
+        font-size: 20px;
       }
     }
   }
   
-  /* 按钮样式 */
-  .btnActions {
+  .walletSetupContainer {
     margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
     
-    .btn {
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
+    .walletHeader {
+    display: flex;
+      align-items: center;
+      margin-bottom: 20px;
       
-      &.primaryBtn {
+      .walletIcon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin-right: 15px;
+        
+        &.ethereumIcon {
+          background-color: #627eea;
+          color: white;
+        }
+        
+        &.solanaIcon {
+          background-color: #9945ff;
+          color: white;
+        }
+        
+        &.bscIcon {
+          background-color: #f3ba2f;
+          color: white;
+        }
+        
+        &.baseIcon {
+          background-color: #0052ff;
+          color: white;
+        }
+      }
+      
+      .walletName {
+        font-size: 24px;
+        font-weight: bold;
+      }
+    }
+    
+    .walletDescription {
+      margin-bottom: 30px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    .setupSteps {
+      margin-bottom: 30px;
+      
+      .setupStep {
+        display: flex;
+        margin-bottom: 20px;
+        
+        .stepNumber {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background-color: #2196F3;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          margin-right: 15px;
+          flex-shrink: 0;
+        }
+        
+        .stepContent {
+          h4 {
+            margin: 0 0 5px;
+            font-size: 16px;
+          }
+          
+          p {
+            margin: 0;
+            color: rgba(0, 0, 0, 0.6);
+          }
+        }
+      }
+    }
+    
+    .connectWalletBtnContainer {
+      margin-bottom: 20px;
+      
+      .connectWalletBtn {
+        display: flex;
+        align-items: center;
         background-color: #2196F3;
         color: white;
         border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        
+        i {
+          margin-right: 10px;
+        }
         
         &:hover {
           background-color: darken(#2196F3, 10%);
         }
+        
+        &:disabled {
+          background-color: #cccccc;
+          cursor: not-allowed;
+        }
+      }
+    }
+    
+    .walletAddressContainer {
+      margin-bottom: 20px;
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
       }
       
-      &.cancelBtn {
-        background-color: transparent;
-        color: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        margin-right: 8px;
+      .walletAddressInput {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+        background-color: #f5f5f5;
+      }
+    }
+    
+    .tokenSelectionContainer {
+      margin-bottom: 20px;
+      
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+      
+      .tokenList {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
         
-        &:hover {
-          background-color: rgba(0, 0, 0, 0.05);
+        .tokenItem {
+          display: flex;
+          align-items: center;
+          
+          input[type="checkbox"] {
+        margin-right: 8px;
+          }
         }
+      }
+    }
+    
+    .enableToggleContainer {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      
+      input[type="checkbox"] {
+        margin-right: 10px;
+      }
+      
+      label {
+        font-weight: bold;
       }
     }
   }
   
-  .btnLg {
-    padding: 12px 24px;
+  .paymentMethodSetupContainer {
+    margin-top: 20px;
+    
+    .paymentMethodHeader {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .paymentMethodIcon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin-right: 15px;
+        
+        &.paypalIcon {
+          background-color: #003087;
+          color: white;
+        }
+        
+        &.stripeIcon {
+          background-color: #635BFF;
+          color: white;
+        }
+      }
+      
+      .paymentMethodName {
+        font-size: 24px;
+        font-weight: bold;
+      }
+    }
+    
+    .paymentMethodDescription {
+      margin-bottom: 30px;
     font-size: 16px;
-  }
-
-  .saveSuccessToast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #4CAF50;
+      line-height: 1.5;
+    }
+    
+    .paymentMethodSetup {
+      .formGroup {
+        margin-bottom: 20px;
+        
+        label {
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
+        }
+        
+        .formInput {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+        
+        .formHint {
+          margin-top: 5px;
+          font-size: 14px;
+          color: rgba(0, 0, 0, 0.6);
+        }
+      }
+      
+      .stripeConnectContainer {
+        margin-bottom: 20px;
+        
+        .stripeConnectInfo {
+          margin-bottom: 15px;
+        }
+        
+        .connectStripeBtn {
+          display: flex;
+          align-items: center;
+          background-color: #635BFF;
     color: white;
-    padding: 12px 24px;
+          border: none;
+          padding: 10px 20px;
     border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+          
+          i {
+            margin-right: 10px;
+          }
+          
+          &:hover {
+            background-color: darken(#635BFF, 10%);
+          }
+        }
+      }
+      
+      .stripeAccountInfo {
+        margin-bottom: 20px;
+        
+        .reconnectStripeBtn {
     display: flex;
     align-items: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+          background-color: transparent;
+          color: #635BFF;
+          border: 1px solid #635BFF;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
     
     i {
       margin-right: 8px;
-      font-size: 18px;
+          }
+          
+          &:hover {
+            background-color: rgba(99, 91, 255, 0.1);
+          }
+        }
+      }
+      
+      .enableHint {
+        margin-top: 5px;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
+  
+  .actionButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    
+    .deleteBtn {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+    
+    .cancelBtn {
+      padding: 10px 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+    
+    .saveBtn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+      
+      &:hover {
+        background-color: darken(#2196F3, 10%);
+      }
+      
+      &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
     }
   }
 }

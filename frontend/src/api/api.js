@@ -106,6 +106,28 @@ export function myPost(url, data = {}, config = {}) {
   return deferred;
 }
 
+export function myPut(url, data = {}, config = {}) {
+  const deferred = $.Deferred();
+
+  const controller = new AbortController();
+  api.put(url, data, {
+    ...config,
+    signal: controller.signal
+  })
+    .then((response) => {
+      deferred.resolve(response.data, "success", response.request);
+    })
+    .catch((error) => {
+      handleError(deferred, error);
+    });
+
+  deferred.abort = () => {
+    controller.abort();
+  };
+
+  return deferred;
+}
+
 export function myAjax(options) {
   const {
     url,

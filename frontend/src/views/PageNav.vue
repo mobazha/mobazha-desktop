@@ -245,8 +245,6 @@ import EditListing from '@/views/modals/editListing/EditListing.vue';
 import WooImporter from '@/views/modals/WooImporter.vue';
 import ShoppingCart from './ShoppingCart.vue';
 
-import { useOnboard } from '@web3-onboard/vue';
-
 export default {
   components: {
     PageNavServersMenu,
@@ -312,8 +310,6 @@ export default {
     this.initEventChain();
 
     this.loadData(this.options);
-
-    this.onboard = useOnboard();
   },
   watch: {
     unreadNotifCount() {

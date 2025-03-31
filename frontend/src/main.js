@@ -7,6 +7,10 @@ import 'element-plus/dist/index.css';
 import './assets/scss/main.scss';
 // import { TUIComponents, TUICore } from './TUIKit';
 
+import { WagmiPlugin } from '@wagmi/vue';
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query';
+import { wagmiAdapter } from './config/wallet';
+
 import VueVideoPlayer from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
 
@@ -45,11 +49,15 @@ window.jQuery = window.$ = $;
 
 window.app = app;
 
+const queryClient = new QueryClient();
+
 function mountVueApp(container) {
   const vueApp = createApp(App);
   vueApp.config.productionTip = false;
   vueApp.use(VueScrollTo);
   vueApp.use(VueVideoPlayer);
+  vueApp.use(WagmiPlugin, { config: wagmiAdapter.wagmiConfig })
+  vueApp.use(VueQueryPlugin, { queryClient })
 
   vueApp.use(ElementPlus);
   for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
