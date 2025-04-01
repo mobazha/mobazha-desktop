@@ -10,13 +10,12 @@
     
     <!-- 钱包说明 -->
     <div class="walletDescription">
-      {{ $t('receivingAccounts.walletDescription', { chainType: account.chainType }) }} 
-      <span v-if="account.chainType === 'BTC'">{{ $t('receivingAccounts.btcPayments') }}</span>
-      <span v-if="account.chainType === 'ETH'">{{ $t('receivingAccounts.ethPayments') }}</span>
-      <span v-else-if="account.chainType === 'SOL'">{{ $t('receivingAccounts.solPayments') }}</span>
-      <span v-else-if="account.chainType === 'BSC'">{{ $t('receivingAccounts.bscPayments') }}</span>
-      <span v-else-if="account.chainType === 'Base'">{{ $t('receivingAccounts.basePayments') }}</span>
-      <span v-else>{{ $t('receivingAccounts.cryptoPayments') }}</span>
+      通过{{ account.chainType }}钱包接收 
+      <span v-if="account.chainType === 'Ethereum'">ETH 和 ERC-20 代币支付。</span>
+      <span v-else-if="account.chainType === 'Solana'">SOL 及相关代币支付。</span>
+      <span v-else-if="account.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
+      <span v-else-if="account.chainType === 'Base'">Base链上的代币支付。</span>
+      <span v-else>加密货币支付。</span>
     </div>
     
     <!-- 步骤指引 -->
@@ -24,14 +23,13 @@
       <div class="setupStep">
         <div class="stepNumber">1</div>
         <div class="stepContent">
-          <h4>{{ $t('receivingAccounts.prepareWallet', { chainType: account.chainType }) }}</h4>
-          <p>{{ $t('receivingAccounts.installWallet') }} 
-            <span v-if="account.chainType === 'BTC'">{{ $t('receivingAccounts.btcWallet') }}</span>
-            <span v-if="account.chainType === 'ETH'">{{ $t('receivingAccounts.ethWallet') }}</span>
-            <span v-else-if="account.chainType === 'SOL'">{{ $t('receivingAccounts.solWallet') }}</span>
-            <span v-else-if="account.chainType === 'BSC'">{{ $t('receivingAccounts.bscWallet') }}</span>
-            <span v-else-if="account.chainType === 'Base'">{{ $t('receivingAccounts.baseWallet') }}</span>
-            <span v-else>{{ $t('receivingAccounts.relatedWallet') }}</span>
+          <h4>准备{{ account.chainType }}钱包</h4>
+          <p>确保您已安装 
+            <span v-if="account.chainType === 'Ethereum'">MetaMask 或其他支持以太坊的钱包</span>
+            <span v-else-if="account.chainType === 'Solana'">Phantom 或其他支持Solana的钱包</span>
+            <span v-else-if="account.chainType === 'BSC'">MetaMask 或其他支持BSC的钱包</span>
+            <span v-else-if="account.chainType === 'Base'">MetaMask 或其他支持Base的钱包</span>
+            <span v-else>相关钱包</span>
           </p>
         </div>
       </div>
@@ -39,8 +37,8 @@
       <div class="setupStep">
         <div class="stepNumber">2</div>
         <div class="stepContent">
-          <h4>{{ $t('receivingAccounts.connectWallet') }}</h4>
-          <p>{{ $t('receivingAccounts.connectWalletDescription') }}</p>
+          <h4>连接钱包</h4>
+          <p>点击下方按钮连接您的钱包，获取收款地址</p>
         </div>
       </div>
     </div>
@@ -49,20 +47,20 @@
     <div class="connectWalletBtnContainer">
       <button @click="$emit('connect-wallet', account.chainType)" class="btn connectWalletBtn" :disabled="isConnecting">
         <i class="ion-link"></i>
-        <span>{{ isConnecting ? $t('receivingAccounts.connecting') : $t('receivingAccounts.connectWallet') }}</span>
+        <span>{{ isConnecting ? '连接中...' : '连接钱包' }}</span>
       </button>
     </div>
     
     <!-- 钱包地址输入 -->
     <div v-if="account.address" class="walletAddressContainer">
-      <label>{{ $t('receivingAccounts.walletAddress') }}</label>
+      <label>钱包地址</label>
       <input type="text" v-model="account.address" readonly class="walletAddressInput" @click="copyAddress" />
-      <p class="addressHint">{{ $t('receivingAccounts.walletAddressHint', { chainType: account.chainType }) }}</p>
+      <p class="addressHint">这是您的{{ account.chainType }}钱包地址，买家将向此地址付款</p>
     </div>
     
     <!-- 代币选择 -->
-    <div v-if="account.chainType === 'ETH' || account.chainType === 'SOL' || account.chainType === 'BSC' || account.chainType === 'Base'" class="tokenSelectionContainer">
-      <label>{{ $t('receivingAccounts.receiveTokens') }}</label>
+    <div v-if="account.chainType === 'Ethereum' || account.chainType === 'Solana' || account.chainType === 'BSC' || account.chainType === 'Base'" class="tokenSelectionContainer">
+      <label>接收代币</label>
       <div class="tokenList">
         <div v-for="token in getAvailableTokens(account.chainType)" :key="token.id" class="tokenItem">
           <input type="checkbox" 
@@ -70,28 +68,25 @@
                  :value="token.id" 
                  v-model="localTokens" 
                  @change="updateTokens" />
-          <label :for="token.id">{{ token.token }}</label>
+          <label :for="token.id">{{ token.name }}</label>
         </div>
       </div>
     </div>
     
     <!-- 启用开关 -->
     <div class="enableSwitchContainer">
-      <label>{{ $t('receivingAccounts.enablePaymentMethod') }}</label>
-      <ToggleSwitch v-model="account.isActive" :id="'enableSwitch_' + account.chainType" />
-      <p class="enableHint">{{ $t('receivingAccounts.enableHint') }}</p>
+      <label>启用此收款方式</label>
+      <div class="switchWrapper">
+        <input type="checkbox" v-model="account.enabled" id="enableSwitch" />
+        <label for="enableSwitch" class="toggleSwitch"></label>
+      </div>
+      <p class="enableHint">启用后，买家可以通过此方式向您付款</p>
     </div>
   </div>
 </template>
 
 <script>
-import ToggleSwitch from './ToggleSwitch.vue';
-import { getTokensByChain } from '@/config/token.js';
-
 export default {
-  components: {
-    ToggleSwitch
-  },
   props: {
     account: {
       type: Object,
@@ -108,7 +103,7 @@ export default {
   },
   data() {
     return {
-      localTokens: []
+      localTokens: [...this.tokens]
     };
   },
   watch: {
@@ -116,15 +111,7 @@ export default {
       handler(newTokens) {
         this.localTokens = [...newTokens];
       },
-      immediate: true
-    },
-    'account.activeTokens': {
-      handler(newTokens) {
-        if (Array.isArray(newTokens)) {
-          this.localTokens = [...newTokens];
-        }
-      },
-      immediate: true
+      deep: true
     }
   },
   methods: {
@@ -136,7 +123,7 @@ export default {
       if (this.account.address) {
         navigator.clipboard.writeText(this.account.address)
           .then(() => {
-            alert(this.$t('receivingAccounts.addressCopied'));
+            alert('地址已复制到剪贴板');
           })
           .catch(err => {
             console.error('复制失败:', err);
@@ -146,11 +133,9 @@ export default {
     
     getChainIcon(chainType) {
       switch (chainType) {
-        case 'BTC':
-          return 'ion-social-bitcoin';
-        case 'ETH':
+        case 'Ethereum':
           return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'SOL':
+        case 'Solana':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'BSC':
           return 'ion-social-bitcoin'; // 使用适当的图标
@@ -162,8 +147,33 @@ export default {
     },
     
     getAvailableTokens(chainType) {
-      // 使用配置文件中的代币数据
-      return getTokensByChain(chainType);
+      switch (chainType) {
+        case 'Ethereum':
+          return [
+            { id: 'ETH', name: 'ETH (以太坊)' },
+            { id: 'USDT', name: 'USDT (泰达币)' },
+            { id: 'USDC', name: 'USDC (USD Coin)' },
+            { id: 'DAI', name: 'DAI (Dai)' }
+          ];
+        case 'Solana':
+          return [
+            { id: 'SOL', name: 'SOL (Solana)' },
+            { id: 'SOLUSDT', name: 'USDT (Solana USDT)' },
+            { id: 'SOLUSDC', name: 'USDC (Solana USDC)' }
+          ];
+        case 'BSC':
+          return [
+            { id: 'BNB', name: 'BNB (Binance Coin)' },
+            { id: 'BUSD', name: 'BUSD (Binance USD)' },
+            { id: 'CAKE', name: 'CAKE (PancakeSwap)' }
+          ];
+        case 'Base':
+          return [
+            { id: 'ETH', name: 'ETH (Base ETH)' }
+          ];
+        default:
+          return [];
+      }
     }
   }
 };
@@ -319,6 +329,50 @@ export default {
       display: block;
       margin-bottom: 10px;
       font-weight: bold;
+    }
+    
+    .switchWrapper {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      
+      input[type="checkbox"] {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        
+        &:checked + .toggleSwitch {
+          background-color: #4CAF50;
+          
+          &:before {
+            transform: translateX(30px);
+          }
+        }
+      }
+      
+      .toggleSwitch {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+        
+        &:before {
+          position: absolute;
+          content: "";
+          height: 22px;
+          width: 22px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+      }
     }
     
     .enableHint {

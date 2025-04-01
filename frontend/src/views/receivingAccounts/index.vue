@@ -1,20 +1,13 @@
 <template>
   <div class="pageReceivingAccounts">
-    <!-- 自动显示弹框 -->
-    <ReceivingAccountsModal 
-      v-if="showModal" 
-      @close="closeModal"
-    />
-    
-    <!-- 备用页面内容（当弹框不可用时显示） -->
-    <div v-else class="contentContainer">
+    <div class="contentContainer">
       <div class="pageHeading">
-        <h1>{{ $t('receivingAccounts.title') }}</h1>
+        <h1>收款账户管理</h1>
         <div class="flexExpand"></div>
         <div class="backLink" v-if="showApplyNewAccount || editingAccount || applyingAccount">
           <a class="btn clrP clrBr btnFlx" @click="backToList">
             <i class="ion-arrow-left-c"></i>
-            <span>{{ $t('receivingAccounts.backToList') }}</span>
+            <span>返回列表</span>
           </a>
         </div>
       </div>
@@ -24,12 +17,12 @@
         <div class="emptyStateIcon">
           <i class="ion-ios-circle-outline"></i>
         </div>
-        <h2 class="tx3 txB txC">{{ $t('receivingAccounts.noAccounts') }}</h2>
-        <p class="tx5 txC">{{ $t('receivingAccounts.noAccounts') }}</p>
+        <h2 class="tx3 txB txC">暂无任何收款账户</h2>
+        <p class="tx5 txC">收款账户开通后，您即可从电商平台进行收款。</p>
         <div class="flexHCenter rowMd">
           <a class="btn clrP clrBr btnFlx btnLg" @click="showApplyNewAccount = true">
             <i class="ion-plus-round"></i>
-            <span>{{ $t('receivingAccounts.addNewAccount') }}</span>
+            <span>申请收款账户</span>
           </a>
         </div>
       </div>
@@ -43,8 +36,6 @@
         @disable="disableAccount"
         @delete="deleteAccount"
         @add-new="showApplyNewAccount = true"
-        @connect-stripe="connectStripe"
-        @reverify-stripe="reverifyStripe"
       />
       
       <!-- 编辑账户视图 -->
@@ -74,21 +65,18 @@
 </template>
 
 <script>
-import { myGet, myPut, myPost } from '../../api/api.js';
+import { myGet, myPut } from '../../api/api.js';
 import { useAppKit, useAppKitAccount, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import app from '../../../backbone/app.js';
 import AccountList from './AccountList.vue';
 import EditAccount from './EditAccount.vue';
 import ApplyNewAccount from './ApplyNewAccount.vue';
-import ReceivingAccountsModal from '../modals/ReceivingAccountsModal.vue';
-import { ElMessage } from 'element-plus';
 
 export default {
   components: {
     AccountList,
     EditAccount,
-    ApplyNewAccount,
-    ReceivingAccountsModal
+    ApplyNewAccount
   },
   data() {
     return {
@@ -97,50 +85,18 @@ export default {
       editingAccount: null,
       applyingAccount: null,
       isSaving: false,
-      supportedChainTypes: import.meta.env.VITE_PROD_TEST ? [
-        { id: 'BASE', name: 'Base', disabled: false },
-        { id: 'BSC', name: 'Binance Smart Chain', disabled: false },
-        { id: 'ETH', name: 'Ethereum', disabled: false },
-        { id: 'SOL', name: 'Solana', disabled: false }
-      ] : [
-        { id: 'BASE', name: 'Base', disabled: false },
-        { id: 'BSC', name: 'Binance Smart Chain', disabled: false },
+      supportedChainTypes: [
+        { id: 'Ethereum' },
+        { id: 'BSC' },
+        { id: 'Solana' },
+        { id: 'Base' }
       ],
       supportedPaymentMethods: [
-        { id: 'stripe', name: 'Stripe', disabled: true, comingSoon: true }
+        { id: 'paypal', name: 'PayPal' },
+        { id: 'stripe', name: 'Stripe' }
       ],
       editingTokens: [],
       isConnecting: false,
-      transactionData: {
-        bitcoin: {
-          lastTime: '2023-05-18 08:45',
-          lastAmount: '0.025 BTC'
-        },
-        ethereum: {
-          lastTime: '2023-05-15 14:30',
-          lastAmount: '0.5 ETH',
-          tokens: {
-            USDT: { time: '2023-05-10 09:15', amount: '100 USDT' },
-            USDC: { time: '2023-05-12 16:45', amount: '200 USDC' }
-          }
-        },
-        solana: {
-          lastTime: '2023-05-14 11:20',
-          lastAmount: '5 SOL',
-          tokens: {
-            SOLUSDT: { time: '2023-05-13 13:10', amount: '50 USDT' }
-          }
-        },
-        paypal: {
-          lastTime: '2023-05-11 10:05',
-          lastAmount: '$120.00'
-        },
-        stripe: {
-          lastTime: '2023-05-09 15:30',
-          lastAmount: '€75.50'
-        }
-      },
-      showModal: false, // 控制弹框显示
     };
   },
   setup() {
@@ -160,23 +116,8 @@ export default {
     };
   },
   created() {
-    // 添加伪数据用于测试
-    // this.addMockData();
-    
     this.fetchReceivingAccounts();
     console.log('appKitEvents: ', this.appKitEvents);
-
-    // 检查是否是Stripe回调
-    if (this.$route.name === 'StripeConnectReturn') {
-      ElMessage.success(this.$t('receivingAccounts.stripeConnectSuccess'));
-    } else if (this.$route.name === 'StripeConnectRefresh') {
-      ElMessage.info(this.$t('receivingAccounts.stripeInfoUpdated'));
-    }
-    
-    // 检查路由meta，决定是否显示弹框
-    if (this.$route.meta?.showModal) {
-      this.showModal = true;
-    }
   },
   mounted() {
     // 检查钱包是否已连接，如果已连接则断开
@@ -222,15 +163,6 @@ export default {
     }
   },
   methods: {
-    closeModal() {
-      this.showModal = false;
-      // 关闭弹框后返回上一页或首页
-      if (this.$router.currentRoute.value.name !== 'StripeConnectReturn' && 
-          this.$router.currentRoute.value.name !== 'StripeConnectRefresh') {
-        this.$router.go(-1);
-      }
-    },
-    
     backToList() {
       this.editingAccount = null;
       this.editingTokens = [];
@@ -238,138 +170,30 @@ export default {
       this.applyingAccount = null;
     },
     
-    // 添加伪数据用于测试
-    addMockData() {
-      // 模拟数据
-      this.receivingAccounts = [
-        // Bitcoin钱包
-        {
-          name: 'bitcoin',
-          chainType: 'BTC',
-          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-          enabled: true,
-          source: 'Bitcoin Core'
-        },
-        // Ethereum钱包
-        {
-          name: 'ethereum',
-          chainType: 'ETH',
-          address: '0xC473A8d3d6E2C4D95c4A7B9d8E59315931',
-          activeTokens: '["USDT","USDC"]',
-          _activeTokens: ['USDT', 'USDC'],
-          enabled: true,
-          lastTransactionTime: '2023-05-15 14:30',
-          lastTransactionAmount: '0.5 ETH',
-          tokenTransactions: {
-            'USDT': { time: '2023-05-10 09:15', amount: '100 USDT' },
-            'USDC': { time: '2023-05-12 16:45', amount: '200 USDC' }
-          },
-          source: 'MetaMask'
-        },
-        // Stripe账户 - 已验证
-        {
-          name: 'stripe',
-          chainType: 'Stripe',
-          stripeAccountId: 'acct_1N2XYZKjGLOD4E8S',
-          verificationStatus: 'verified',
-          requirements: [],
-          isActive: true,
-          lastTransactionTime: '2024-03-15 15:30',
-          lastTransactionAmount: '¥1,280.00',
-          source: 'Stripe Connect'
-        },
-        // Stripe账户 - 验证中
-        {
-          name: 'stripe_test',
-          chainType: 'Stripe',
-          stripeAccountId: 'acct_1N3ABCKjGLOD4E8T',
-          verificationStatus: 'pending',
-          requirements: [
-            'Business license required',
-            'Bank account information required',
-            'Identity verification required'
-          ],
-          isActive: false,
-          lastTransactionTime: '2024-03-14 10:20',
-          lastTransactionAmount: '¥0.00',
-          source: 'Stripe Connect'
-        },
-        // Stripe账户 - 未验证
-        {
-          name: 'stripe_new',
-          chainType: 'Stripe',
-          stripeAccountId: 'acct_1N4DEFKjGLOD4E8U',
-          verificationStatus: 'unverified',
-          requirements: [
-            'Account setup required',
-            'Basic information required',
-            'Identity verification required'
-          ],
-          isActive: false,
-          lastTransactionTime: '2024-03-13 09:15',
-          lastTransactionAmount: '¥0.00',
-          source: 'Stripe Connect'
-        },
-        // PayPal账户
-        {
-          name: 'paypal',
-          chainType: 'PayPal',
-          email: 'your-business@example.com',
-          enabled: true,
-          lastTransactionTime: '2023-05-11 10:05',
-          lastTransactionAmount: '$120.00'
-        }
-      ];
-    },
-    
     async fetchReceivingAccounts() {
       try {
-        // 在开发环境下，如果已经有mock数据，则直接返回
-        if (import.meta.env.DEV && this.receivingAccounts.length > 0) {
-          console.log('使用mock数据');
-          return;
-        }
-
-        const response = await myGet(app.getServerUrl('wallet/receivingaccountlist'));
-        
+        const response = await myGet(app.getServerUrl('wallet/receiving-accounts'));
         if (response && response.receivingAccounts && Array.isArray(response.receivingAccounts)) {
-          // 处理每个账户的 activeTokens 字段
-          this.receivingAccounts = await Promise.all(response.receivingAccounts.map(async account => {
-            if (account.activeTokens) {
+          // 处理每个账户的enabledTokens字段
+          this.receivingAccounts = response.receivingAccounts.map(account => {
+            if (account.enabledTokens) {
               try {
-                if (Array.isArray(account.activeTokens)) {
-                  account._activeTokens = account.activeTokens;
-                } else {
-                  account._activeTokens = [];
-                }
+                account._enabledTokens = JSON.parse(account.enabledTokens);
               } catch (e) {
-                console.error('解析 activeTokens 失败:', e);
-                account._activeTokens = [];
+                account._enabledTokens = [];
               }
             } else {
-              account._activeTokens = [];
+              account._enabledTokens = [];
             }
-            
-            // 如果是Stripe账户，检查其状态
-            if (account.chainType === 'Stripe') {
-              const status = await this.checkStripeAccountStatus();
-              account.stripeAccountId = status.stripeAccountId;
-              account.isVerified = status.isVerified;
-              account.verificationStatus = status.verificationStatus;
-              account.requirements = status.requirements;
-            }
-            
-            // 添加交易数据
-            this.addTransactionData(account);
-            
             return account;
-          }));
+          });
         } else {
           console.error('获取收款账户返回格式不正确:', response);
+          this.receivingAccounts = [];
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
-        ElMessage.error(this.$t('receivingAccounts.fetchAccountsFailed'));
+        this.receivingAccounts = [];
       }
     },
     
@@ -378,8 +202,8 @@ export default {
       this.editingAccount = JSON.parse(JSON.stringify(account));
       
       // 设置编辑中的代币
-      if (account._activeTokens) {
-        this.editingTokens = [...account._activeTokens];
+      if (account._enabledTokens) {
+        this.editingTokens = [...account._enabledTokens];
       } else {
         this.editingTokens = [];
       }
@@ -388,14 +212,12 @@ export default {
     },
     
     enableAccount(account) {
-      account.isActive = true;
-      this.editingAccount = account;
+      account.enabled = true;
       this.saveReceivingAccounts();
     },
     
     disableAccount(account) {
-      account.isActive = false;
-      this.editingAccount = account;
+      account.enabled = false;
       this.saveReceivingAccounts();
     },
     
@@ -405,48 +227,33 @@ export default {
         
         // 处理代币列表
         if (this.editingAccount && this.editingTokens) {
-          this.editingAccount.activeTokens = this.editingTokens;
-          this.editingAccount.inactiveTokens = [];
+          this.editingAccount.enabledTokens = JSON.stringify(this.editingTokens);
         }
         
         // 确保区块链账户有地址
         if (this.editingAccount.chainType && !this.editingAccount.address) {
-          alert(this.$t('purchase.pleaseConnectWalletForAddress'));
+          alert('请先连接钱包获取地址');
           this.isSaving = false;
           return;
         }
         
-        // 验证账户名称
-        if (!this.editingAccount.name) {
-          alert(this.$t('receivingAccounts.enterAccountName'));
-          this.isSaving = false;
-          return;
-        }
+        // 查找是否已存在相同账户
+        const existingIndex = this.receivingAccounts.findIndex(a => 
+          (this.editingAccount.address && a.address === this.editingAccount.address) || 
+          (this.editingAccount.name && a.name === this.editingAccount.name)
+        );
         
-        // 准备发送到后端的数据
-        const accountData = {
-          ...this.editingAccount,
-          id: parseInt(this.editingAccount.id) || 0,
-          source: this.editingAccount.source
-        };
-        
-        let response;
-        if (!this.editingAccount.id) {
-          // 添加新账户
-          response = await myPost(app.getServerUrl('wallet/receivingaccount'), accountData);
-          if (response.success) {
-            this.receivingAccounts.push(response.account);
-          }
+        // 如果是新账户，添加到列表中
+        if (existingIndex === -1) {
+          this.receivingAccounts.push(this.editingAccount);
         } else {
-          // 更新现有账户
-          response = await myPut(app.getServerUrl('wallet/receivingaccount'), accountData);
-          if (response.success) {
-            const index = this.receivingAccounts.findIndex(a => a.id === this.editingAccount.id);
-            if (index !== -1) {
-              this.receivingAccounts[index] = response.account;
-            }
-          }
+          // 如果是编辑现有账户，更新它
+          this.receivingAccounts[existingIndex] = this.editingAccount;
         }
+        
+        const response = await myPut(app.getServerUrl('wallet/receiving-accounts'), {
+          receivingAccounts: this.receivingAccounts
+        });
         
         if (response.success) {
           console.log('收款账户保存成功');
@@ -478,9 +285,9 @@ export default {
         name: chainType.toLowerCase(),
         chainType: chainType,
         address: '',
-        activeTokens: '[]', // 初始化为空数组的 JSON 字符串
-        _activeTokens: [], // 前端使用的内部属性
-        isActive: false
+        enabledTokens: '[]', // 初始化为空数组的 JSON 字符串
+        _enabledTokens: [], // 前端使用的内部属性
+        enabled: false
       };
       
       // 不要立即添加到列表，而是设置为编辑状态
@@ -493,18 +300,17 @@ export default {
       // 创建新的支付方式账户
       const newAccount = {
         name: methodId,
-        isActive: false
+        enabled: false
       };
       
       if (methodId === 'paypal') {
         newAccount.email = '';
       } else if (methodId === 'stripe') {
-        // Stripe账户的id字段应该是数字类型
-        newAccount.id = 0; // 新建时使用0
+        newAccount.accountId = '';
       }
       
-      this.editingAccount = newAccount;
-      this.showApplyNewAccount = false;
+      this.receivingAccounts.push(newAccount);
+      this.editAccount(newAccount);
     },
     
     async connectWallet(chainType) {
@@ -516,103 +322,38 @@ export default {
         let namespace;
         
         switch(chainType) {
-          case 'ETH':
+          case 'Ethereum':
             namespace = 'eip155';
             break;
           case 'BSC':
             namespace = 'eip155';
             break;
-          case 'SOL':
+          case 'Solana':
             namespace = 'solana';
             break;
           case 'Base':
             namespace = 'eip155';
             break;
           default:
-            throw new Error(this.$t('receivingAccounts.unsupportedChainType'));
+            throw new Error('不支持的链类型');
         }
         
         this.appKit.open({ view: 'Connect', namespace});
         
       } catch (error) {
         console.error('连接钱包失败:', error);
-        alert(this.$t('receivingAccounts.connectWalletFailed'));
+        alert('连接钱包失败，请重试');
         this.isConnecting = false;
       }
     },
     
     async connectStripe() {
-      try {
-        // 获取Stripe连接URL
-        const response = await myGet('/v1/stripe/connect-url');
-        if (!response.url) {
-          throw new Error('Failed to get Stripe connection URL');
-        }
-
-        // 直接跳转到Stripe入驻页面
-        window.location.href = response.url;
-
-      } catch (error) {
-        console.error('连接Stripe失败:', error.responseJSON?.error);
-        ElMessage.error(this.$t('receivingAccounts.stripeConnectFailed') + ': ' + error.responseJSON?.error);
-      }
-    },
-
-    async reverifyStripe(account) {
-      try {
-        // 获取Stripe重新验证URL
-        const response = await myPost('/v1/stripe/reverify-url');
-        if (!response.url) {
-          throw new Error('Failed to get Stripe reverification URL');
-        }
-
-        // 在新窗口打开Stripe验证页面
-        const stripeWindow = window.open(response.url, '_blank', 'width=800,height=600');
-        
-        // 监听窗口关闭事件
-        const checkWindow = setInterval(() => {
-          if (stripeWindow.closed) {
-            clearInterval(checkWindow);
-            // 重新获取账户信息
-            this.fetchReceivingAccounts();
-            // 显示成功提示
-            ElMessage.success(this.$t('receivingAccounts.stripeVerificationUpdated'));
-          }
-        }, 1000);
-
-      } catch (error) {
-        console.error('重新验证Stripe账户失败:', error);
-        ElMessage.error(this.$t('receivingAccounts.stripeReverifyFailed'));
-      }
-    },
-
-    // 检查Stripe账户状态
-    async checkStripeAccountStatus() {
-      try {
-        const response = await myGet('/v1/stripe/account-status');
-        return {
-          isRegistered: !!response.stripeAccountId,
-          isVerified: response.isVerified || false,
-          stripeAccountId: response.stripeAccountId || null,
-          status: response.status || 'pending'
-        };
-      } catch (error) {
-        console.error('检查Stripe账户状态失败:', error);
-        return {
-          isRegistered: false,
-          isVerified: false,
-          stripeAccountId: null,
-          status: 'pending'
-        };
-      }
+      // 这里实现连接Stripe的逻辑
+      alert('Stripe连接功能尚未实现');
     },
     
     getAvailableTokens(chainType) {
       switch (chainType) {
-        case 'Bitcoin':
-          return [
-            { id: 'BTC', name: 'BTC (比特币)' }
-          ];
         case 'Ethereum':
           return [
             { id: 'ETH', name: 'ETH (以太坊)' },
@@ -643,8 +384,6 @@ export default {
     
     getChainIcon(chainType) {
       switch (chainType) {
-        case 'Bitcoin':
-          return 'ion-social-bitcoin';
         case 'Ethereum':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'Solana':
@@ -693,7 +432,7 @@ export default {
     },
     
     deleteAccount(account) {
-      if (confirm(this.$t('receivingAccounts.deleteAccountConfirm'))) {
+      if (confirm('确定要删除此收款账户吗？')) {
         const index = this.receivingAccounts.findIndex(a => 
           (a.address && a.address === account.address) || 
           (a.name && a.name === account.name)
@@ -705,34 +444,6 @@ export default {
           this.backToList();
         }
       }
-    },
-    
-    // 添加交易数据到账户
-    addTransactionData(account) {
-      if (account.chainType) {
-        const chainData = this.transactionData[account.chainType.toLowerCase()];
-        if (chainData) {
-          account.lastTransactionTime = chainData.lastTime;
-          account.lastTransactionAmount = chainData.lastAmount;
-          
-          // 添加代币交易数据
-          if (chainData.tokens && account._activeTokens) {
-            account.tokenTransactions = {};
-            account._activeTokens.forEach(token => {
-              if (chainData.tokens[token]) {
-                account.tokenTransactions[token] = chainData.tokens[token];
-              }
-            });
-          }
-        }
-      } else if (account.name) {
-        const paymentData = this.transactionData[account.name.toLowerCase()];
-        if (paymentData) {
-          account.lastTransactionTime = paymentData.lastTime;
-          account.lastTransactionAmount = paymentData.lastAmount;
-        }
-      }
-      return account;
     }
   },
   beforeUnmount() {
@@ -775,33 +486,6 @@ export default {
       margin-bottom: 20px;
       color: #ccc;
     }
-  }
-}
-
-.stripe-account-status {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  
-  &.verified {
-    background-color: #f0f9eb;
-    color: #67c23a;
-  }
-  
-  &.pending {
-    background-color: #fdf6ec;
-    color: #e6a23c;
-  }
-  
-  &.unverified {
-    background-color: #fef0f0;
-    color: #f56c6c;
-  }
-  
-  .status-icon {
-    margin-right: 4px;
   }
 }
 </style> 

@@ -1,23 +1,10 @@
 <template>
   <div class="contentBox padMd clrP clrBr">
-    <h2 class="tx3 txB">{{ $t('receivingAccounts.setupAccount', { chainType: account.chainType || getPaymentMethodName(account.name) }) }}</h2>
-    
-    <!-- 账户名称输入 -->
-    <div class="formGroup">
-      <label class="formLabel">{{ $t('receivingAccounts.accountName') }}</label>
-      <input 
-        type="text" 
-        v-model="account.name" 
-        class="formInput"
-        :placeholder="$t('receivingAccounts.enterAccountName')"
-        :disabled="!!account.id"
-      />
-      <div class="formHint" v-if="account.id">{{ $t('receivingAccounts.accountNameCannotChange') }}</div>
-    </div>
+    <h2 class="tx3 txB">设置 {{ account.chainType || getPaymentMethodName(account.name) }} 收款账户</h2>
     
     <!-- 区块链账户设置 -->
     <BlockchainWalletForm 
-      v-if="account.chainType && account.chainType !== 'PayPal' && account.chainType !== 'Stripe'"
+      v-if="account.chainType"
       :account="account"
       :tokens="tokens"
       :isConnecting="isConnecting"
@@ -40,15 +27,15 @@
     
     <!-- 底部按钮 -->
     <div class="actionButtons">
-      <button v-if="account.id" 
+      <button v-if="account.address || account.email || account.accountId" 
               @click="$emit('delete', account)" 
               class="btn deleteBtn">
-        {{ $t('receivingAccounts.deleteAccount') }}
+        删除账户
       </button>
       <div class="flexExpand"></div>
-      <button @click="$emit('cancel')" class="btn cancelBtn">{{ $t('receivingAccounts.cancel') }}</button>
+      <button @click="$emit('cancel')" class="btn cancelBtn">取消</button>
       <button @click="$emit('save')" class="btn saveBtn" :disabled="isSaving">
-        {{ isSaving ? $t('receivingAccounts.saving') : $t('receivingAccounts.save') }}
+        {{ isSaving ? '保存中...' : '保存' }}
       </button>
     </div>
   </div>
@@ -99,41 +86,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.formGroup {
-  margin-bottom: 20px;
-  
-  .formLabel {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .formInput {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    
-    &:disabled {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-    }
-    
-    &:focus {
-      border-color: #2196F3;
-      outline: none;
-    }
-  }
-  
-  .formHint {
-    margin-top: 4px;
-    font-size: 12px;
-    color: #666;
-  }
-}
-
 .actionButtons {
   display: flex;
   justify-content: flex-end;

@@ -77,10 +77,7 @@ const constantRouterMap = [
   {
     path: '/receiving-accounts',
     name: 'ReceivingAccounts',
-    component: () => import('@/views/pages/ReceivingAccounts.vue'),
-    meta: {
-      requiresAuth: true
-    }
+    component: () => import('@/views/receivingAccounts/index.vue')
   },
   // {
   //   path: 'connected-peers',
