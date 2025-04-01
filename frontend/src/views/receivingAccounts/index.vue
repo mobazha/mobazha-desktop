@@ -86,10 +86,10 @@ export default {
       applyingAccount: null,
       isSaving: false,
       supportedChainTypes: [
-        { id: 'Ethereum' },
-        { id: 'BSC' },
-        { id: 'Solana' },
-        { id: 'Base' }
+        { id: 'Ethereum', name: '以太坊' },
+        { id: 'Solana', name: 'Solana' },
+        { id: 'BSC', name: '币安智能链' },
+        { id: 'Base', name: 'Base' }
       ],
       supportedPaymentMethods: [
         { id: 'paypal', name: 'PayPal' },
@@ -97,6 +97,31 @@ export default {
       ],
       editingTokens: [],
       isConnecting: false,
+      transactionData: {
+        ethereum: {
+          lastTime: '2023-05-15 14:30',
+          lastAmount: '0.5 ETH',
+          tokens: {
+            USDT: { time: '2023-05-10 09:15', amount: '100 USDT' },
+            USDC: { time: '2023-05-12 16:45', amount: '200 USDC' }
+          }
+        },
+        solana: {
+          lastTime: '2023-05-14 11:20',
+          lastAmount: '5 SOL',
+          tokens: {
+            SOLUSDT: { time: '2023-05-13 13:10', amount: '50 USDT' }
+          }
+        },
+        paypal: {
+          lastTime: '2023-05-11 10:05',
+          lastAmount: '$120.00'
+        },
+        stripe: {
+          lastTime: '2023-05-09 15:30',
+          lastAmount: '€75.50'
+        }
+      },
     };
   },
   setup() {
@@ -116,6 +141,9 @@ export default {
     };
   },
   created() {
+    // 添加伪数据用于测试
+    this.addMockData();
+    
     this.fetchReceivingAccounts();
     console.log('appKitEvents: ', this.appKitEvents);
   },
@@ -170,9 +198,73 @@ export default {
       this.applyingAccount = null;
     },
     
+    // 添加伪数据用于测试
+    addMockData() {
+      // 模拟数据
+      this.receivingAccounts = [
+        {
+          name: 'ethereum',
+          chainType: 'Ethereum',
+          address: '0xC473A8d3d6E2C4D95c4A7B9d8E59315931',
+          enabledTokens: '["USDT","USDC"]',
+          _enabledTokens: ['USDT', 'USDC'],
+          enabled: true,
+          lastTransactionTime: '2023-05-15 14:30',
+          lastTransactionAmount: '0.5 ETH',
+          tokenTransactions: {
+            'USDT': { time: '2023-05-10 09:15', amount: '100 USDT' },
+            'USDC': { time: '2023-05-12 16:45', amount: '200 USDC' }
+          }
+        },
+        {
+          name: 'solana',
+          chainType: 'Solana',
+          address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5TNPN1',
+          enabledTokens: '["SOLUSDT"]',
+          _enabledTokens: ['SOLUSDT'],
+          enabled: true,
+          lastTransactionTime: '2023-05-14 11:20',
+          lastTransactionAmount: '5 SOL',
+          tokenTransactions: {
+            'SOLUSDT': { time: '2023-05-13 13:10', amount: '50 USDT' }
+          }
+        },
+        {
+          name: 'bsc',
+          chainType: 'BSC',
+          address: '0x7F367cC41522cE07553e823bf3be79A889DEbe1B',
+          enabledTokens: '["BUSD","CAKE"]',
+          _enabledTokens: ['BUSD', 'CAKE'],
+          enabled: false,
+          lastTransactionTime: '2023-04-20 08:45',
+          lastTransactionAmount: '2.3 BNB',
+          tokenTransactions: {
+            'BUSD': { time: '2023-04-18 15:30', amount: '500 BUSD' },
+            'CAKE': { time: '2023-04-15 12:20', amount: '25 CAKE' }
+          }
+        },
+        {
+          name: 'paypal',
+          email: 'your-business@example.com',
+          enabled: true,
+          lastTransactionTime: '2023-05-11 10:05',
+          lastTransactionAmount: '$120.00'
+        },
+        {
+          name: 'stripe',
+          accountId: 'acct_1N2XYZKjGLOD4E8S',
+          enabled: false,
+          lastTransactionTime: '2023-05-09 15:30',
+          lastTransactionAmount: '€75.50'
+        }
+      ];
+    },
+    
     async fetchReceivingAccounts() {
+      return;
       try {
         const response = await myGet(app.getServerUrl('wallet/receiving-accounts'));
+        
         if (response && response.receivingAccounts && Array.isArray(response.receivingAccounts)) {
           // 处理每个账户的enabledTokens字段
           this.receivingAccounts = response.receivingAccounts.map(account => {
@@ -185,15 +277,21 @@ export default {
             } else {
               account._enabledTokens = [];
             }
+            
+            // 添加交易数据
+            this.addTransactionData(account);
+            
             return account;
           });
         } else {
           console.error('获取收款账户返回格式不正确:', response);
-          this.receivingAccounts = [];
+          // 如果API返回错误，保留伪数据用于展示
+          // this.receivingAccounts = [];
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
-        this.receivingAccounts = [];
+        // 如果API请求失败，保留伪数据用于展示
+        // this.receivingAccounts = [];
       }
     },
     
@@ -444,6 +542,34 @@ export default {
           this.backToList();
         }
       }
+    },
+    
+    // 添加交易数据到账户
+    addTransactionData(account) {
+      if (account.chainType) {
+        const chainData = this.transactionData[account.chainType.toLowerCase()];
+        if (chainData) {
+          account.lastTransactionTime = chainData.lastTime;
+          account.lastTransactionAmount = chainData.lastAmount;
+          
+          // 添加代币交易数据
+          if (chainData.tokens && account._enabledTokens) {
+            account.tokenTransactions = {};
+            account._enabledTokens.forEach(token => {
+              if (chainData.tokens[token]) {
+                account.tokenTransactions[token] = chainData.tokens[token];
+              }
+            });
+          }
+        }
+      } else if (account.name) {
+        const paymentData = this.transactionData[account.name.toLowerCase()];
+        if (paymentData) {
+          account.lastTransactionTime = paymentData.lastTime;
+          account.lastTransactionAmount = paymentData.lastAmount;
+        }
+      }
+      return account;
     }
   },
   beforeUnmount() {
