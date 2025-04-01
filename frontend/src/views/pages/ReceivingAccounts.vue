@@ -46,7 +46,7 @@
                  class="accountCard" 
                  :class="{ enabled: account.enabled }">
               <div class="accountHeader">
-                <div class="accountType">{{ getChainTypeName(account.chainType) }}</div>
+                <div class="accountType">{{ account.chainType }}</div>
                 <div class="accountStatus">{{ account.enabled ? '已启用' : '未启用' }}</div>
                   </div>
               <div class="accountAddress">{{ account.address }}</div>
@@ -91,7 +91,7 @@
         
       <!-- 编辑账户视图 -->
       <div v-if="editingAccount" class="contentBox padMd clrP clrBr">
-        <h2 class="tx3 txB">设置 {{ getChainTypeName(editingAccount.chainType) || getPaymentMethodName(editingAccount.name) }} 收款账户</h2>
+        <h2 class="tx3 txB">设置 {{ editingAccount.chainType || getPaymentMethodName(editingAccount.name) }} 收款账户</h2>
         
         <!-- 区块链账户设置 -->
         <div v-if="editingAccount.chainType" class="walletSetupContainer">
@@ -100,12 +100,12 @@
             <div class="walletIcon">
               <i :class="getChainIcon(editingAccount.chainType)"></i>
             </div>
-            <h3 class="walletName">{{ getChainTypeName(editingAccount.chainType) }}</h3>
+            <h3 class="walletName">{{ editingAccount.chainType }}</h3>
             </div>
           
           <!-- 钱包说明 -->
           <div class="walletDescription">
-            通过{{ getChainTypeName(editingAccount.chainType) }}钱包接收 
+            通过{{ editingAccount.chainType }}钱包接收 
             <span v-if="editingAccount.chainType === 'Ethereum'">ETH 和 ERC-20 代币支付。</span>
             <span v-else-if="editingAccount.chainType === 'Solana'">SOL 及相关代币支付。</span>
             <span v-else-if="editingAccount.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
@@ -118,7 +118,7 @@
             <div class="setupStep">
               <div class="stepNumber">1</div>
               <div class="stepContent">
-                <h4>准备{{ getChainTypeName(editingAccount.chainType) }}钱包</h4>
+                <h4>准备{{ editingAccount.chainType }}钱包</h4>
                 <p>确保您已安装 
                   <span v-if="editingAccount.chainType === 'Ethereum'">MetaMask 或其他支持以太坊的钱包</span>
                   <span v-else-if="editingAccount.chainType === 'Solana'">Phantom 或其他支持Solana的钱包</span>
@@ -271,89 +271,39 @@
       </div>
 
       <!-- 添加申请新账户的视图 -->
-      <div v-if="showApplyNewAccount && !editingAccount && !applyingAccount" class="contentBox padMd clrP clrBr">
+      <div v-if="showApplyNewAccount && !editingAccount && !applyingAccount" class="contentBox padMd clrP clrBr applyNewAccountView">
         <h2 class="tx3 txB">申请新收款账户</h2>
         
-        <div class="paymentMethodList">
-          <!-- 区块链钱包 -->
-          <div class="sectionTitle">区块链钱包</div>
-          
-          <!-- 以太坊 -->
-          <div class="pmItem" @click="applyAccount('Ethereum')">
-            <div class="pmIcon">
-              <i class="ion-social-bitcoin"></i>
+        <div class="paymentMethodGrid">
+          <!-- 区块链钱包选项 -->
+          <div class="methodCategory">
+            <h3 class="categoryTitle">区块链钱包</h3>
+            <div class="methodCards">
+              <div v-for="chainType in supportedChainTypes" :key="chainType.id" 
+                   class="methodCard" @click="applyAccount(chainType.id)">
+                <div class="methodIcon" :class="chainType.id.toLowerCase()">
+                  <i :class="getChainIcon(chainType.id)"></i>
             </div>
-            <div class="pmInfo">
-              <h4>以太坊钱包</h4>
-              <p>接收ETH、USDT、USDC等代币</p>
+                <div class="methodName">{{ chainType.id }}</div>
             </div>
-            <i class="ion-chevron-right"></i>
+          </div>
           </div>
           
-          <!-- BSC -->
-          <div class="pmItem" @click="applyAccount('BSC')">
-            <div class="pmIcon bscIcon">
-              <i class="ion-social-usd"></i>
+          <!-- 其他支付方式选项 -->
+          <div class="methodCategory">
+            <h3 class="categoryTitle">其他支付方式</h3>
+            <div class="methodCards">
+              <div v-for="method in supportedPaymentMethods" :key="method.id" 
+                   class="methodCard" @click="applyPaymentMethod(method.id)">
+                <div class="methodIcon" :class="method.id.toLowerCase()">
+                  <i :class="getPaymentMethodIcon(method.id)"></i>
             </div>
-            <div class="pmInfo">
-              <h4>BSC钱包</h4>
-              <p>接收BNB、BUSD等代币</p>
+                <div class="methodName">{{ method.name }}</div>
             </div>
-            <i class="ion-chevron-right"></i>
           </div>
-          
-          <!-- Solana -->
-          <div class="pmItem" @click="applyAccount('Solana')">
-            <div class="pmIcon solanaIcon">
-              <i class="ion-social-usd"></i>
             </div>
-            <div class="pmInfo">
-              <h4>Solana钱包</h4>
-              <p>接收SOL及相关代币</p>
             </div>
-            <i class="ion-chevron-right"></i>
           </div>
-          
-          <!-- Base -->
-          <div class="pmItem" @click="applyAccount('Base')">
-            <div class="pmIcon baseIcon">
-              <i class="ion-social-usd"></i>
-            </div>
-            <div class="pmInfo">
-              <h4>Base钱包</h4>
-              <p>接收Base链上的代币</p>
-            </div>
-            <i class="ion-chevron-right"></i>
-          </div>
-          
-          <!-- 其他支付方式 -->
-          <div class="sectionTitle">其他支付方式</div>
-          
-          <!-- PayPal -->
-          <div class="pmItem" @click="applyPaymentMethod('paypal')">
-            <div class="pmIcon paypalIcon">
-              <i class="ion-card"></i>
-            </div>
-            <div class="pmInfo">
-              <h4>PayPal</h4>
-              <p>通过PayPal接收付款</p>
-            </div>
-            <i class="ion-chevron-right"></i>
-          </div>
-          
-          <!-- Stripe -->
-          <div class="pmItem" @click="applyPaymentMethod('stripe')">
-            <div class="pmIcon stripeIcon">
-              <i class="ion-card"></i>
-            </div>
-            <div class="pmInfo">
-              <h4>Stripe</h4>
-              <p>通过Stripe接收信用卡付款</p>
-            </div>
-            <i class="ion-chevron-right"></i>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -381,10 +331,10 @@ export default {
       
       // 支持的链类型
       supportedChainTypes: [
-        { id: 'Ethereum', name: '以太坊/ERC-20代币' },
-        { id: 'BSC', name: 'BSC/BEP-20代币' },
-        { id: 'Solana', name: 'Solana' },
-        { id: 'Base', name: 'Base' }
+        { id: 'Ethereum' },
+        { id: 'BSC' },
+        { id: 'Solana' },
+        { id: 'Base' }
       ],
       
       // 支持的非区块链支付方式
@@ -532,9 +482,9 @@ export default {
     async fetchReceivingAccounts() {
       try {
         const response = await myGet(app.getServerUrl('wallet/receiving-accounts'));
-        if (response && Array.isArray(response)) {
+        if (response && response.receivingAccounts && Array.isArray(response.receivingAccounts)) {
           // 处理每个账户的enabledTokens字段
-          this.receivingAccounts = response.map(account => {
+          this.receivingAccounts = response.receivingAccounts.map(account => {
             if (account.enabledTokens) {
               try {
                 account._enabledTokens = JSON.parse(account.enabledTokens);
@@ -546,9 +496,13 @@ export default {
             }
             return account;
           });
+        } else {
+          console.error('获取收款账户返回格式不正确:', response);
+          this.receivingAccounts = [];
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
+        this.receivingAccounts = [];
       }
     },
     
@@ -558,10 +512,10 @@ export default {
         
         // 处理代币列表
         if (this.editingAccount && this.editingTokens) {
-          this.editingAccount.enabledTokens = this.editingTokens;
+          this.editingAccount.enabledTokens = JSON.stringify(this.editingTokens);
         }
         
-        const response = await myPut('/wallet/receiving-accounts', {
+        const response = await myPut(app.getServerUrl('wallet/receiving-accounts'), {
           receivingAccounts: this.receivingAccounts
         });
         
@@ -658,27 +612,12 @@ export default {
       }
     },
     
-    getChainTypeName(chainType) {
-      switch (chainType) {
-        case 'Ethereum':
-          return '以太坊/ERC-20代币';
-        case 'Solana':
-          return 'Solana';
-        case 'BSC':
-          return 'BSC/BEP-20代币';
-        case 'Base':
-          return 'Base';
-              default:
-          return chainType;
-      }
-    },
-    
     getPaymentMethodIcon(methodId) {
       switch (methodId) {
         case 'paypal':
-          return 'ion-card'; // 使用适当的图标
+          return 'ion-card'; // PayPal图标
         case 'stripe':
-          return 'ion-card'; // 使用适当的图标
+          return 'ion-social-usd-outline'; // Stripe图标
         default:
           return 'ion-card';
       }
@@ -1458,6 +1397,77 @@ export default {
       &:disabled {
         background-color: #cccccc;
         cursor: not-allowed;
+      }
+    }
+  }
+  
+  .applyNewAccountView {
+    h2 {
+      margin-bottom: 30px;
+    }
+    
+    .paymentMethodGrid {
+      margin-top: 20px;
+      
+      .methodCategory {
+        margin-bottom: 30px;
+        
+        .categoryTitle {
+      font-size: 18px;
+          margin-bottom: 15px;
+          padding-bottom: 5px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .methodCards {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 20px;
+          
+          .methodCard {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: white;
+            
+            &:hover {
+              transform: translateY(-5px);
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+              border-color: #2196F3;
+            }
+            
+            .methodIcon {
+              font-size: 40px;
+              margin-bottom: 15px;
+              color: #2196F3;
+              
+              &.ethereum { color: #627EEA; }
+              &.solana { color: #9945FF; }
+              &.bsc { color: #F3BA2F; }
+              &.base { color: #0052FF; }
+              &.paypal { color: #003087; }
+              &.stripe { color: #635BFF; }
+              
+              i {
+                display: inline-block;
+                width: 60px;
+                height: 60px;
+                line-height: 60px;
+                border-radius: 50%;
+                background-color: rgba(33, 150, 243, 0.1);
+              }
+            }
+            
+            .methodName {
+              font-weight: bold;
+              margin-top: 10px;
+              font-size: 16px;
+            }
+          }
+        }
       }
     }
   }
