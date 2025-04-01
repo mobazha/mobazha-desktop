@@ -41,7 +41,11 @@ createAppKit({
   projectId,
   themeMode: 'light',
   features: {
-    analytics: true // Optional - defaults to your Cloud configuration
+    analytics: true, // Optional - defaults to your Cloud configuration
+    swaps: false,
+    onramp: false,
+    email: false,
+    socials: false
   },
   metadata: {
     name: 'Mobazha',
