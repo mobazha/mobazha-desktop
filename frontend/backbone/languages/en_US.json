@@ -1543,6 +1543,7 @@
     "removeCode": "remove",
     "memo": "Memo",
     "memoPlaceholder": "Provide additional details for the vendor here (optional).",
+    "paymentMethodTitle": "Payment Crypto",
     "pay": "PAY >",
     "payNote": "Clicking pay will advance you to the final step.",
     "scamWarning": "WARNING: Protect against scams",

@@ -948,8 +948,8 @@
       "placeholderPort": "服务器端口",
       "torLabel": "Tor",
       "useTor": "使用Tor",
-      "configureTorMessage": "Tor已被检测到，如果你想使用Tor，请检查下面的“使用Tor”框并指定你的“Tor SOCKS5 proxy”设置，点击Save确认你的决定。",
-      "torNotAvailableMessage": "Tor未被检测到，如果你想在没有Tor的情况下继续，取消勾选下面的“使用Tor”并点击保存，否则启动Tor然后重试连接。",
+      "configureTorMessage": "Tor已被检测到，如果你想使用Tor，请检查下面的\"使用Tor\"框并指定你的\"Tor SOCKS5 proxy\"设置，点击Save确认你的决定。",
+      "torNotAvailableMessage": "Tor未被检测到，如果你想在没有Tor的情况下继续，取消勾选下面的\"使用Tor\"并点击保存，否则启动Tor然后重试连接。",
       "torProxyLabel": "Tor SOCKS5代理",
       "torProxyPlaceholder": "127.0.0.1:9150",
       "torPwLabel": "Tor密码",
@@ -1370,7 +1370,7 @@
       "unlimitedQuantityLabel": "无限制",
       "placeholderNeedMoreData": "当至少有一个变体时，将显示变体库存表。",
       "unableToCalcTotalPrice": "无法计算",
-      "unableToCalcTotalPriceTip": "上架价格和附加费都必须是数字，如果包含小数，则应使用句点作为分隔符，例如“0.00”。",
+      "unableToCalcTotalPriceTip": "上架价格和附加费都必须是数字，如果包含小数，则应使用句点作为分隔符，例如\"0.00\"。",
       "surcharge": "追加付款",
       "totalPrice": "总价",
       "sku": "SKU",
@@ -1522,16 +1522,17 @@
     "couponCode": "优惠券代码",
     "couponCodePlaceholder": "输入代码",
     "applyCode": "应用",
-    "code": "”%{code}“应用于订单",
+    "code": "\"%{code}\"应用于订单",
     "codeErrors": {
-      "invalid": "“%{code}”不是有效的代码",
-      "duplicate": "您只能添加“%{code}”一次",
+      "invalid": "\"%{code}\"不是有效的代码",
+      "duplicate": "您只能添加\"%{code}\"一次",
       "excessive": "你不能申请100%或以上的折扣。",
       "blank": "您必须输入一个优惠券代码。"
     },
     "removeCode": "删除",
     "memo": "备注",
     "memoPlaceholder": "在此向卖家提供其他详细信息（可选）",
+    "paymentMethodTitle": "加密货币支付",
     "pay": "支付>",
     "payNote": "点击付费将跳到到最后一步。",
     "scamWarning": "警告: 防范诈骗",
@@ -1572,7 +1573,7 @@
       "note3": "*仲裁人服务费仅适用于争议被建立的情况。",
       "note4": "一旦你付款了，接口更新可能会花一点时间。",
       "btnConfirmedPay": "是，支付",
-      "walletNote": "不支持“Segregated Witness”的<b>外部钱包</b>可能无法付款。",
+      "walletNote": "不支持\"Segregated Witness\"的<b>外部钱包</b>可能无法付款。",
       "walletLink": "您可以将资金转入您的Mobazha钱包。",
       "feeNote": "<b>当您向Mobazha钱包发送资金时，请记住要支付任何手续费用</ b>。"
     },
@@ -2025,7 +2026,7 @@
   },
   "metrics": {
     "title": "可选的匿名信息",
-    "newVersion": "请查看以下的分析数据协议的更新，并点击“激活”",
+    "newVersion": "请查看以下的分析数据协议的更新，并点击\"激活\"",
     "msg1": "请帮助改进Mobazha，同意与开发团队分享有关您使用体验的匿名数据。",
     "msg2": "分享的数据不包含任何可用于识别您，您的订单以及任何交易信息。您的个人数据总是存储在您自己的计算机上，且任何其他人都无法访问。",
     "listTitle": "以下数据将被分享: ",
@@ -2126,7 +2127,7 @@
     "descriptionTooLong": "描述超出允许的最大长度。",
     "badConditionType": "条件不是可用类型之一",
     "provideAmount": "请提供价格。",
-    "provideNumericAmount": "请提供价格数值，如果包含小数，则应使用小数点作为分隔符，例如“0.00”。",
+    "provideNumericAmount": "请提供价格数值，如果包含小数，则应使用小数点作为分隔符，例如\"0.00\"。",
     "provideAmountGreaterThanZero": "价格必须大于0。",
     "imageRequired": "请提供至少一张图片",
     "tooManyTags": "已经超过了%{maxTags}个标记的最大允许量。",
@@ -2136,7 +2137,7 @@
     "provideQuantity": "请提供数量",
     "provideNumericQuantity": "请提供数量数值。",
     "quantityMustBePositive": "数量必须大于零。",
-    "duplicateVariantName": "您有多个“%{name}”变体，变态名称必须是唯一的。"
+    "duplicateVariantName": "您有多个\"%{name}\"变体，变态名称必须是唯一的。"
   },
   "metadataModelErrors": {
     "providePriceModifier": "请提供一个价格修改。",
@@ -2154,7 +2155,7 @@
     "percentageLow": "百分比值必须大于零。",
     "percentageHigh": "您不能设置高于或等于100%的百分比",
     "priceLow": "价格必须大于零。",
-    "provideNumericDiscountAmount": "请提供折扣金额值，如果包含小数，则应使用小数点作为分隔符，例如“0.00”。",
+    "provideNumericDiscountAmount": "请提供折扣金额值，如果包含小数，则应使用小数点作为分隔符，例如\"0.00\"。",
     "needUniqueDiscountCode": "您已经使用该代码的优惠券，请提供唯一的优惠券代码。"
   },
   "shippingOptionModelErrors": {
@@ -2186,7 +2187,7 @@
   },
   "fixedFeeModelErrors": {
     "noCurrency": "如果您的费用类型是固定值或固定值外加百分比，您必须为您的费用设置有效货币。",
-    "fixedFeeAsNumber": "如果您的费用类型是固定值或固定值外加百分比，则必须为固定费用设置有效金额。如果包含小数点，则应使用小数点作为分隔符，例如“0.00”。",
+    "fixedFeeAsNumber": "如果您的费用类型是固定值或固定值外加百分比，则必须为固定费用设置有效金额。如果包含小数点，则应使用小数点作为分隔符，例如\"0.00\"。",
     "amountGreaterThanZero": "If your fee type is fixed or fixed plus percentage, the fixed fee amount must be greater than zero."
   },
   "skuModelErrors": {
@@ -2206,7 +2207,7 @@
   },
   "spendModelErrors": {
     "provideAddress": "请提供一个付款地址。",
-    "provideAmountNumber": "请提供一个数字金额，如果包含一个小数，则应该使用小数点作为分隔符，例如“0.00”。",
+    "provideAmountNumber": "请提供一个数字金额，如果包含一个小数，则应该使用小数点作为分隔符，例如\"0.00\"。",
     "amountGreaterThanZero": "金额必须大于零。",
     "insufficientFunds": "您钱包内余额不足，请考虑充值或直接进行扫码支付。",
     "missingExchangeRateData": "无法使用%{cur}进行支付，因为没有%{cur}和%{serverCur}之间可用的汇率数据。请选择其他币种。如果任何可用货币，您可以随时选择%{serverCur}。",
@@ -2239,7 +2240,7 @@
   },
   "errorPage": {
     "userNotFoundTitle": "无法找到该用户",
-    "userNotFoundMsg": "在网络上找不到“%{user}”，请确保您输入了正确的句柄或peerID。",
+    "userNotFoundMsg": "在网络上找不到\"%{user}\"，请确保您输入了正确的句柄或peerID。",
     "pageNotFoundTitle": "无法找到此页面",
     "pageNotFoundMsg": "检查地址栏以确保URL正确。",
     "genericErrorTitle": "出现错误"
@@ -2654,7 +2655,7 @@
     "NPR": "尼泊尔卢比",
     "NZD": "新西兰元",
     "OMR": "阿曼里亚尔",
-    "PAB": "巴尔博亚",
+    "PAB": "巴尔波亚",
     "PEN": "Nuevo Sol",
     "PGK": "Kina",
     "PHP": "菲律宾比索",
@@ -3400,7 +3401,6 @@
     "CWV": "CWV Chain",
     "CXC": "CAPITAL X CELL",
     "CXO": "CargoX",
-    "CXP": "CaixaPay",
     "CXT": "Coinonat",
     "CYBR": "CYBR Token",
     "CYDER": "Cyder",
@@ -4837,7 +4837,7 @@
     "RIYA": "Etheriya",
     "RKC": "Rookiecoin",
     "RKN": "Rakon",
-    "RKT": "Rock",
+    "RKT": "Rocket",
     "RLC": "iExec RLC",
     "RLT": "RouletteToken",
     "RLX": "Relex",

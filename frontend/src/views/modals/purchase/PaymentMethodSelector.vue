@@ -1,32 +1,18 @@
 <template>
   <div class="paymentMethodSelector">
     <!-- 区块链选择标签 -->
-    <div class="chainTabs" v-if="!isRwaTokenPurchase">
+    <div class="chainTabs">
       <div 
         v-for="chain in chains" 
         :key="chain.id" 
         :class="['chainTab', { active: activeChain === chain.id }]"
         @click="activeChain = chain.id"
       >
-        <div class="chainIconWrapper" v-if="chain.id !== 'all' && chain.id !== 'privacy'">
-          <CryptoIcon :token="chain.iconCode || chain.id.toUpperCase()" />
-        </div>
-        <div class="chainIcon" v-else :class="chain.id.toLowerCase()">
+        <div class="chainIcon" :class="chain.id.toLowerCase()">
           <i :class="chain.icon"></i>
         </div>
         <span>{{ chain.name }}</span>
         <span class="tokenCount">({{ chain.count }})</span>
-      </div>
-    </div>
-    
-    <!-- RWA Token 支付提示 -->
-    <div v-if="isRwaTokenPurchase" class="rwaPaymentNotice">
-      <div class="noticeHeader">
-        <i class="ion-information-circled"></i>
-        <span>{{ $t('purchase.rwaToken.paymentNotice.title') }}</span>
-      </div>
-      <div class="noticeContent">
-        {{ $t('purchase.rwaToken.paymentNotice.description', { blockchain: rwaBlockchain }) }}
       </div>
     </div>
     
@@ -42,11 +28,11 @@
           <div v-if="selectedToken === token.id" class="checkmark">
             <i class="ion-checkmark-round"></i>
           </div>
-          <div class="tokenIconWrapper">
-            <CryptoIcon :token="token.token" :chain="token.chain" :isNative="token.isNative" />
+          <div class="tokenIcon" :class="token.id.toLowerCase()">
+            <i :class="token.icon || 'ion-social-bitcoin'"></i>
           </div>
           <div class="tokenInfo">
-            <span class="tokenName">{{ token.token }}</span>
+            <span class="tokenName">{{ token.name }}</span>
             <span v-if="token.type" class="tokenType">({{ token.type }})</span>
           </div>
         </div>
@@ -60,18 +46,18 @@
           <div class="moreIcon">
             <i :class="showAllTokens ? 'ion-chevron-up' : 'ion-chevron-down'"></i>
           </div>
-          <span class="moreText">{{ showAllTokens ? $t('purchase.collapse') : $t('purchase.more') }}</span>
+          <span class="moreText">{{ showAllTokens ? '收起' : '更多' }}</span>
         </div>
       </div>
       
       <div v-if="filteredTokens.length === 0" class="noTokens">
-        {{$t('purchase.noTokens')}}
+        该链上暂无可用代币
       </div>
     </div>
     
     <!-- 其他支付方式 -->
-    <div class="otherPaymentMethods" v-if="!isRwaTokenPurchase">
-      <h3 class="sectionTitle">{{$t('purchase.otherPaymentMethods')}}</h3>
+    <div class="otherPaymentMethods">
+      <h3 class="sectionTitle">其他支付方式</h3>
       <div class="fiatCards">
         <div 
           v-for="method in fiatMethods" 
@@ -82,13 +68,10 @@
           <div v-if="selectedToken === method.id" class="checkmark">
             <i class="ion-checkmark-round"></i>
           </div>
-          <div class="methodIconWrapper">
-            <CryptoIcon :code="method.id.toUpperCase()" />
+          <div class="methodIcon" :class="method.id.toLowerCase()">
+            <i :class="method.icon"></i>
           </div>
-          <div class="methodInfo">
-            <span class="methodName">{{ method.name }}</span>
-            <span v-if="method.disabled" class="unavailableText">{{ $t('purchase.temporarilyUnavailable') }}</span>
-          </div>
+          <span class="methodName">{{ method.name }}</span>
         </div>
       </div>
     </div>
@@ -96,25 +79,18 @@
 </template>
 
 <script>
-import { tokens, chains, fiatMethods } from '@/config/token.js';
 
 export default {
   props: {
+    currencies: {
+      type: Array,
+      default: () => []
+    },
     disabledMsg: {
       type: String,
       default: ''
     },
     modelValue: {
-      type: String,
-      default: ''
-    },
-    // 新增：是否为 RWA Token 购买
-    isRwaTokenPurchase: {
-      type: Boolean,
-      default: false
-    },
-    // 新增：RWA Token 的区块链
-    rwaBlockchain: {
       type: String,
       default: ''
     }
@@ -125,42 +101,71 @@ export default {
       selectedToken: this.modelValue,
       showAllTokens: false,
       maxVisibleTokens: 12, // 每行4个，最多显示3行
-      chains,
-      tokens,
-      fiatMethods
+      chains: [
+        { id: 'all', name: '全部', icon: 'ion-android-list', count: 0 },
+        { id: 'bitcoin', name: 'Bitcoin', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'ethereum', name: '以太坊', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'solana', name: 'Solana', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'bsc', name: 'BSC', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'base', name: 'Base', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'polygon', name: 'Polygon', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'privacy', name: '隐私币', icon: 'ion-ios-locked', count: 0 }
+      ],
+      tokens: [
+        // Bitcoin
+        { id: 'BTC', name: 'BTC', chain: 'bitcoin', icon: 'ion-social-bitcoin', disabled: false },
+        
+        // 以太坊代币
+        { id: 'ETH', name: 'ETH', chain: 'ethereum', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'USDT', name: 'USDT', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
+        { id: 'USDC', name: 'USDC', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
+        { id: 'DAI', name: 'DAI', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
+        
+        // Solana代币
+        { id: 'SOL', name: 'SOL', chain: 'solana', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'SOLUSDT', name: 'USDT', chain: 'solana', type: 'SPL', icon: 'ion-social-usd', disabled: false },
+        { id: 'SOLUSDC', name: 'USDC', chain: 'solana', type: 'SPL', icon: 'ion-social-usd', disabled: false },
+        
+        // BSC代币
+        { id: 'BNB', name: 'BNB', chain: 'bsc', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'BUSD', name: 'BUSD', chain: 'bsc', type: 'BEP20', icon: 'ion-social-usd', disabled: false },
+        { id: 'BSCUSDT', name: 'USDT', chain: 'bsc', type: 'BEP20', icon: 'ion-social-usd', disabled: false },
+        
+        // Base代币
+        { id: 'BASEETH', name: 'ETH', chain: 'base', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'BASEUSDC', name: 'USDC', chain: 'base', type: 'Base', icon: 'ion-social-usd', disabled: false },
+        
+        // Polygon代币
+        { id: 'MATIC', name: 'MATIC', chain: 'polygon', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'POLYUSDT', name: 'USDT', chain: 'polygon', type: 'Polygon', icon: 'ion-social-usd', disabled: false },
+        { id: 'POLYUSDC', name: 'USDC', chain: 'polygon', type: 'Polygon', icon: 'ion-social-usd', disabled: false },
+        
+        // 隐私币
+        { id: 'XMR', name: 'XMR', chain: 'privacy', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'ZEC', name: 'ZEC', chain: 'privacy', icon: 'ion-social-bitcoin', disabled: false }
+      ],
+      fiatMethods: [
+        { 
+          id: 'stripe', 
+          name: 'Stripe', 
+          icon: 'ion-card',
+          disabled: false
+        },
+        { 
+          id: 'paypal', 
+          name: 'PayPal', 
+          icon: 'ion-social-usd',
+          disabled: false
+        }
+      ]
     };
   },
   computed: {
-    // 根据是否为 RWA Token 购买来过滤代币
-    availableTokens() {
-      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
-        // 对于 RWA Token，只显示对应链上的非原生代币
-        return this.tokens.filter(token => 
-          token.chain === this.rwaBlockchain && !token.isNative
-        );
-      }
-      return this.tokens;
-    },
-    // 根据是否为 RWA Token 购买来过滤链
-    availableChains() {
-      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
-        // 对于 RWA Token，只显示对应的链
-        return this.chains.filter(chain => 
-          chain.id === this.rwaBlockchain || chain.id === 'all'
-        );
-      }
-      return this.chains;
-    },
     filteredTokens() {
-      if (this.isRwaTokenPurchase) {
-        // 对于 RWA Token，直接返回可用代币，不需要链过滤
-        return this.availableTokens;
-      }
-      
       if (this.activeChain === 'all') {
-        return this.availableTokens;
+        return this.tokens;
       }
-      return this.availableTokens.filter(token => token.chain === this.activeChain);
+      return this.tokens.filter(token => token.chain === this.activeChain);
     },
     visibleTokens() {
       if (this.showAllTokens) {
@@ -173,11 +178,11 @@ export default {
     },
     chainCounts() {
       const counts = {};
-      this.availableChains.forEach(chain => {
+      this.chains.forEach(chain => {
         if (chain.id === 'all') {
-          counts[chain.id] = this.availableTokens.length;
+          counts[chain.id] = this.tokens.length;
         } else {
-          counts[chain.id] = this.availableTokens.filter(token => token.chain === chain.id).length;
+          counts[chain.id] = this.tokens.filter(token => token.chain === chain.id).length;
         }
       });
       return counts;
@@ -188,15 +193,15 @@ export default {
       this.selectedToken = newVal;
       
       // 如果选择了代币，自动切换到对应的链标签
-      const selectedTokenData = this.availableTokens.find(t => t.id === newVal);
-      if (selectedTokenData && !this.isRwaTokenPurchase) {
+      const selectedTokenData = this.tokens.find(t => t.id === newVal);
+      if (selectedTokenData) {
         this.activeChain = selectedTokenData.chain;
       }
     },
     chainCounts: {
       immediate: true,
       handler(counts) {
-        this.availableChains.forEach(chain => {
+        this.chains.forEach(chain => {
           chain.count = counts[chain.id] || 0;
         });
       }
@@ -204,36 +209,15 @@ export default {
     activeChain() {
       // 切换链时重置展开状态
       this.showAllTokens = false;
-    },
-    // 监听 RWA Token 相关属性变化
-    isRwaTokenPurchase() {
-      if (this.isRwaTokenPurchase) {
-        // 对于 RWA Token，自动选择第一个可用代币
-        if (this.availableTokens.length > 0) {
-          this.selectedToken = this.availableTokens[0].id;
-          this.$emit('update:modelValue', this.selectedToken);
-          this.$emit('methodClicked', this.selectedToken);
-        }
-      }
-    },
-    rwaBlockchain() {
-      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
-        // 当 RWA Token 区块链变化时，重新选择可用代币
-        if (this.availableTokens.length > 0) {
-          this.selectedToken = this.availableTokens[0].id;
-          this.$emit('update:modelValue', this.selectedToken);
-          this.$emit('methodClicked', this.selectedToken);
-        }
-      }
     }
   },
   methods: {
     handleTokenClick(tokenId) {
-      const token = this.availableTokens.find(t => t.id === tokenId);
+      const token = this.tokens.find(t => t.id === tokenId);
       if (token && !token.disabled) {
         this.selectedToken = tokenId;
         this.$emit('update:modelValue', tokenId);
-        this.$emit('methodClicked', tokenId);
+        this.$emit('tokenClicked', tokenId);
       }
     },
     handleFiatMethodClick(methodId) {
@@ -242,9 +226,6 @@ export default {
         this.selectedToken = methodId;
         this.$emit('update:modelValue', methodId);
         this.$emit('methodClicked', methodId);
-      } else if (method && method.disabled) {
-        // 显示不可用的提示信息
-        this.$emit('methodUnavailable', methodId, method.name);
       }
     }
   }
@@ -280,20 +261,6 @@ export default {
         color: white;
       }
       
-      .chainIconWrapper {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        
-        .cryptoIcon {
-          width: 100%;
-          height: 100%;
-        }
-      }
-      
       .chainIcon {
         width: 18px;
         height: 18px;
@@ -304,8 +271,33 @@ export default {
         justify-content: center;
         font-size: 10px;
         
-        &.all {
-          background-color: #757575;
+        &.bitcoin {
+          background-color: #f7931a;
+          color: white;
+        }
+        
+        &.ethereum {
+          background-color: #627eea;
+          color: white;
+        }
+        
+        &.solana {
+          background-color: #14f195;
+          color: #9945ff;
+        }
+        
+        &.bsc {
+          background-color: #f3ba2f;
+          color: black;
+        }
+        
+        &.base {
+          background-color: #0052ff;
+          color: white;
+        }
+        
+        &.polygon {
+          background-color: #8247e5;
           color: white;
         }
         
@@ -320,34 +312,6 @@ export default {
         opacity: 0.7;
         font-size: 0.8em;
       }
-    }
-  }
-  
-  // RWA Token 支付提示样式
-  .rwaPaymentNotice {
-    margin-bottom: 15px;
-    padding: 12px 16px;
-    background-color: #e3f2fd;
-    border: 1px solid #2196F3;
-    border-radius: 8px;
-    
-    .noticeHeader {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #1976d2;
-      
-      i {
-        margin-right: 8px;
-        font-size: 16px;
-      }
-    }
-    
-    .noticeContent {
-      color: #424242;
-      font-size: 0.9em;
-      line-height: 1.4;
     }
   }
   
@@ -400,36 +364,12 @@ export default {
       }
       
       &.disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
-        background-color: #f5f5f5;
-        border-color: #e0e0e0;
-        position: relative;
         
         &:hover {
           transform: none;
           box-shadow: none;
-        }
-        
-        &::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
-          pointer-events: none;
-        }
-        
-        .methodIconWrapper {
-          opacity: 0.7;
-        }
-        
-        .methodInfo {
-          .methodName {
-            color: #999;
-          }
         }
       }
       
@@ -448,10 +388,11 @@ export default {
         font-size: 10px;
       }
       
-      .tokenIconWrapper, .methodIconWrapper {
+      .tokenIcon, .methodIcon, .moreIcon {
         width: 24px;
         height: 24px;
         border-radius: 50%;
+        background-color: #f5f5f5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -459,10 +400,74 @@ export default {
         font-size: 14px;
         flex-shrink: 0;
         
-        .cryptoIcon {
-          width: 100%;
-          height: 100%;
+        &.btc {
+          background-color: #f7931a;
+          color: white;
         }
+        
+        &.eth, &.baseeth {
+          background-color: #627eea;
+          color: white;
+        }
+        
+        &.usdt, &.solusdt, &.bscusdt, &.polyusdt {
+          background-color: #26a17b;
+          color: white;
+        }
+        
+        &.usdc, &.solusdc, &.baseusdc, &.polyusdc {
+          background-color: #2775ca;
+          color: white;
+        }
+        
+        &.dai {
+          background-color: #f5ac37;
+          color: white;
+        }
+        
+        &.sol {
+          background-color: #14f195;
+          color: #9945ff;
+        }
+        
+        &.bnb {
+          background-color: #f3ba2f;
+          color: black;
+        }
+        
+        &.busd {
+          background-color: #f0b90b;
+          color: white;
+        }
+        
+        &.matic {
+          background-color: #8247e5;
+          color: white;
+        }
+        
+        &.xmr {
+          background-color: #ff6b00;
+          color: white;
+        }
+        
+        &.zec {
+          background-color: #ecb244;
+          color: black;
+        }
+        
+        &.stripe {
+          background-color: #6772e5;
+          color: white;
+        }
+        
+        &.paypal {
+          background-color: #0070ba;
+          color: white;
+        }
+      }
+      
+      .moreIcon {
+        background-color: #e0e0e0;
       }
       
       .tokenInfo {
@@ -484,19 +489,6 @@ export default {
       .methodName, .moreText {
         font-weight: 500;
         font-size: 0.9em;
-      }
-      
-      .methodInfo {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        
-        .unavailableText {
-          font-size: 0.75em;
-          color: #ff6b6b;
-          font-weight: 400;
-          margin-top: 2px;
-        }
       }
     }
     

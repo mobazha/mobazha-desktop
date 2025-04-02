@@ -225,18 +225,14 @@
                     <div class="js-paymentCoin-errors">
                       <FormError v-if="errors['paymentCoin']" :errors="errors['paymentCoin']" />
                     </div>
-                    <h2 class="h4 flexExpand required">{{ ob.polyT('purchase.cryptoCurrencyTitle') }}</h2>
-                    <CryptoCurSelector
-                      ref="cryptoCurSelector"
-                      :options="{
-                        disabledMsg: ob.polyT('purchase.cryptoCurrencyInvalid'),
-                        controlType: 'radio',
-                        currencies,
-                        disabledCurs: currencies.filter((c) => !isSupportedWalletCur(c)),
-                        sort: false,
-                      }"
-                      v-model:activeCurs="formData.activeCurs"
+                    <h2 class="h4 flexExpand required">{{ ob.polyT('purchase.paymentMethodTitle') }}</h2>
+                    <PaymentMethodSelector
+                      ref="paymentMethodSelector"
+                      :currencies="currencies"
+                      :disabledMsg="ob.polyT('purchase.cryptoCurrencyInvalid')"
+                      v-model="paymentCoin"
                       @currencyClicked="onCurrencyClicked"
+                      @methodClicked="onMethodClicked"
                     />
                   </div>
                 </div>
@@ -427,7 +423,7 @@ import 'velocity-animate';
 import { ERROR_DUST_AMOUNT } from '../../../../backbone/constants';
 import { removeProp } from '../../../../backbone/utils/object';
 import app from '../../../../backbone/app';
-import { myPost } from '../../..//api/api';
+import { myPost } from '../../../api/api.js';
 // import {
 //   getInventory,
 //   events as inventoryEvents,
@@ -456,6 +452,7 @@ import Settings from '@/views/modals/settings/Settings.vue';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
 import * as casdoor from '../../../utils/casdoor';
+import PaymentMethodSelector from './PaymentMethodSelector.vue';
 
 export default {
   components: {
@@ -467,6 +464,7 @@ export default {
     Payment,
     Shipping,
     Settings,
+    PaymentMethodSelector,
   },
   props: {
     options: {
@@ -1035,6 +1033,18 @@ export default {
         return;
       }
 
+      // 处理不同的支付方式
+      if (this.paymentCoin === 'stripe') {
+        // 处理Stripe支付
+        this.processStripePayment();
+        return;
+      } else if (this.paymentCoin === 'paypal') {
+        // 处理PayPal支付
+        this.processPayPalPayment();
+        return;
+      }
+
+      // 原有的加密货币支付处理逻辑
       // Set the payment coin.
       let paymentCoin = this.paymentCoin;
       this.order.set({ paymentCoin });
@@ -1180,6 +1190,94 @@ export default {
       this._renderedHash = this.oneListing.get('hash');
 
       return this;
+    },
+
+    onMethodClicked(methodId) {
+      // 处理非加密货币支付方式的选择
+      this.paymentCoin = methodId;
+      
+      // 如果选择了Stripe或PayPal，可能需要禁用仲裁人选择
+      if (methodId === 'stripe' || methodId === 'paypal') {
+        this.isModerated = false;
+        if (this.$refs.moderators) {
+          this.$refs.moderators.deselectOthers();
+        }
+      }
+      
+      // 更新订单的支付方式
+      this.order.set({ paymentCoin: methodId });
+    },
+
+    // 添加Stripe支付处理方法
+    processStripePayment() {
+      this.setState({ phase: 'processing' });
+      
+      // 这里实现Stripe支付处理逻辑
+      // 可能需要调用后端API获取支付链接或打开支付弹窗
+      
+      // 示例实现
+      const orderData = {
+        items: this.order.get('items').map(item => ({
+          id: item.get('id'),
+          quantity: item.get('quantity'),
+          options: item.get('options')
+        })),
+        shippingAddress: this.$refs.shipping?.selectedAddress,
+        total: this.prices[0].price.toString()
+      };
+      
+      // 调用API创建Stripe支付会话
+      myPost(app.getServerUrl('ob/create-stripe-payment'), orderData)
+        .then(response => {
+          if (response && response.paymentUrl) {
+            // 重定向到Stripe支付页面
+            window.location.href = response.paymentUrl;
+          } else {
+            this.insertErrors('js-errors', ['Stripe支付创建失败']);
+            this.setState({ phase: 'pay' });
+          }
+        })
+        .catch(err => {
+          console.error('Stripe支付错误:', err);
+          this.insertErrors('js-errors', ['Stripe支付处理出错']);
+          this.setState({ phase: 'pay' });
+        });
+    },
+
+    // 添加PayPal支付处理方法
+    processPayPalPayment() {
+      this.setState({ phase: 'processing' });
+      
+      // 这里实现PayPal支付处理逻辑
+      // 可能需要调用后端API获取支付链接或打开支付弹窗
+      
+      // 示例实现
+      const orderData = {
+        items: this.order.get('items').map(item => ({
+          id: item.get('id'),
+          quantity: item.get('quantity'),
+          options: item.get('options')
+        })),
+        shippingAddress: this.$refs.shipping?.selectedAddress,
+        total: this.prices[0].price.toString()
+      };
+      
+      // 调用API创建PayPal支付会话
+      myPost(app.getServerUrl('ob/create-paypal-payment'), orderData)
+        .then(response => {
+          if (response && response.paymentUrl) {
+            // 重定向到PayPal支付页面
+            window.location.href = response.paymentUrl;
+          } else {
+            this.insertErrors('js-errors', ['PayPal支付创建失败']);
+            this.setState({ phase: 'pay' });
+          }
+        })
+        .catch(err => {
+          console.error('PayPal支付错误:', err);
+          this.insertErrors('js-errors', ['PayPal支付处理出错']);
+          this.setState({ phase: 'pay' });
+        });
     },
   },
 };
