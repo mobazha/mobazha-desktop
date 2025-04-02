@@ -86,6 +86,7 @@ export default {
       applyingAccount: null,
       isSaving: false,
       supportedChainTypes: [
+        { id: 'Bitcoin', name: '比特币' },
         { id: 'Ethereum', name: '以太坊' },
         { id: 'Solana', name: 'Solana' },
         { id: 'BSC', name: '币安智能链' },
@@ -98,6 +99,10 @@ export default {
       editingTokens: [],
       isConnecting: false,
       transactionData: {
+        bitcoin: {
+          lastTime: '2023-05-18 08:45',
+          lastAmount: '0.025 BTC'
+        },
         ethereum: {
           lastTime: '2023-05-15 14:30',
           lastAmount: '0.5 ETH',
@@ -202,6 +207,15 @@ export default {
     addMockData() {
       // 模拟数据
       this.receivingAccounts = [
+        // Bitcoin钱包
+        {
+          name: 'bitcoin',
+          chainType: 'Bitcoin',
+          address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+          enabled: true,
+          walletType: 'Bitcoin Core'
+        },
+        // Ethereum钱包
         {
           name: 'ethereum',
           chainType: 'Ethereum',
@@ -214,7 +228,8 @@ export default {
           tokenTransactions: {
             'USDT': { time: '2023-05-10 09:15', amount: '100 USDT' },
             'USDC': { time: '2023-05-12 16:45', amount: '200 USDC' }
-          }
+          },
+          walletType: 'MetaMask'
         },
         {
           name: 'solana',
@@ -452,6 +467,10 @@ export default {
     
     getAvailableTokens(chainType) {
       switch (chainType) {
+        case 'Bitcoin':
+          return [
+            { id: 'BTC', name: 'BTC (比特币)' }
+          ];
         case 'Ethereum':
           return [
             { id: 'ETH', name: 'ETH (以太坊)' },
@@ -482,6 +501,8 @@ export default {
     
     getChainIcon(chainType) {
       switch (chainType) {
+        case 'Bitcoin':
+          return 'ion-social-bitcoin';
         case 'Ethereum':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'Solana':

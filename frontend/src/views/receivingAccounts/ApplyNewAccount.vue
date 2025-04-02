@@ -126,6 +126,7 @@ export default {
             &.base { color: #0052FF; }
             &.paypal { color: #003087; }
             &.stripe { color: #635BFF; }
+            &.bitcoin { color: #F7931A; }
             
             i {
               display: inline-block;

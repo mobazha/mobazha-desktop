@@ -11,6 +11,7 @@
     <!-- 钱包说明 -->
     <div class="walletDescription">
       通过{{ account.chainType }}钱包接收 
+      <span v-if="account.chainType === 'Bitcoin'">BTC 支付。</span>
       <span v-if="account.chainType === 'Ethereum'">ETH 和 ERC-20 代币支付。</span>
       <span v-else-if="account.chainType === 'Solana'">SOL 及相关代币支付。</span>
       <span v-else-if="account.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
@@ -25,6 +26,7 @@
         <div class="stepContent">
           <h4>准备{{ account.chainType }}钱包</h4>
           <p>确保您已安装 
+            <span v-if="account.chainType === 'Bitcoin'">Bitcoin Core 或其他比特币钱包</span>
             <span v-if="account.chainType === 'Ethereum'">MetaMask 或其他支持以太坊的钱包</span>
             <span v-else-if="account.chainType === 'Solana'">Phantom 或其他支持Solana的钱包</span>
             <span v-else-if="account.chainType === 'BSC'">MetaMask 或其他支持BSC的钱包</span>
@@ -135,6 +137,8 @@ export default {
     
     getChainIcon(chainType) {
       switch (chainType) {
+        case 'Bitcoin':
+          return 'ion-social-bitcoin';
         case 'Ethereum':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'Solana':
@@ -150,6 +154,10 @@ export default {
     
     getAvailableTokens(chainType) {
       switch (chainType) {
+        case 'Bitcoin':
+          return [
+            { id: 'BTC', name: 'BTC (比特币)' }
+          ];
         case 'Ethereum':
           return [
             { id: 'ETH', name: 'ETH (以太坊)' },

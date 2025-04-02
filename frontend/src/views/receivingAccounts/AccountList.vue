@@ -416,6 +416,7 @@ export default {
         justify-content: center;
         border-radius: 50%;
         
+        &.bitcoin { background-color: rgba(247, 147, 26, 0.1); color: #F7931A; }
         &.ethereum { background-color: rgba(98, 126, 234, 0.1); color: #627EEA; }
         &.solana { background-color: rgba(153, 69, 255, 0.1); color: #9945FF; }
         &.bsc { background-color: rgba(243, 186, 47, 0.1); color: #F3BA2F; }
