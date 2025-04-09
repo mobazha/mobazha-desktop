@@ -8,7 +8,10 @@
         :class="['chainTab', { active: activeChain === chain.id }]"
         @click="activeChain = chain.id"
       >
-        <div class="chainIcon" :class="chain.id.toLowerCase()">
+        <div class="chainIconWrapper" v-if="chain.id !== 'all' && chain.id !== 'privacy'">
+          <CryptoIcon :code="chain.iconCode || chain.id.toUpperCase()" />
+        </div>
+        <div class="chainIcon" v-else :class="chain.id.toLowerCase()">
           <i :class="chain.icon"></i>
         </div>
         <span>{{ chain.name }}</span>
@@ -28,8 +31,8 @@
           <div v-if="selectedToken === token.id" class="checkmark">
             <i class="ion-checkmark-round"></i>
           </div>
-          <div class="tokenIcon" :class="token.id.toLowerCase()">
-            <i :class="token.icon || 'ion-social-bitcoin'"></i>
+          <div class="tokenIconWrapper">
+            <CryptoIcon :code="token.id" />
           </div>
           <div class="tokenInfo">
             <span class="tokenName">{{ token.name }}</span>
@@ -68,8 +71,8 @@
           <div v-if="selectedToken === method.id" class="checkmark">
             <i class="ion-checkmark-round"></i>
           </div>
-          <div class="methodIcon" :class="method.id.toLowerCase()">
-            <i :class="method.icon"></i>
+          <div class="methodIconWrapper">
+            <CryptoIcon :code="method.id.toUpperCase()" />
           </div>
           <span class="methodName">{{ method.name }}</span>
         </div>
@@ -103,46 +106,46 @@ export default {
       maxVisibleTokens: 12, // 每行4个，最多显示3行
       chains: [
         { id: 'all', name: '全部', icon: 'ion-android-list', count: 0 },
-        { id: 'bitcoin', name: 'Bitcoin', icon: 'ion-social-bitcoin', count: 0 },
-        { id: 'ethereum', name: '以太坊', icon: 'ion-social-bitcoin', count: 0 },
-        { id: 'solana', name: 'Solana', icon: 'ion-social-bitcoin', count: 0 },
-        { id: 'bsc', name: 'BSC', icon: 'ion-social-bitcoin', count: 0 },
-        { id: 'base', name: 'Base', icon: 'ion-social-bitcoin', count: 0 },
-        { id: 'polygon', name: 'Polygon', icon: 'ion-social-bitcoin', count: 0 },
+        { id: 'bitcoin', name: 'Bitcoin', iconCode: 'BTC', count: 0 },
+        { id: 'ethereum', name: '以太坊', iconCode: 'ETH', count: 0 },
+        { id: 'solana', name: 'Solana', iconCode: 'SOL', count: 0 },
+        { id: 'bsc', name: 'BNB Chain', iconCode: 'BNB', count: 0 },
+        { id: 'base', name: 'Base', iconCode: 'BASE', count: 0 },
+        { id: 'polygon', name: 'Polygon', iconCode: 'MATIC', count: 0 },
         { id: 'privacy', name: '隐私币', icon: 'ion-ios-locked', count: 0 }
       ],
       tokens: [
         // Bitcoin
-        { id: 'BTC', name: 'BTC', chain: 'bitcoin', icon: 'ion-social-bitcoin', disabled: false },
+        { id: 'BTC', name: 'BTC', chain: 'bitcoin', disabled: false },
         
         // 以太坊代币
-        { id: 'ETH', name: 'ETH', chain: 'ethereum', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'USDT', name: 'USDT', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
-        { id: 'USDC', name: 'USDC', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
-        { id: 'DAI', name: 'DAI', chain: 'ethereum', type: 'ERC20', icon: 'ion-social-usd', disabled: false },
+        { id: 'ETH', name: 'ETH', chain: 'ethereum', disabled: false },
+        { id: 'USDT', name: 'USDT', chain: 'ethereum', type: 'ERC20', disabled: false },
+        { id: 'USDC', name: 'USDC', chain: 'ethereum', type: 'ERC20', disabled: false },
+        { id: 'DAI', name: 'DAI', chain: 'ethereum', type: 'ERC20', disabled: false },
         
         // Solana代币
-        { id: 'SOL', name: 'SOL', chain: 'solana', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'SOLUSDT', name: 'USDT', chain: 'solana', type: 'SPL', icon: 'ion-social-usd', disabled: false },
-        { id: 'SOLUSDC', name: 'USDC', chain: 'solana', type: 'SPL', icon: 'ion-social-usd', disabled: false },
+        { id: 'SOL', name: 'SOL', chain: 'solana', disabled: false },
+        { id: 'SOLUSDT', name: 'USDT', chain: 'solana', type: 'SPL', disabled: false },
+        { id: 'SOLUSDC', name: 'USDC', chain: 'solana', type: 'SPL', disabled: false },
         
         // BSC代币
-        { id: 'BNB', name: 'BNB', chain: 'bsc', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'BUSD', name: 'BUSD', chain: 'bsc', type: 'BEP20', icon: 'ion-social-usd', disabled: false },
-        { id: 'BSCUSDT', name: 'USDT', chain: 'bsc', type: 'BEP20', icon: 'ion-social-usd', disabled: false },
+        { id: 'BNB', name: 'BNB', chain: 'bsc', disabled: false },
+        { id: 'BUSD', name: 'BUSD', chain: 'bsc', type: 'BEP20', disabled: false },
+        { id: 'BSCUSDT', name: 'USDT', chain: 'bsc', type: 'BEP20', disabled: false },
         
         // Base代币
-        { id: 'BASEETH', name: 'ETH', chain: 'base', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'BASEUSDC', name: 'USDC', chain: 'base', type: 'Base', icon: 'ion-social-usd', disabled: false },
+        { id: 'BASEETH', name: 'ETH', chain: 'base', disabled: false },
+        { id: 'BASEUSDC', name: 'USDC', chain: 'base', type: 'Base', disabled: false },
         
         // Polygon代币
-        { id: 'MATIC', name: 'MATIC', chain: 'polygon', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'POLYUSDT', name: 'USDT', chain: 'polygon', type: 'Polygon', icon: 'ion-social-usd', disabled: false },
-        { id: 'POLYUSDC', name: 'USDC', chain: 'polygon', type: 'Polygon', icon: 'ion-social-usd', disabled: false },
+        { id: 'MATIC', name: 'MATIC', chain: 'polygon', disabled: false },
+        { id: 'MATICUSDT', name: 'USDT', chain: 'polygon', type: 'Polygon', disabled: false },
+        { id: 'MATICUSDC', name: 'USDC', chain: 'polygon', type: 'Polygon', disabled: false },
         
         // 隐私币
-        { id: 'XMR', name: 'XMR', chain: 'privacy', icon: 'ion-social-bitcoin', disabled: false },
-        { id: 'ZEC', name: 'ZEC', chain: 'privacy', icon: 'ion-social-bitcoin', disabled: false }
+        { id: 'XMR', name: 'XMR', chain: 'privacy', disabled: false },
+        { id: 'ZEC', name: 'ZEC', chain: 'privacy', disabled: false }
       ],
       fiatMethods: [
         { 
@@ -261,6 +264,20 @@ export default {
         color: white;
       }
       
+      .chainIconWrapper {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .cryptoIcon {
+          width: 100%;
+          height: 100%;
+        }
+      }
+      
       .chainIcon {
         width: 18px;
         height: 18px;
@@ -271,33 +288,8 @@ export default {
         justify-content: center;
         font-size: 10px;
         
-        &.bitcoin {
-          background-color: #f7931a;
-          color: white;
-        }
-        
-        &.ethereum {
-          background-color: #627eea;
-          color: white;
-        }
-        
-        &.solana {
-          background-color: #14f195;
-          color: #9945ff;
-        }
-        
-        &.bsc {
-          background-color: #f3ba2f;
-          color: black;
-        }
-        
-        &.base {
-          background-color: #0052ff;
-          color: white;
-        }
-        
-        &.polygon {
-          background-color: #8247e5;
+        &.all {
+          background-color: #757575;
           color: white;
         }
         
@@ -388,11 +380,10 @@ export default {
         font-size: 10px;
       }
       
-      .tokenIcon, .methodIcon, .moreIcon {
+      .tokenIconWrapper, .methodIconWrapper {
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background-color: #f5f5f5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -400,74 +391,10 @@ export default {
         font-size: 14px;
         flex-shrink: 0;
         
-        &.btc {
-          background-color: #f7931a;
-          color: white;
+        .cryptoIcon {
+          width: 100%;
+          height: 100%;
         }
-        
-        &.eth, &.baseeth {
-          background-color: #627eea;
-          color: white;
-        }
-        
-        &.usdt, &.solusdt, &.bscusdt, &.polyusdt {
-          background-color: #26a17b;
-          color: white;
-        }
-        
-        &.usdc, &.solusdc, &.baseusdc, &.polyusdc {
-          background-color: #2775ca;
-          color: white;
-        }
-        
-        &.dai {
-          background-color: #f5ac37;
-          color: white;
-        }
-        
-        &.sol {
-          background-color: #14f195;
-          color: #9945ff;
-        }
-        
-        &.bnb {
-          background-color: #f3ba2f;
-          color: black;
-        }
-        
-        &.busd {
-          background-color: #f0b90b;
-          color: white;
-        }
-        
-        &.matic {
-          background-color: #8247e5;
-          color: white;
-        }
-        
-        &.xmr {
-          background-color: #ff6b00;
-          color: white;
-        }
-        
-        &.zec {
-          background-color: #ecb244;
-          color: black;
-        }
-        
-        &.stripe {
-          background-color: #6772e5;
-          color: white;
-        }
-        
-        &.paypal {
-          background-color: #0070ba;
-          color: white;
-        }
-      }
-      
-      .moreIcon {
-        background-color: #e0e0e0;
       }
       
       .tokenInfo {

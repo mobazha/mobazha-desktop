@@ -494,6 +494,7 @@ export default {
         activeCurs: [],
         emailAddress: '',
       },
+      paymentCoin: 'BTC',
 
       _state: {
         phase: 'pay',
@@ -577,9 +578,6 @@ export default {
         coinType: this.coinName,
         warning,
       });
-    },
-    paymentCoin() {
-      return this.formData.activeCurs[0];
     },
     prices() {
       let access = this.orderKey;

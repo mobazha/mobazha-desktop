@@ -41,7 +41,7 @@ createAppKit({
   projectId,
   themeMode: 'light',
   features: {
-    analytics: true, // Optional - defaults to your Cloud configuration
+    analytics: false, // Optional - defaults to your Cloud configuration
     swaps: false,
     onramp: false,
     email: false,
