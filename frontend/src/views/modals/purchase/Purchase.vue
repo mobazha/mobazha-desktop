@@ -44,7 +44,7 @@
                           </template>
                         </div>
                       </div>
-                      <template v-if="ob.phase === 'pay' || ob.phase === 'processing'">
+                      <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
                         <div class="flexNoShrink">
                           <div class="flexVCent gutterH purchaseQuantity">
                             <div class="flexCol">
@@ -75,7 +75,7 @@
                     <OptionalFeatureLine :optionalFeatures="itemsInfo[idx].optionalFeatures" :pricingCurrency="pricingCurrency(idx)" :displayCurrency="displayCurrency" />
 
                     <div class="col6">
-                      <template v-if="hasCoupons(listing) && ob.phase === 'pay'">
+                      <template v-if="hasCoupons(listing) && ob.phase === 'checkout'">
                         <div class="rowTn">
                           <label for="couponCode" class="tx5">{{ ob.polyT('purchase.couponCode') }}</label>
                         </div>
@@ -109,7 +109,7 @@
 
                   <template v-else>
                     <div class="flexVCent gutterHLg row cryptoTitleWrap">
-                      <div ref="cryptoTitle" :class="`js-cryptoTitle ${ob.phase !== 'pay' && ob.phase !== 'processing' ? 'flexExpand' : ''}`">
+                      <div ref="cryptoTitle" :class="`js-cryptoTitle ${ob.phase !== 'checkout' && ob.phase !== 'creatingOrder' ? 'flexExpand' : ''}`">
                         <CryptoTradingPairWrap
                           :options="{
                             tradingPairClass: 'cryptoTradingPairXL',
@@ -119,7 +119,7 @@
                           }"
                         />
                       </div>
-                      <template v-if="ob.phase === 'pay' || ob.phase === 'processing'">
+                      <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
                         <div class="flexExpand">
                           <div class="flexVCent gutterHLg">
                             <label for="cryptoAmount" class="clrT txB required">{{ ob.polyT('purchase.cryptoAmount') }}</label>
@@ -174,7 +174,7 @@
                     <div class="js-items-paymentAddress-errors">
                       <FormError v-if="errors['items-paymentAddress']" :errors="errors['items-paymentAddress']" />
                     </div>
-                    <template v-if="ob.phase === 'pay' || ob.phase === 'processing'">
+                    <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
                       <input
                         type="text"
                         id="purchaseCryptoAddress"
@@ -194,7 +194,7 @@
                 </section>
               </template>
             </div>
-            <template v-if="ob.phase === 'pay' || ob.phase === 'processing'">
+            <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
               <template v-if="shippingOptions && shippingOptions.length">
                 <section class="contentBox padMd clrP clrBr clrSh3 js-shipping">
                   <div class="js-shipping-errors js-items-shipping-errors">
@@ -219,6 +219,52 @@
                   />
                 </section>
               </template>
+              <section class="contentBox padMd clrP clrBr clrSh3">
+                <h2 class="h4">
+                  {{ ob.polyT('purchase.informationTitle') }}
+                  <span class="clrT2 txUnb tx5b">{{ ob.polyT('purchase.optional') }}</span>
+                </h2>
+                <div class="flexRow gutterH row">
+                  <div class="col6">
+                    <div class="rowTn">
+                      <label for="emailAddress" class="tx5">
+                        {{ ob.polyT('purchase.emailAddress') }}
+                      </label>
+                    </div>
+                    <div>
+                      <input
+                        class="btnHeight clrBr clrP js-purchaseField"
+                        type="text"
+                        id="emailAddress"
+                        name="alternateContactInfo"
+                        v-model="formData.emailAddress"
+                        @blur="blurEmailAddress"
+                        :placeholder="ob.polyT('purchase.emailPlaceholder')"
+                      />
+                    </div>
+                    <div>
+                      <span class="txSm clrT2">{{ ob.polyT('purchase.emailNote') }}</span>
+                    </div>
+                  </div>
+                </div>
+                <hr class="clrBr row" />
+                <div class="rowTn">
+                  <label for="memo" class="tx5">
+                    {{ ob.polyT('purchase.memo') }}
+                  </label>
+                </div>
+                <textarea
+                  class="clrBr clrP js-purchaseField"
+                  id="memo"
+                  @blur="blurMemo"
+                  maxlength="5000"
+                  rows="6"
+                  :placeholder="ob.polyT('purchase.memoPlaceholder')"
+                  v-model="formData.itemsData[0].memo"
+                ></textarea>
+              </section>
+            </template>
+            <template v-if="ob.phase === 'pendingPayment'">
               <section class="contentBox padMd clrP clrBr clrSh3">
                 <div class="flexColRows gutterVSm">
                   <div>
@@ -281,65 +327,15 @@
                   <DirectPayment class="moderatorsList" :active="!isModerated" @click="handleDirectPurchaseClick" />
                 </div>
               </section>
+            </template>
+            <template v-if="ob.phase === 'creatingOrder'">
               <section class="contentBox padMd clrP clrBr clrSh3">
-                <h2 class="h4">
-                  {{ ob.polyT('purchase.informationTitle') }}
-                  <span class="clrT2 txUnb tx5b">{{ ob.polyT('purchase.optional') }}</span>
-                </h2>
-                <div class="flexRow gutterH row">
-                  <div class="col6">
-                    <div class="rowTn">
-                      <label for="emailAddress" class="tx5">
-                        {{ ob.polyT('purchase.emailAddress') }}
-                      </label>
-                    </div>
-                    <div>
-                      <input
-                        class="btnHeight clrBr clrP js-purchaseField"
-                        type="text"
-                        id="emailAddress"
-                        name="alternateContactInfo"
-                        v-model="formData.emailAddress"
-                        @blur="blurEmailAddress"
-                        :placeholder="ob.polyT('purchase.emailPlaceholder')"
-                      />
-                    </div>
-                    <div>
-                      <span class="txSm clrT2">{{ ob.polyT('purchase.emailNote') }}</span>
-                    </div>
+                <div class="flexColRows gutterVSm">
+                  <div class="txCtr">
+                    <h2 class="h4">{{ ob.polyT('purchase.submittingOrder') }}</h2>
+                    <p class="clrT2">{{ ob.polyT('purchase.pleaseWait') }}</p>
                   </div>
                 </div>
-                <hr class="clrBr row" />
-                <div class="rowTn">
-                  <label for="memo" class="tx5">
-                    {{ ob.polyT('purchase.memo') }}
-                  </label>
-                </div>
-                <textarea
-                  class="clrBr clrP js-purchaseField"
-                  id="memo"
-                  @blur="blurMemo"
-                  maxlength="5000"
-                  rows="6"
-                  :placeholder="ob.polyT('purchase.memoPlaceholder')"
-                  v-model="formData.itemsData[0].memo"
-                ></textarea>
-              </section>
-            </template>
-            <template v-if="ob.phase === 'pending'">
-              <section ref="pendingPayment" class="contentBox padMd clrP clrBr clrSh3 js-pending">
-                <Payment
-                  v-if="paymentData"
-                  :options="{
-                    balanceRemaining: curDefToDecimal(paymentData.amount),
-                    paymentAddress: paymentData.paymentAddress,
-                    orderID: paymentData.orderID,
-                    isModerated: !!this.order.get('moderator'),
-                    metricsOrigin: 'Purchase',
-                    paymentCoin,
-                  }"
-                  @walletPaymentComplete="completePurchase"
-                />
               </section>
             </template>
             <template v-if="ob.phase === 'complete'">
@@ -381,7 +377,7 @@
                   :options="{
                     prices,
                     coupons: couponObj,
-                    showTotalTip: _state.phase === 'pay',
+                    showTotalTip: _state.phase === 'checkout',
                     totalShippingPrice: selectedShippingPrice,
                   }"
                   :bb="
@@ -472,7 +468,7 @@ export default {
       default: {
         itemsInfo: [],
         vendor: {},
-        phase: 'pay',
+        phase: 'checkout',
       },
     },
     bb: Function,
@@ -497,7 +493,7 @@ export default {
       paymentCoin: 'BTC',
 
       _state: {
-        phase: 'pay',
+        phase: 'checkout',
       },
 
       cart: {},
@@ -569,7 +565,7 @@ export default {
     },
     helperMessage() {
       const warning =
-        this.phase === 'pay' || this.phase === 'processing'
+        this.phase === 'checkout' || this.phase === 'creatingOrder'
           ? `<b>${ob.polyT('purchase.cryptoAddressHelperWarning')}</b>`
           : `<b>${ob.polyT('purchase.cryptoAddressHelperWarning2')}</b>`;
 
@@ -735,7 +731,7 @@ export default {
 
       this.baseInit(options);
 
-      this._state.phase = 'pay';
+      this._state.phase = 'checkout';
 
       this.oneListing = this.itemsToPurchase.at(0);
 
@@ -1027,7 +1023,7 @@ export default {
       const priceObj = this.prices[0];
       if (priceObj.price.plus(priceObj.vPrice).plus(priceObj.sPrice).lte(0)) {
         this.insertErrors('js-errors', [app.polyglot.t('purchase.errors.zeroPrice')]);
-        this.setState({ phase: 'pay' });
+        this.setState({ phase: 'checkout' });
         return;
       }
 
@@ -1060,7 +1056,7 @@ export default {
       // Cancel any existing order.
       if (this.orderSubmit) this.orderSubmit.abort();
 
-      this.setState({ phase: 'processing' });
+      this.setState({ phase: 'creatingOrder' });
 
       startAjaxEvent('Purchase');
       const segmentation = {
@@ -1070,7 +1066,7 @@ export default {
 
       if (!this.order.validationError) {
         if (this.oneListing.isOwnListing) {
-          this.setState({ phase: 'pay' });
+          this.setState({ phase: 'checkout' });
           // don't allow a seller to buy their own items
           const errTitle = app.polyglot.t('purchase.errors.ownIDTitle');
           const errMsg = app.polyglot.t('purchase.errors.ownIDMsg');
@@ -1085,7 +1081,7 @@ export default {
 
           if (this.oneListing.isCrypto) {
             if (!isValidCoinDivisibility(coinDivisibility)[0]) {
-              this.setState({ phase: 'pay' });
+              this.setState({ phase: 'checkout' });
               openSimpleMessage(app.polyglot.t('purchase.errors.genericPurchaseErrTitle'), app.polyglot.t('purchase.errors.invalidCoinDiv'));
               return;
             }
@@ -1100,7 +1096,7 @@ export default {
                 });
               }
             } catch (e) {
-              this.setState({ phase: 'pay' });
+              this.setState({ phase: 'checkout' });
               openSimpleMessage(app.polyglot.t('purchase.errors.genericPurchaseErrTitle'), app.polyglot.t('purchase.errors.unableToConvertCryptoQuantity'));
               console.error(e);
               return;
@@ -1120,14 +1116,14 @@ export default {
 
           myPost(app.getServerUrl('ob/purchase'), postData)
             .done((data) => {
-              this.setState({ phase: 'pending' });
+              this.setState({ phase: 'pendingPayment' });
 
               this.paymentData = data;
 
               endAjaxEvent('Purchase');
             })
             .fail((jqXHR) => {
-              this.setState({ phase: 'pay' });
+              this.setState({ phase: 'checkout' });
               if (jqXHR.statusText === 'abort') return;
               let errTitle = app.polyglot.t('purchase.errors.orderError');
               let errMsg = (jqXHR.responseJSON && jqXHR.responseJSON.reason) || '';
@@ -1155,7 +1151,7 @@ export default {
             });
         }
       } else {
-        this.setState({ phase: 'pay' });
+        this.setState({ phase: 'checkout' });
         const purchaseErrs = {};
         Object.keys(this.order.validationError).forEach((errKey) => {
           const domKey = errKey.replace(/\[[^\[\]]*\]/g, '').replace('.', '-');
@@ -1208,7 +1204,7 @@ export default {
 
     // 添加Stripe支付处理方法
     processStripePayment() {
-      this.setState({ phase: 'processing' });
+      this.setState({ phase: 'creatingOrder' });
       
       // 这里实现Stripe支付处理逻辑
       // 可能需要调用后端API获取支付链接或打开支付弹窗
@@ -1232,19 +1228,19 @@ export default {
             window.location.href = response.paymentUrl;
           } else {
             this.insertErrors('js-errors', ['Stripe支付创建失败']);
-            this.setState({ phase: 'pay' });
+            this.setState({ phase: 'checkout' });
           }
         })
         .catch(err => {
           console.error('Stripe支付错误:', err);
           this.insertErrors('js-errors', ['Stripe支付处理出错']);
-          this.setState({ phase: 'pay' });
+          this.setState({ phase: 'checkout' });
         });
     },
 
     // 添加PayPal支付处理方法
     processPayPalPayment() {
-      this.setState({ phase: 'processing' });
+      this.setState({ phase: 'creatingOrder' });
       
       // 这里实现PayPal支付处理逻辑
       // 可能需要调用后端API获取支付链接或打开支付弹窗
@@ -1268,13 +1264,13 @@ export default {
             window.location.href = response.paymentUrl;
           } else {
             this.insertErrors('js-errors', ['PayPal支付创建失败']);
-            this.setState({ phase: 'pay' });
+            this.setState({ phase: 'checkout' });
           }
         })
         .catch(err => {
           console.error('PayPal支付错误:', err);
           this.insertErrors('js-errors', ['PayPal支付处理出错']);
-          this.setState({ phase: 'pay' });
+          this.setState({ phase: 'checkout' });
         });
     },
   },

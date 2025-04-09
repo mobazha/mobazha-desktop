@@ -1,17 +1,17 @@
 <template>
   <div class="actionBtn" @click="documentClick">
     <div class="posR">
-      <template v-if="phase === 'pay' || phase === 'processing'">
+      <template v-if="phase === 'checkout' || phase === 'creatingOrder'">
         <ProcessingButton
           :className="`btn width100 clrBAttGrad clrBrDec1 clrTOnEmph ${phase} ${outdatedHash ? 'row' : ''}`"
           :disabled="initPay"
           @click.stop="clickPayBtn"
-          :btnText="ob.polyT('purchase.pay')" />
+          :btnText="phase === 'checkout' ? ob.polyT('purchase.submitOrder') : ob.polyT('purchase.pay')" />
         <div v-if="showOutdatedHashErr" class="txCtr rowSm">
           <PurchaseError :tip="errTip" />
         </div>
       </template>
-      <template v-else-if="phase === 'pending'">
+      <template v-else-if="phase === 'pendingPayment'">
         <div class="btn width100 clrBAttGrad clrBrDec1 clrTOnEmph pendingBtn">
           {{ ob.polyT('purchase.pending') }}
         </div>
@@ -45,11 +45,11 @@
       </template>
     </div>
     <div class="padSm flexColRows gutterVSm txSm txCtr clrT2">
-      <template v-if="phase === 'pay'">
+      <template v-if="phase === 'checkout'">
         <span class="js-payNote">{{ ob.polyT('purchase.payNote') }}</span>
       </template>
 
-      <template v-else-if="phase === 'pending'">
+      <template v-else-if="phase === 'pendingPayment'">
         <span class="js-pendingNote">{{ ob.polyT('purchase.pendingNote') }}</span>
       </template>
 
@@ -100,7 +100,7 @@ export default {
       };
     },
     showOutdatedHashErr () {
-      return this.phase === 'pay' && this.outdatedHash;
+      return this.phase === 'checkout' && this.outdatedHash;
     },
 
     initPay () {
