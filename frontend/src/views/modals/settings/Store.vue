@@ -540,7 +540,7 @@ export default {
       }
     },
     render() {
-      if (!this.$refs.modsSelected.modFetches.length) {
+      if (!this.$refs.modsSelected?.modFetches?.length) {
         this.$refs.modsSelected.getModeratorsByID({ moderatorIDs: this.currentMods });
       }
 

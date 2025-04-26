@@ -5,15 +5,18 @@
         <ProcessingButton
           :className="`btn width100 clrBAttGrad clrBrDec1 clrTOnEmph ${phase} ${outdatedHash ? 'row' : ''}`"
           :disabled="initPay"
-          @click.stop="clickPayBtn"
+          @click.stop="clickSubmitOrderBtn"
           :btnText="phase === 'checkout' ? ob.polyT('purchase.submitOrder') : ob.polyT('purchase.pay')" />
         <div v-if="showOutdatedHashErr" class="txCtr rowSm">
           <PurchaseError :tip="errTip" />
         </div>
       </template>
       <template v-else-if="phase === 'pendingPayment'">
-        <div class="btn width100 clrBAttGrad clrBrDec1 clrTOnEmph pendingBtn">
-          {{ ob.polyT('purchase.pending') }}
+        <div class="btn width100 clrBAttGrad clrBrDec1 clrTOnEmph">
+          <ProcessingButton
+            :className="`btn width100 clrBAttGrad clrBrDec1 clrTOnEmph`"
+            @click.stop="clickPayBtn"
+            :btnText="ob.polyT('purchase.pay')" />
         </div>
       </template>
 
@@ -127,8 +130,12 @@ export default {
       }
     },
 
-    clickPayBtn () {
+    clickSubmitOrderBtn () {
       this.confirmOpen = true;;
+    },
+
+    clickPayBtn () {
+      this.$emit('pay');
     },
 
     clickConfirmBtn () {
