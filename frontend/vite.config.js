@@ -33,6 +33,7 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
+        buffer: 'buffer',
       },
     },
     css: {
@@ -62,9 +63,9 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     // for web
-    // define: {
-    //   global: 'globalThis'
-    // },
+    define: {
+      global: 'globalThis'
+    },
     plugins: [
       ...plugins,
       {
@@ -95,7 +96,10 @@ export default defineConfig(({ command, mode }) => {
       supported: {
         'top-level-await': true
       }
-    }
+    },
+    optimizeDeps: {
+      include: ['buffer'],
+    },
   };
 });
 
