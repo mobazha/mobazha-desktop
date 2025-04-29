@@ -365,6 +365,7 @@
                     }
                   "
                   @purchase="purchaseListing"
+                  @pay="payListing"
                   @close="close"
                   @reloadOutdated="onReloadOutdated"
                 />
@@ -429,7 +430,6 @@ import { toStandardNotation } from '../../../../backbone/utils/number';
 import { decimalToInteger, isValidCoinDivisibility, curDefToDecimal, getCoinDivisibility } from '../../../../backbone/utils/currency';
 import { capitalize } from '../../../../backbone/utils/string';
 import { events as outdatedListingHashesEvents } from '../../../../backbone/utils/outdatedListingHashes';
-import { isSupportedWalletCur } from '../../../../backbone/data/walletCurrencies';
 import Order from '../../../../backbone/models/purchase/Order';
 import Item from '../../../../backbone/models/purchase/Item';
 import OrderListings from '../../../../backbone/collections/OrderListings';
@@ -449,6 +449,10 @@ import Settings from '@/views/modals/settings/Settings.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import * as casdoor from '../../../utils/casdoor';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
+import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram } from '@solana/web3.js';
+import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
+import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
+import { convertSolanaGoInstruction } from '@/utils/solana';
 
 export default {
   components: {
@@ -490,7 +494,7 @@ export default {
         activeCurs: [],
         emailAddress: '',
       },
-      paymentCoin: 'BTC',
+      paymentCoin: 'USDT',
 
       _state: {
         phase: 'checkout',
@@ -530,9 +534,42 @@ export default {
       paymentData: undefined,
 
       errors: {},
+
+      isConnected: false,
+      address: '',
+    };
+  },
+  setup() {
+    const { connection } = useAppKitConnection();
+    const { walletProvider } = useAppKitProvider('solana');
+    const { isConnected, address } = useAppKitAccount();
+
+    console.log('isConnected: ', isConnected);
+    console.log('address: ', address);
+    console.log('connection: ', connection);
+    console.log('walletProvider: ', walletProvider);
+
+    const appKit = useAppKit();
+    const accountData = useAppKitAccount();
+    const appKitState = useAppKitState();
+    const appKitEvents = useAppKitEvents();
+    const { disconnect } = useDisconnect();
+    
+    return {
+      connection,
+      walletProvider,
+      appKit,
+      accountData,
+      appKitState,
+      appKitEvents,
+      disconnect
     };
   },
   created() {
+    // 初始化钱包连接状态
+    this.isConnected = this.accountData.isConnected;
+    this.address = this.accountData.address;
+    
     this.initEventChain();
 
     this.loadData(this.options);
@@ -655,7 +692,6 @@ export default {
     },
   },
   methods: {
-    isSupportedWalletCur,
     curDefToDecimal,
 
     totalPrice(i) {
@@ -994,7 +1030,7 @@ export default {
       this.outdatedHash = true;
     },
 
-    purchaseListing() {
+    async purchaseListing() {
       // 检查是否需要登录
       if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
         ElMessageBox.confirm(
@@ -1109,6 +1145,7 @@ export default {
           const postData = removeProp(
             {
               ...this.order.toJSON(),
+              pricingCoin: this.paymentCoin,
               items: this.oneListing.isCrypto ? cryptoItems : this.order.get('items').toJSON(),
             },
             'cid'
@@ -1119,6 +1156,7 @@ export default {
               this.setState({ phase: 'pendingPayment' });
 
               this.paymentData = data;
+              this.orderID = data.orderID;
 
               endAjaxEvent('Purchase');
             })
@@ -1170,14 +1208,13 @@ export default {
       }
     },
 
-    insertErrors(container, errors = []) {
-      this.errors[container] = errors;
+    async payListing() {
+      // 处理SOL支付
+      await this.processSolPayment();
     },
 
-    completePurchase(data) {
-      this.orderID = data.orderID;
-
-      this.setState({ phase: 'complete' });
+    insertErrors(container, errors = []) {
+      this.errors[container] = errors;
     },
 
     render() {
@@ -1273,6 +1310,93 @@ export default {
           this.setState({ phase: 'checkout' });
         });
     },
+
+    async processSolPayment() {
+      try {
+        // 检查钱包是否已连接
+        if (!this.isConnected) {
+          throw new Error('请先连接钱包');
+        }
+
+        // 获取仲裁人
+        const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
+        
+        // 调用后端接口获取SOL托管初始化指令
+        const response = await myPost(app.getServerUrl('wallet/escrow/sol/initialize'), {
+          orderID: this.orderID,
+          payer: this.accountData.address,
+          amount: parseInt(this.paymentData.amount.amount),
+        });
+
+        if (!response || !response.instructions) {
+          throw new Error('获取SOL托管指令失败');
+        }
+
+        // 使用 Reown AppKit 的 connection
+        if (!this.connection) {
+          throw new Error('未连接到 Solana 网络');
+        }
+        
+        // 创建交易
+        const transaction = new Transaction();
+        
+        // 添加指令到交易
+        response.instructions.forEach(instruction => {
+          transaction.add(convertSolanaGoInstruction(instruction));
+        });
+
+        const wallet = new PublicKey(this.accountData.address);
+        if (!wallet) throw Error('wallet provider is not available');
+
+        // 获取最新的区块哈希
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = wallet;
+
+        // 使用 Reown AppKit 的 walletProvider 签名和发送交易
+        const signature = await this.walletProvider.signAndSendTransaction(transaction);
+        
+        // 等待交易确认
+        await this.connection.confirmTransaction(signature);
+
+        // 通知后端支付完成
+        await myPost(app.getServerUrl('v1/ob/notifyPayment'), {
+          orderID: this.orderID,
+          paymentInfo: {
+            txHash: signature,
+            currency: 'SOL',
+            amount: this.prices[0].price.toString()
+          }
+        });
+
+        // 更新订单状态
+        this.setState({ phase: 'complete' });
+        
+      } catch (error) {
+        console.error('SOL支付处理失败:', error);
+        this.insertErrors('js-errors', ['SOL支付处理失败: ' + error.message]);
+        this.setState({ phase: 'checkout' });
+      }
+    },
+  },
+  watch: {
+    'accountData.isConnected': function(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.isConnected = newValue;
+        if (newValue) {
+          this.address = this.accountData.address;
+          console.log('钱包已连接，地址：', this.address);
+        } else {
+          this.address = '';
+          console.log('钱包已断开连接');
+        }
+      }
+    },
+    'accountData.address': function(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.address = newValue;
+      }
+    }
   },
 };
 </script>

@@ -18,7 +18,7 @@ const sdkConfig = import.meta.env.DEV
   
 export const CasdoorSdk = new Sdk(sdkConfig);
 
-export const hosting_server = import.meta.env.DEV ? 'http://localhost:8080' : 'https://store.mobazha.org';
+export const hosting_server = import.meta.env.DEV ? 'http://localhost:8088' : 'https://store.mobazha.org';
 
 export const isLoggedIn = () => {
   const token = localStorage.getItem("token");

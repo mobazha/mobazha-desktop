@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <div class="app-header">
-    <section id="pageNavContainer">
-      <PageNav ref="pageNav" />
-    </section>
+      <section id="pageNavContainer">
+        <PageNav ref="pageNav" />
+      </section>
       <div class="reown-wallet-section">
         <appkit-button />
       </div>
@@ -108,25 +108,9 @@ export default {
     padding: 0 20px;
     background: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
 
     #pageNavContainer {
       flex: 1;
-      height: 100%;
-      
-      :deep(.pageNav) {
-        height: 100%;
-        
-        nav {
-          height: 100%;
-          display: flex;
-          align-items: center;
-        }
-      }
     }
 
     .reown-wallet-section {
@@ -137,22 +121,6 @@ export default {
       display: flex;
       align-items: center;
     }
-  }
-
-  #contentFrame {
-    margin-top: 84px; // 增加顶部间距，64px导航栏高度 + 20px额外间距
-    padding: 0 20px; // 添加左右内边距
-    
-    #pageContainer {
-      width: 100%;
-      max-width: 1200px; // 限制最大宽度
-      margin: 0 auto; // 居中显示
-    }
-  }
-
-  // 确保模态框不被导航栏遮挡
-  #js-vueModal {
-    z-index: 1100;
   }
 }
 </style>
