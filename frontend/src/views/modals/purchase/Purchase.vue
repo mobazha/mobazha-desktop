@@ -449,10 +449,10 @@ import Settings from '@/views/modals/settings/Settings.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import * as casdoor from '../../../utils/casdoor';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
-import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
 import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
-import { convertSolanaGoInstruction } from '@/utils/solana';
+import { convertSolanaGoInstruction, confirmTransaction } from '@/utils/solana';
 
 export default {
   components: {
@@ -1085,7 +1085,7 @@ export default {
       }
 
       // Set the moderator.
-      const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs.length > 0 && this.$refs.moderators.selectedIDs[0]) || '';
+      const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || '';
       this.order.set({ moderator });
       this.order.set({}, { validate: true });
 
@@ -1322,14 +1322,19 @@ export default {
         const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
         
         // 调用后端接口获取SOL托管初始化指令
-        const response = await myPost(app.getServerUrl('wallet/escrow/sol/initialize'), {
+        const requestData = {
           orderID: this.orderID,
-          payer: this.accountData.address,
-          amount: parseInt(this.paymentData.amount.amount),
-        });
+          payer: this.accountData.address, // 钱包地址
+          moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
+          amount: parseInt(this.paymentData.amount.amount) // 转换为整数
+        };
 
+        const response = await myPost(app.getServerUrl('wallet/escrow/sol/initialize'), requestData);
         if (!response || !response.instructions) {
           throw new Error('获取SOL托管指令失败');
+        }
+        if (!response.paymentData) {
+          throw new Error('获取SOL支付数据失败');
         }
 
         // 使用 Reown AppKit 的 connection
@@ -1339,10 +1344,11 @@ export default {
         
         // 创建交易
         const transaction = new Transaction();
-        
+
         // 添加指令到交易
         response.instructions.forEach(instruction => {
-          transaction.add(convertSolanaGoInstruction(instruction));
+          const convertedInstruction = convertSolanaGoInstruction(instruction);
+          transaction.add(convertedInstruction);
         });
 
         const wallet = new PublicKey(this.accountData.address);
@@ -1355,23 +1361,24 @@ export default {
 
         // 使用 Reown AppKit 的 walletProvider 签名和发送交易
         const signature = await this.walletProvider.signAndSendTransaction(transaction);
-        
-        // 等待交易确认
-        await this.connection.confirmTransaction(signature);
+        console.log('Transaction signature:', signature);
+
+        // 确认交易
+        const confirmation = await confirmTransaction(this.connection, signature, {
+          maxRetries: 10,
+          retryInterval: 2000
+        });
+        console.log('Transaction confirmation:', confirmation);
+
+        const paymentData = response.paymentData;
+        paymentData.transactionID = signature;
+        paymentData.timestamp = new Date().toISOString();
 
         // 通知后端支付完成
-        await myPost(app.getServerUrl('v1/ob/notifyPayment'), {
-          orderID: this.orderID,
-          paymentInfo: {
-            txHash: signature,
-            currency: 'SOL',
-            amount: this.prices[0].price.toString()
-          }
-        });
+        await myPost(app.getServerUrl('ob/notifyPayment'), {paymentData});
 
         // 更新订单状态
         this.setState({ phase: 'complete' });
-        
       } catch (error) {
         console.error('SOL支付处理失败:', error);
         this.insertErrors('js-errors', ['SOL支付处理失败: ' + error.message]);
