@@ -24,7 +24,7 @@
     <div class="enableSwitchContainer">
       <label>启用此收款方式</label>
       <ToggleSwitch 
-        v-model="account.enabled" 
+        v-model="account.isActive" 
         id="enablePaypalSwitch_unique" 
       />
       <p class="enableHint">启用后，买家可以通过PayPal向您付款</p>

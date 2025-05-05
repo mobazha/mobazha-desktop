@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { myGet, myPut } from '../../api/api.js';
+import { myGet, myPut, myPost } from '../../api/api.js';
 import { useAppKit, useAppKitAccount, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import app from '../../../backbone/app.js';
 import AccountList from './AccountList.vue';
@@ -147,7 +147,7 @@ export default {
   },
   created() {
     // 添加伪数据用于测试
-    this.addMockData();
+    // this.addMockData();
     
     this.fetchReceivingAccounts();
     console.log('appKitEvents: ', this.appKitEvents);
@@ -213,15 +213,15 @@ export default {
           chainType: 'Bitcoin',
           address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
           enabled: true,
-          walletType: 'Bitcoin Core'
+          source: 'Bitcoin Core'
         },
         // Ethereum钱包
         {
           name: 'ethereum',
           chainType: 'Ethereum',
           address: '0xC473A8d3d6E2C4D95c4A7B9d8E59315931',
-          enabledTokens: '["USDT","USDC"]',
-          _enabledTokens: ['USDT', 'USDC'],
+          activeTokens: '["USDT","USDC"]',
+          _activeTokens: ['USDT', 'USDC'],
           enabled: true,
           lastTransactionTime: '2023-05-15 14:30',
           lastTransactionAmount: '0.5 ETH',
@@ -229,14 +229,14 @@ export default {
             'USDT': { time: '2023-05-10 09:15', amount: '100 USDT' },
             'USDC': { time: '2023-05-12 16:45', amount: '200 USDC' }
           },
-          walletType: 'MetaMask'
+          source: 'MetaMask'
         },
         {
           name: 'solana',
           chainType: 'Solana',
           address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5TNPN1',
-          enabledTokens: '["SOLUSDT"]',
-          _enabledTokens: ['SOLUSDT'],
+          activeTokens: '["SOLUSDT"]',
+          _activeTokens: ['SOLUSDT'],
           enabled: true,
           lastTransactionTime: '2023-05-14 11:20',
           lastTransactionAmount: '5 SOL',
@@ -248,8 +248,8 @@ export default {
           name: 'bsc',
           chainType: 'BSC',
           address: '0x7F367cC41522cE07553e823bf3be79A889DEbe1B',
-          enabledTokens: '["BUSD","CAKE"]',
-          _enabledTokens: ['BUSD', 'CAKE'],
+          activeTokens: '["BUSD","CAKE"]',
+          _activeTokens: ['BUSD', 'CAKE'],
           enabled: false,
           lastTransactionTime: '2023-04-20 08:45',
           lastTransactionAmount: '2.3 BNB',
@@ -267,7 +267,7 @@ export default {
         },
         {
           name: 'stripe',
-          accountId: 'acct_1N2XYZKjGLOD4E8S',
+          id: 'acct_1N2XYZKjGLOD4E8S',
           enabled: false,
           lastTransactionTime: '2023-05-09 15:30',
           lastTransactionAmount: '€75.50'
@@ -276,21 +276,25 @@ export default {
     },
     
     async fetchReceivingAccounts() {
-      return;
       try {
-        const response = await myGet(app.getServerUrl('wallet/receiving-accounts'));
+        const response = await myGet(app.getServerUrl('wallet/receivingaccountlist'));
         
         if (response && response.receivingAccounts && Array.isArray(response.receivingAccounts)) {
-          // 处理每个账户的enabledTokens字段
+          // 处理每个账户的 activeTokens 字段
           this.receivingAccounts = response.receivingAccounts.map(account => {
-            if (account.enabledTokens) {
+            if (account.activeTokens) {
               try {
-                account._enabledTokens = JSON.parse(account.enabledTokens);
+                if (Array.isArray(account.activeTokens)) {
+                  account._activeTokens = account.activeTokens;
+                } else {
+                  account._activeTokens = [];
+                }
               } catch (e) {
-                account._enabledTokens = [];
+                console.error('解析 activeTokens 失败:', e);
+                account._activeTokens = [];
               }
             } else {
-              account._enabledTokens = [];
+              account._activeTokens = [];
             }
             
             // 添加交易数据
@@ -300,13 +304,9 @@ export default {
           });
         } else {
           console.error('获取收款账户返回格式不正确:', response);
-          // 如果API返回错误，保留伪数据用于展示
-          // this.receivingAccounts = [];
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
-        // 如果API请求失败，保留伪数据用于展示
-        // this.receivingAccounts = [];
       }
     },
     
@@ -315,8 +315,8 @@ export default {
       this.editingAccount = JSON.parse(JSON.stringify(account));
       
       // 设置编辑中的代币
-      if (account._enabledTokens) {
-        this.editingTokens = [...account._enabledTokens];
+      if (account._activeTokens) {
+        this.editingTokens = [...account._activeTokens];
       } else {
         this.editingTokens = [];
       }
@@ -325,12 +325,14 @@ export default {
     },
     
     enableAccount(account) {
-      account.enabled = true;
+      account.isActive = true;
+      this.editingAccount = account;
       this.saveReceivingAccounts();
     },
     
     disableAccount(account) {
-      account.enabled = false;
+      account.isActive = false;
+      this.editingAccount = account;
       this.saveReceivingAccounts();
     },
     
@@ -340,7 +342,8 @@ export default {
         
         // 处理代币列表
         if (this.editingAccount && this.editingTokens) {
-          this.editingAccount.enabledTokens = JSON.stringify(this.editingTokens);
+          this.editingAccount.activeTokens = this.editingTokens;
+          this.editingAccount.inactiveTokens = [];
         }
         
         // 确保区块链账户有地址
@@ -350,23 +353,37 @@ export default {
           return;
         }
         
-        // 查找是否已存在相同账户
-        const existingIndex = this.receivingAccounts.findIndex(a => 
-          (this.editingAccount.address && a.address === this.editingAccount.address) || 
-          (this.editingAccount.name && a.name === this.editingAccount.name)
-        );
-        
-        // 如果是新账户，添加到列表中
-        if (existingIndex === -1) {
-          this.receivingAccounts.push(this.editingAccount);
-        } else {
-          // 如果是编辑现有账户，更新它
-          this.receivingAccounts[existingIndex] = this.editingAccount;
+        // 验证账户名称
+        if (!this.editingAccount.name) {
+          alert('请输入账户名称');
+          this.isSaving = false;
+          return;
         }
         
-        const response = await myPut(app.getServerUrl('wallet/receiving-accounts'), {
-          receivingAccounts: this.receivingAccounts
-        });
+        // 准备发送到后端的数据
+        const accountData = {
+          ...this.editingAccount,
+          id: parseInt(this.editingAccount.id) || 0,
+          source: this.editingAccount.source
+        };
+        
+        let response;
+        if (!this.editingAccount.id) {
+          // 添加新账户
+          response = await myPost(app.getServerUrl('wallet/receivingaccount'), accountData);
+          if (response.success) {
+            this.receivingAccounts.push(response.account);
+          }
+        } else {
+          // 更新现有账户
+          response = await myPut(app.getServerUrl('wallet/receivingaccount'), accountData);
+          if (response.success) {
+            const index = this.receivingAccounts.findIndex(a => a.id === this.editingAccount.id);
+            if (index !== -1) {
+              this.receivingAccounts[index] = response.account;
+            }
+          }
+        }
         
         if (response.success) {
           console.log('收款账户保存成功');
@@ -398,9 +415,9 @@ export default {
         name: chainType.toLowerCase(),
         chainType: chainType,
         address: '',
-        enabledTokens: '[]', // 初始化为空数组的 JSON 字符串
-        _enabledTokens: [], // 前端使用的内部属性
-        enabled: false
+        activeTokens: '[]', // 初始化为空数组的 JSON 字符串
+        _activeTokens: [], // 前端使用的内部属性
+        isActive: false
       };
       
       // 不要立即添加到列表，而是设置为编辑状态
@@ -413,17 +430,18 @@ export default {
       // 创建新的支付方式账户
       const newAccount = {
         name: methodId,
-        enabled: false
+        isActive: false
       };
       
       if (methodId === 'paypal') {
         newAccount.email = '';
       } else if (methodId === 'stripe') {
-        newAccount.accountId = '';
+        // Stripe账户的id字段应该是数字类型
+        newAccount.id = 0; // 新建时使用0
       }
       
-      this.receivingAccounts.push(newAccount);
-      this.editAccount(newAccount);
+      this.editingAccount = newAccount;
+      this.showApplyNewAccount = false;
     },
     
     async connectWallet(chainType) {
@@ -574,9 +592,9 @@ export default {
           account.lastTransactionAmount = chainData.lastAmount;
           
           // 添加代币交易数据
-          if (chainData.tokens && account._enabledTokens) {
+          if (chainData.tokens && account._activeTokens) {
             account.tokenTransactions = {};
-            account._enabledTokens.forEach(token => {
+            account._activeTokens.forEach(token => {
               if (chainData.tokens[token]) {
                 account.tokenTransactions[token] = chainData.tokens[token];
               }

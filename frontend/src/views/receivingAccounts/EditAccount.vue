@@ -2,6 +2,19 @@
   <div class="contentBox padMd clrP clrBr">
     <h2 class="tx3 txB">设置 {{ account.chainType || getPaymentMethodName(account.name) }} 收款账户</h2>
     
+    <!-- 账户名称输入 -->
+    <div class="formGroup">
+      <label class="formLabel">账户名称</label>
+      <input 
+        type="text" 
+        v-model="account.name" 
+        class="formInput"
+        placeholder="请输入账户名称"
+        :disabled="!!account.id"
+      />
+      <div class="formHint" v-if="account.id">账户名称创建后不可修改</div>
+    </div>
+    
     <!-- 区块链账户设置 -->
     <BlockchainWalletForm 
       v-if="account.chainType"
@@ -27,7 +40,7 @@
     
     <!-- 底部按钮 -->
     <div class="actionButtons">
-      <button v-if="account.address || account.email || account.accountId" 
+      <button v-if="account.id" 
               @click="$emit('delete', account)" 
               class="btn deleteBtn">
         删除账户
@@ -86,6 +99,41 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.formGroup {
+  margin-bottom: 20px;
+  
+  .formLabel {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .formInput {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    
+    &:disabled {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+    
+    &:focus {
+      border-color: #2196F3;
+      outline: none;
+    }
+  }
+  
+  .formHint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+  }
+}
+
 .actionButtons {
   display: flex;
   justify-content: flex-end;

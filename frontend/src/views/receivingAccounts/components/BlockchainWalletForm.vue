@@ -78,7 +78,7 @@
     <!-- 启用开关 -->
     <div class="enableSwitchContainer">
       <label>启用此收款方式</label>
-      <ToggleSwitch v-model="account.enabled" :id="'enableSwitch_' + account.chainType" />
+      <ToggleSwitch v-model="account.isActive" :id="'enableSwitch_' + account.chainType" />
       <p class="enableHint">启用后，买家可以通过此方式向您付款</p>
     </div>
   </div>
@@ -107,7 +107,7 @@ export default {
   },
   data() {
     return {
-      localTokens: [...this.tokens]
+      localTokens: []
     };
   },
   watch: {
@@ -115,7 +115,15 @@ export default {
       handler(newTokens) {
         this.localTokens = [...newTokens];
       },
-      deep: true
+      immediate: true
+    },
+    'account.activeTokens': {
+      handler(newTokens) {
+        if (Array.isArray(newTokens)) {
+          this.localTokens = [...newTokens];
+        }
+      },
+      immediate: true
     }
   },
   methods: {
