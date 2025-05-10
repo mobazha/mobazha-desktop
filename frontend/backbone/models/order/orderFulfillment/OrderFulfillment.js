@@ -37,7 +37,7 @@ export default class extends BaseModel {
   }
 
   url() {
-    return app.getServerUrl('ob/orderfulfillment');
+    return app.getServerUrl('order/fulfill');
   }
 
   get idAttribute() {

@@ -103,7 +103,7 @@
                   </div>
                   <div class="col6">
                     <div class="txB rowTn">{{ ob.polyT('orderDetail.summaryTab.orderDetails.totalHeading') }}</div>
-                    <div v-html="ob.currencyMod.pairedCurrency( order.payment.amount, order.payment.coin, app.settings.get('localCurrency') )">
+                    <div v-html="ob.currencyMod.pairedCurrency( payment.amount, payment.coin, app.settings.get('localCurrency') )">
                     </div>
                   </div>
                 </div>
@@ -180,6 +180,7 @@ export default {
       listings: undefined,
 
       modProfile: undefined,
+      payment: {},
     };
   },
   created () {
@@ -195,6 +196,7 @@ export default {
         ...this.templateHelpers,
         listing: this.oneListing,
         order: this.order,
+        payment: this.payment,
         getCountryByDataName,
         displayCurrency: app.settings.get('localCurrency'),
         moment,
@@ -299,7 +301,7 @@ export default {
     },
 
     isModerated () {
-      return !!this.model.get('orderOpen').payment.moderator;
+      return !!this.model.get('paymentSent')?.moderator;
     },
 
     /**
@@ -383,6 +385,7 @@ export default {
       this.oneListing = this.listings[0];
 
       this.order = this.model.get('orderOpen');
+      this.payment = this.model.get('paymentSent');
     },
 
     getItemOptionalFeatures(idx) {

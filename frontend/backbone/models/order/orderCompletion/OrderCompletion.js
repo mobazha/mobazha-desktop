@@ -4,7 +4,7 @@ import BaseModel from '../../BaseModel';
 
 export default class extends BaseModel {
   url() {
-    return app.getServerUrl('ob/ordercompletion');
+    return app.getServerUrl('order/complete');
   }
 
   get idAttribute() {

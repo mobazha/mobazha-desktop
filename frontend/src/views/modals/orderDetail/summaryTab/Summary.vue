@@ -378,7 +378,7 @@ export default {
       checkValidParticipantObject(options.buyer, 'buyer');
       checkValidParticipantObject(options.vendor, 'vendor');
 
-      if (this.contract.get('orderOpen').payment.moderator) {
+      if (this.contract.get('paymentSent')?.moderator) {
         checkValidParticipantObject(options.moderator, 'moderator');
       }
 

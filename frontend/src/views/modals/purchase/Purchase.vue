@@ -1151,7 +1151,7 @@ export default {
             'cid'
           );
 
-          myPost(app.getServerUrl('ob/purchase'), postData)
+          myPost(app.getServerUrl('order/purchase'), postData)
             .done((data) => {
               this.setState({ phase: 'pendingPayment' });
 
@@ -1329,12 +1329,12 @@ export default {
           amount: parseInt(this.paymentData.amount.amount) // 转换为整数
         };
 
-        const response = await myPost(app.getServerUrl('wallet/escrow/sol/initialize'), requestData);
+        const response = await myGet(app.getServerUrl('instructions/order/payment'), requestData);
         if (!response || !response.instructions) {
-          throw new Error('获取SOL托管指令失败');
+          throw new Error('获取订单支付指令失败');
         }
         if (!response.paymentData) {
-          throw new Error('获取SOL支付数据失败');
+          throw new Error('获取订单支付数据失败');
         }
 
         // 使用 Reown AppKit 的 connection
@@ -1375,7 +1375,7 @@ export default {
         paymentData.timestamp = new Date().toISOString();
 
         // 通知后端支付完成
-        await myPost(app.getServerUrl('ob/notifyPayment'), {paymentData});
+        await myPost(app.getServerUrl('order/payment'), {paymentData});
 
         // 更新订单状态
         this.setState({ phase: 'complete' });
