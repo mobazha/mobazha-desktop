@@ -1,12 +1,17 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 
 import products from './products.module'
+import cart from './cart.module';
+import wallet from './modules/wallet'
 
-Vue.use(Vuex)
-
-export default new Vuex.Store({
+// 创建 store 实例
+const store = createStore({
   modules: {
-    products
-  }
+    products,
+    cart,
+    wallet
+  },
+  strict: process.env.NODE_ENV !== 'production'
 })
+
+export default store

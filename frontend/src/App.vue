@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import { ElMessage } from 'element-plus';
 import app from '../backbone/app';
 import Settings from '@/views/modals/settings/Settings.vue';
 import EditListing from '@/views/modals/editListing/EditListing.vue';
@@ -38,6 +39,11 @@ import PageNav from '@/views/PageNav.vue';
 
 import { createAppKit } from '@reown/appkit/vue';
 import {wagmiAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
+import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
+import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
+import { SolanaTransactionService } from '@/services/solanaTransaction';
+import { events } from '../backbone/utils/order';
+import { mapActions } from 'vuex';
 
 // Initialize AppKit
 createAppKit({
@@ -46,7 +52,7 @@ createAppKit({
   projectId,
   themeMode: 'light',
   features: {
-    analytics: false, // Optional - defaults to your Cloud configuration
+    analytics: true, // Optional - defaults to your Cloud configuration
     swaps: false,
     onramp: false,
     email: false,
@@ -68,34 +74,162 @@ export default {
     Settings,
     EditListing,
     ModeratorDetails,
-
     Wallet,
     ShoppingCart,
     Purchase,
     LoadingModal,
     PageNav,
   },
-  name: 
-    'App',
+  name: 'App',
   data() {
     return {
       initialized: false,
       showLoadingModal: false,
-
       app: app,
-
       modalName: '',
       modalOptions: {},
       modalBBFunc: undefined,
+      transactionService: null
+    };
+  },
+  setup() {
+    const { connection } = useAppKitConnection();
+    const appKit = useAppKit();
+    const accountData = useAppKitAccount();
+    const appKitState = useAppKitState();
+    const appKitEvents = useAppKitEvents();
+    const { disconnect } = useDisconnect();
+    
+    return {
+      connection,
+      appKit,
+      accountData,
+      appKitState,
+      appKitEvents,
+      disconnect
     };
   },
   created() {
+    this.$nextTick(() => {
+      this.initAppKit();
+      this.initialized = true;
+    });
   },
-  mounted() {
-  },
-  watch: {},
   methods: {
+    ...mapActions('wallet', [
+      'updateWalletState',
+      'checkWalletConnection'
+    ]),
+    
+    initAppKit() {
+      try {
+        // 初始化交易服务
+        this.initTransactionService();
+        // 设置交易监听器
+        this.setupTransactionListener();
+        // 初始化钱包状态
+        this.updateWalletStatus();
+      } catch (error) {
+        console.error('Failed to initialize AppKit:', error);
+      }
+    },
+
+    updateWalletStatus() {
+      const { connection } = useAppKitConnection();
+      const { walletProvider } = useAppKitProvider('solana');
+      
+      this.updateWalletState({
+        isConnected: this.accountData.isConnected,
+        address: this.accountData.address,
+        connection,
+        walletProvider
+      });
+    },
+
+    initTransactionService() {
+      const { walletProvider } = useAppKitProvider('solana');
+      if (this.connection && walletProvider && this.accountData.address) {
+        this.transactionService = new SolanaTransactionService(
+          this.connection,
+          walletProvider,
+          this.accountData.address
+        );
+      }
+    },
+
+    setupTransactionListener() {
+      events.on('executeSolanaTransaction', async (data) => {
+        if (!this.transactionService) {
+          console.error('Transaction service not initialized');
+          ElMessage({
+            message: 'Please connect your wallet first',
+            type: 'warning',
+            duration: 3000
+          });
+          
+          // 确保错误事件被正确触发
+          setTimeout(() => {
+            events.trigger('solanaTransactionError', {
+              orderID: data.orderID,
+              error: new Error('Please connect your wallet first')
+            });
+          }, 0);
+          return;
+        }
+
+        try {
+          const signature = await this.transactionService.executeTransaction(data.instructions);
+          
+          // 确保成功事件被正确触发
+          setTimeout(() => {
+            events.trigger('solanaTransactionComplete', {
+              orderID: data.orderID,
+              result: signature,
+              metadata: data.metadata
+            });
+          }, 0);
+        } catch (error) {
+          console.error('交易执行失败: ', error);
+          
+          // 确保错误事件被正确触发
+          setTimeout(() => {
+            events.trigger('solanaTransactionError', {
+              orderID: data.orderID,
+              error: error
+            });
+          }, 0);
+        }
+      });
+    }
   },
+  watch: {
+    'accountData.isConnected': {
+      handler(newValue) {
+        console.log('钱包连接状态变化:', newValue);
+        if (newValue) {
+          console.log('钱包已连接，地址：', this.accountData.address);
+          this.initTransactionService();
+        } else {
+          this.transactionService = null;
+          console.log('钱包已断开连接');
+        }
+        this.updateWalletStatus();
+      },
+      immediate: true
+    },
+    'accountData.address': {
+      handler(newValue, oldValue) {
+        if (newValue && newValue !== oldValue && this.accountData.isConnected) {
+          console.log('钱包地址变化:', newValue);
+          this.initTransactionService();
+        }
+        this.updateWalletStatus();
+      }
+    }
+  },
+  beforeDestroy() {
+    events.off('executeSolanaTransaction');
+  }
 };
 </script>
 <style lang="less">

@@ -435,6 +435,8 @@ import Item from '../../../../backbone/models/purchase/Item';
 import OrderListings from '../../../../backbone/collections/OrderListings';
 import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
 import PopInMessage, { buildRefreshAlertMessage } from '../../../../backbone/views/components/PopInMessage';
+import * as casdoor from '../../../utils/casdoor';
+import { events } from '../../../../backbone/utils/order';
 
 import ActionBtn from './ActionBtn.vue';
 import Complete from './Complete.vue';
@@ -447,12 +449,8 @@ import Shipping from './Shipping.vue';
 import Settings from '@/views/modals/settings/Settings.vue';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
-import * as casdoor from '../../../utils/casdoor';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
-import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
-import { convertSolanaGoInstruction, confirmTransaction } from '@/utils/solana';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   components: {
@@ -480,14 +478,12 @@ export default {
   data() {
     return {
       viewKey: 0,
-
       formData: {
         itemsData: [
           {
             quantity: 0,
             memo: '',
             couponCode: '',
-
             coupons: [],
           },
         ],
@@ -495,26 +491,20 @@ export default {
         emailAddress: '',
       },
       paymentCoin: 'USDT',
-
       _state: {
         phase: 'checkout',
       },
-
       cart: {},
       vendor: {},
       order: undefined,
       orderKey: 0,
-
       oneListing: undefined,
       listings: undefined,
       moderators: undefined,
       couponObj: [],
-
       shippingOptions: undefined,
-
       cryptoAmountCurrency: '',
       _cryptoQuantity: 0,
-
       coinName: '',
       moderatorIDs: [],
       showVerifiedOnly: true,
@@ -522,56 +512,17 @@ export default {
         selectedAddress: '',
       },
       shippingOptionKey: 0,
-
       outdatedHash: false,
-
       orderID: '',
       showModerators: false,
       isModerated: false,
-
       showSettings: false,
-
       paymentData: undefined,
-
       errors: {},
-
-      isConnected: false,
-      address: '',
-    };
-  },
-  setup() {
-    const { connection } = useAppKitConnection();
-    const { walletProvider } = useAppKitProvider('solana');
-    const { isConnected, address } = useAppKitAccount();
-
-    console.log('isConnected: ', isConnected);
-    console.log('address: ', address);
-    console.log('connection: ', connection);
-    console.log('walletProvider: ', walletProvider);
-
-    const appKit = useAppKit();
-    const accountData = useAppKitAccount();
-    const appKitState = useAppKitState();
-    const appKitEvents = useAppKitEvents();
-    const { disconnect } = useDisconnect();
-    
-    return {
-      connection,
-      walletProvider,
-      appKit,
-      accountData,
-      appKitState,
-      appKitEvents,
-      disconnect
     };
   },
   created() {
-    // 初始化钱包连接状态
-    this.isConnected = this.accountData.isConnected;
-    this.address = this.accountData.address;
-    
     this.initEventChain();
-
     this.loadData(this.options);
   },
   mounted() {},
@@ -581,6 +532,10 @@ export default {
     clearTimeout(this.quantityKeyUpTimer);
   },
   computed: {
+    ...mapGetters({
+      isWalletConnected: 'wallet/isWalletConnected',
+      walletAddress: 'wallet/walletAddress'
+    }),
     ob() {
       const item = this.order.get('items').at(0);
       let uiQuantity = item ? item.get('quantity') : 0;
@@ -692,6 +647,9 @@ export default {
     },
   },
   methods: {
+    ...mapActions({
+      checkWalletConnection: 'wallet/checkWalletConnection'
+    }),
     curDefToDecimal,
 
     totalPrice(i) {
@@ -1313,9 +1271,25 @@ export default {
 
     async processSolPayment() {
       try {
-        // 检查钱包是否已连接
-        if (!this.isConnected) {
-          throw new Error('请先连接钱包');
+        // 检查钱包连接状态
+        const isConnected = await this.checkWalletConnection();
+        if (!isConnected) {
+          const confirmed = await ElMessageBox.confirm(
+            '请先连接钱包',
+            '提示',
+            {
+              confirmButtonText: '连接钱包',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }
+          );
+          
+          if (confirmed) {
+            // 触发连接钱包事件
+            events.trigger('connectWallet');
+            return;
+          }
+          return;
         }
 
         // 获取仲裁人
@@ -1324,12 +1298,12 @@ export default {
         // 调用后端接口获取SOL托管初始化指令
         const requestData = {
           orderID: this.orderID,
-          payer: this.accountData.address, // 钱包地址
+          payer: this.walletAddress, // 使用Vuex中的钱包地址
           moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
           amount: parseInt(this.paymentData.amount.amount) // 转换为整数
         };
 
-        const response = await myGet(app.getServerUrl('instructions/order/payment'), requestData);
+        const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
         if (!response || !response.instructions) {
           throw new Error('获取订单支付指令失败');
         }
@@ -1337,73 +1311,55 @@ export default {
           throw new Error('获取订单支付数据失败');
         }
 
-        // 使用 Reown AppKit 的 connection
-        if (!this.connection) {
-          throw new Error('未连接到 Solana 网络');
-        }
-        
-        // 创建交易
-        const transaction = new Transaction();
-
-        // 添加指令到交易
-        response.instructions.forEach(instruction => {
-          const convertedInstruction = convertSolanaGoInstruction(instruction);
-          transaction.add(convertedInstruction);
+        // 触发交易执行事件
+        events.trigger('executeSolanaTransaction', {
+          instructions: response.instructions,
+          orderID: this.orderID,
+          metadata: response.paymentData
         });
 
-        const wallet = new PublicKey(this.accountData.address);
-        if (!wallet) throw Error('wallet provider is not available');
+        // 等待交易完成
+        return new Promise((resolve, reject) => {
+          const handleTransactionComplete = (e) => {
+            if (e.orderID === this.orderID) {
+              events.off('solanaTransactionComplete', handleTransactionComplete);
+              events.off('solanaTransactionError', handleTransactionError);
+              
+              // 交易成功后，更新支付数据并通知后端
+              const paymentData = e.metadata;
+              paymentData.transactionID = e.result;
+              paymentData.timestamp = new Date().toISOString();
 
-        // 获取最新的区块哈希
-        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = wallet;
+              myPost(app.getServerUrl('order/payment'), {paymentData})
+                .then(() => {
+                  this.setState({ phase: 'complete' });
+                  resolve();
+                })
+                .catch(reject);
+            }
+          };
 
-        // 使用 Reown AppKit 的 walletProvider 签名和发送交易
-        const signature = await this.walletProvider.signAndSendTransaction(transaction);
-        console.log('Transaction signature:', signature);
+          const handleTransactionError = (e) => {
+            if (e.orderID === this.orderID) {
+              events.off('solanaTransactionComplete', handleTransactionComplete);
+              events.off('solanaTransactionError', handleTransactionError);
+              reject(e.error);
+            }
+          };
 
-        // 确认交易
-        const confirmation = await confirmTransaction(this.connection, signature, {
-          maxRetries: 10,
-          retryInterval: 2000
+          // 绑定事件监听器
+          events.on('solanaTransactionComplete', handleTransactionComplete);
+          events.on('solanaTransactionError', handleTransactionError);
         });
-        console.log('Transaction confirmation:', confirmation);
-
-        const paymentData = response.paymentData;
-        paymentData.transactionID = signature;
-        paymentData.timestamp = new Date().toISOString();
-
-        // 通知后端支付完成
-        await myPost(app.getServerUrl('order/payment'), {paymentData});
-
-        // 更新订单状态
-        this.setState({ phase: 'complete' });
       } catch (error) {
-        console.error('SOL支付处理失败:', error);
-        this.insertErrors('js-errors', ['SOL支付处理失败: ' + error.message]);
-        this.setState({ phase: 'checkout' });
+        console.error('支付处理失败:', error);
+        ElMessage({
+          message: error.message || '支付处理失败',
+          type: 'error',
+          duration: 3000
+        });
       }
     },
-  },
-  watch: {
-    'accountData.isConnected': function(newValue, oldValue) {
-      if (newValue !== oldValue) {
-        this.isConnected = newValue;
-        if (newValue) {
-          this.address = this.accountData.address;
-          console.log('钱包已连接，地址：', this.address);
-        } else {
-          this.address = '';
-          console.log('钱包已断开连接');
-        }
-      }
-    },
-    'accountData.address': function(newValue, oldValue) {
-      if (newValue !== oldValue) {
-        this.address = newValue;
-      }
-    }
   },
 };
 </script>

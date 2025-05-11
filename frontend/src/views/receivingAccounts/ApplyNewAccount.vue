@@ -49,9 +49,9 @@ export default {
   methods: {
     getChainIcon(chainType) {
       switch (chainType) {
-        case 'Ethereum':
+        case 'ETH':
           return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'Solana':
+        case 'SOL':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'BSC':
           return 'ion-social-bitcoin'; // 使用适当的图标

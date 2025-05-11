@@ -86,9 +86,9 @@ export default {
       applyingAccount: null,
       isSaving: false,
       supportedChainTypes: [
-        { id: 'Bitcoin', name: '比特币' },
-        { id: 'Ethereum', name: '以太坊' },
-        { id: 'Solana', name: 'Solana' },
+        { id: 'BTC', name: '比特币' },
+        { id: 'ETH', name: '以太坊' },
+        { id: 'SOL', name: 'Solana' },
         { id: 'BSC', name: '币安智能链' },
         { id: 'Base', name: 'Base' }
       ],
@@ -210,7 +210,7 @@ export default {
         // Bitcoin钱包
         {
           name: 'bitcoin',
-          chainType: 'Bitcoin',
+          chainType: 'BTC',
           address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
           enabled: true,
           source: 'Bitcoin Core'
@@ -218,7 +218,7 @@ export default {
         // Ethereum钱包
         {
           name: 'ethereum',
-          chainType: 'Ethereum',
+          chainType: 'ETH',
           address: '0xC473A8d3d6E2C4D95c4A7B9d8E59315931',
           activeTokens: '["USDT","USDC"]',
           _activeTokens: ['USDT', 'USDC'],
@@ -233,7 +233,7 @@ export default {
         },
         {
           name: 'solana',
-          chainType: 'Solana',
+          chainType: 'SOL',
           address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5TNPN1',
           activeTokens: '["SOLUSDT"]',
           _activeTokens: ['SOLUSDT'],
@@ -453,13 +453,13 @@ export default {
         let namespace;
         
         switch(chainType) {
-          case 'Ethereum':
+          case 'ETH':
             namespace = 'eip155';
             break;
           case 'BSC':
             namespace = 'eip155';
             break;
-          case 'Solana':
+          case 'SOL':
             namespace = 'solana';
             break;
           case 'Base':

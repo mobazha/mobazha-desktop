@@ -11,9 +11,9 @@
     <!-- 钱包说明 -->
     <div class="walletDescription">
       通过{{ account.chainType }}钱包接收 
-      <span v-if="account.chainType === 'Bitcoin'">BTC 支付。</span>
-      <span v-if="account.chainType === 'Ethereum'">ETH 和 ERC-20 代币支付。</span>
-      <span v-else-if="account.chainType === 'Solana'">SOL 及相关代币支付。</span>
+      <span v-if="account.chainType === 'BTC'">BTC 支付。</span>
+      <span v-if="account.chainType === 'ETH'">ETH 和 ERC-20 代币支付。</span>
+      <span v-else-if="account.chainType === 'SOL'">SOL 及相关代币支付。</span>
       <span v-else-if="account.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
       <span v-else-if="account.chainType === 'Base'">Base链上的代币支付。</span>
       <span v-else>加密货币支付。</span>
@@ -26,9 +26,9 @@
         <div class="stepContent">
           <h4>准备{{ account.chainType }}钱包</h4>
           <p>确保您已安装 
-            <span v-if="account.chainType === 'Bitcoin'">Bitcoin Core 或其他比特币钱包</span>
-            <span v-if="account.chainType === 'Ethereum'">MetaMask 或其他支持以太坊的钱包</span>
-            <span v-else-if="account.chainType === 'Solana'">Phantom 或其他支持Solana的钱包</span>
+            <span v-if="account.chainType === 'BTC'">Bitcoin Core 或其他比特币钱包</span>
+            <span v-if="account.chainType === 'ETH'">MetaMask 或其他支持以太坊的钱包</span>
+            <span v-else-if="account.chainType === 'SOL'">Phantom 或其他支持Solana的钱包</span>
             <span v-else-if="account.chainType === 'BSC'">MetaMask 或其他支持BSC的钱包</span>
             <span v-else-if="account.chainType === 'Base'">MetaMask 或其他支持Base的钱包</span>
             <span v-else>相关钱包</span>
@@ -61,7 +61,7 @@
     </div>
     
     <!-- 代币选择 -->
-    <div v-if="account.chainType === 'Ethereum' || account.chainType === 'Solana' || account.chainType === 'BSC' || account.chainType === 'Base'" class="tokenSelectionContainer">
+    <div v-if="account.chainType === 'ETH' || account.chainType === 'SOL' || account.chainType === 'BSC' || account.chainType === 'Base'" class="tokenSelectionContainer">
       <label>接收代币</label>
       <div class="tokenList">
         <div v-for="token in getAvailableTokens(account.chainType)" :key="token.id" class="tokenItem">
@@ -145,11 +145,11 @@ export default {
     
     getChainIcon(chainType) {
       switch (chainType) {
-        case 'Bitcoin':
+        case 'BTC':
           return 'ion-social-bitcoin';
-        case 'Ethereum':
+        case 'ETH':
           return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'Solana':
+        case 'SOL':
           return 'ion-social-bitcoin'; // 使用适当的图标
         case 'BSC':
           return 'ion-social-bitcoin'; // 使用适当的图标
@@ -162,18 +162,18 @@ export default {
     
     getAvailableTokens(chainType) {
       switch (chainType) {
-        case 'Bitcoin':
+        case 'BTC':
           return [
             { id: 'BTC', name: 'BTC (比特币)' }
           ];
-        case 'Ethereum':
+        case 'ETH':
           return [
             { id: 'ETH', name: 'ETH (以太坊)' },
             { id: 'USDT', name: 'USDT (泰达币)' },
             { id: 'USDC', name: 'USDC (USD Coin)' },
             { id: 'DAI', name: 'DAI (Dai)' }
           ];
-        case 'Solana':
+        case 'SOL':
           return [
             { id: 'SOL', name: 'SOL (Solana)' },
             { id: 'SOLUSDT', name: 'USDT (Solana USDT)' },

@@ -1,11 +1,11 @@
 import { Events } from 'backbone';
-import app from '../app';
-import { myPost } from '../../src/api/api';
-import OrderFulfillment from '../models/order/orderFulfillment/OrderFulfillment';
-import { openSimpleMessage } from '../views/modals/SimpleMessage';
-import OrderCompletion from '../models/order/orderCompletion/OrderCompletion';
-import OrderDispute from '../models/order/OrderDispute';
-import ResolveDispute from '../models/order/ResolveDispute';
+import app from '../app.js';
+import { myPost } from '../../src/api/api.js';
+import OrderFulfillment from '../models/order/orderFulfillment/OrderFulfillment.js';
+import { openSimpleMessage } from '../views/modals/SimpleMessage.js';
+import OrderCompletion from '../models/order/orderCompletion/OrderCompletion.js';
+import OrderDispute from '../models/order/OrderDispute.js';
+import ResolveDispute from '../models/order/ResolveDispute.js';
 
 const events = {
   ...Events,
@@ -27,17 +27,60 @@ function confirmOrder(orderID, reject = false) {
     throw new Error('Please provide an orderID');
   }
 
-  let post = acceptPosts[orderID];
+  let confirmRequest = acceptPosts[orderID];
 
   if (reject) {
-    post = rejectPosts[orderID];
+    confirmRequest = rejectPosts[orderID];
   }
 
-  if (!post) {
-    post = myPost(app.getServerUrl('ob/orderconfirmation'), {
+  if (!confirmRequest) {
+    confirmRequest = myPost(app.getServerUrl('instructions/order/confirm'), {
       orderID,
       reject,
     })
+      .then(async (response) => {
+        if (response && response.instructions) {
+          // 触发事件，让 Vue 组件处理交易
+          events.trigger('executeSolanaTransaction', {
+            instructions: response.instructions,
+            orderID,
+            reject,
+          });
+          
+          // 返回一个 Promise，等待交易完成
+          return new Promise((resolve, reject) => {
+            const handleTransactionComplete = (e) => {
+              if (e.orderID === orderID) {
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionError', handleTransactionError);
+                
+                // 交易成功后，调用后端确认接口
+                myPost(app.getServerUrl('order/confirm'), {
+                  orderID,
+                  reject,
+                  transactionID: e.result
+                })
+                .then(resolve)
+                .catch(reject);
+              }
+            };
+
+            const handleTransactionError = (e) => {
+              if (e.orderID === orderID) {
+                console.log('Transaction error received:', e);
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionError', handleTransactionError);
+                reject(e.error);
+              }
+            };
+
+            // 立即绑定事件监听器
+            events.on('solanaTransactionComplete', handleTransactionComplete);
+            events.on('solanaTransactionError', handleTransactionError);
+          });
+        }
+        return response;
+      })
       .always(() => {
         if (reject) {
           delete rejectPosts[orderID];
@@ -48,35 +91,29 @@ function confirmOrder(orderID, reject = false) {
       .done(() => {
         events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
           id: orderID,
-          xhr: post,
+          xhr: confirmRequest,
         });
       })
       .fail((xhr) => {
         events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
           id: orderID,
-          xhr: post,
+          xhr: confirmRequest,
         });
-
-        const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-        openSimpleMessage(
-          app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`,),
-          failReason,
-        );
       });
 
     if (reject) {
-      rejectPosts[orderID] = post;
+      rejectPosts[orderID] = confirmRequest;
     } else {
-      acceptPosts[orderID] = post;
+      acceptPosts[orderID] = confirmRequest;
     }
 
     events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
       id: orderID,
-      xhr: post,
+      xhr: confirmRequest,
     });
   }
 
-  return post;
+  return confirmRequest;
 }
 
 export { events };
@@ -209,7 +246,7 @@ export function refundOrder(orderID) {
   let post = refundPosts[orderID];
 
   if (!post) {
-    post = myPost(app.getServerUrl('ob/orderrefund'), {
+    post = myPost(app.getServerUrl('order/refund'), {
       orderID,
     }).always(() => {
       delete refundPosts[orderID];

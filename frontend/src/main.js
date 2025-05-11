@@ -28,6 +28,7 @@ import App from './App.vue';
 import baseVw from './mixins/baseVw';
 import Router from './router/index';
 import components from './components/global';
+import store from './store';
 
 import * as templateHelpers from '../backbone/utils/templateHelpers';
 
@@ -76,12 +77,6 @@ function mountVueApp(container) {
       mounted: (el) => el.focus()
     }
   );
-
-  const store = createStore({
-    modules: {
-      cart,
-    },
-  });
 
   const appInstance = vueApp.use(Router).use(store).use(VueBackbone).mount(container);
   Router.beforeEach((to, from) => {

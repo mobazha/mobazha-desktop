@@ -106,6 +106,10 @@ app.router.on('route', () => { externalRoute = null; });
 app.statusBar = new StatusBar();
 $('#statusBar').html(app.statusBar.render().el);
 
+app.searchProviders = new SearchProvidersCol();
+// add the default search providers
+app.searchProviders.add(defaultSearchProviders, { at: 0 });
+
 const startupConnectMessaging = new StartupConnectMessaging();
 
 // Create loading modal, which is a shared instance used throughout the app
@@ -135,14 +139,14 @@ function fetchStartupData1() {
 
   const fetches = [
     configFetch,
-    walletCurDefFetch,
+    // walletCurDefFetch,
   ];
 
   $.whenAll(fetches.slice())
     .done((...args) => {
       fetchStartupData1Deferred.resolve({
         serverConfig: args[0][0],
-        walletCurDef: args[1][0],
+        walletCurDef: {},//args[1][0],
       });
     })
     .fail(() => {
@@ -336,7 +340,7 @@ const fetchStartupData2Deferred = $.Deferred();
 let ownFollowingFetch;
 let exchangeRatesFetch;
 let walletBalancesFetch;
-let searchProvidersFetch;
+// let searchProvidersFetch;
 
 function fetchStartupData2() {
   ownFollowingFetch = !ownFollowingFetch || ownFollowingFetch.state() === 'rejected'
@@ -345,14 +349,14 @@ function fetchStartupData2() {
     ? fetchExchangeRates() : exchangeRatesFetch;
   walletBalancesFetch = !walletBalancesFetch || walletBalancesFetch.state() === 'rejected'
     ? app.walletBalances.fetch() : walletBalancesFetch;
-  searchProvidersFetch = !searchProvidersFetch || searchProvidersFetch.state() === 'rejected'
-    ? app.searchProviders.fetch() : searchProvidersFetch;
+  // searchProvidersFetch = !searchProvidersFetch || searchProvidersFetch.state() === 'rejected'
+  //   ? app.searchProviders.fetch() : searchProvidersFetch;
 
   const fetches = [
     ownFollowingFetch,
     exchangeRatesFetch,
-    walletBalancesFetch,
-    searchProvidersFetch,
+    // walletBalancesFetch,
+    // searchProvidersFetch,
   ];
 
   $.whenAll(fetches.slice())
@@ -523,7 +527,7 @@ function start() {
   fetchStartupData1().done((data) => {
     app.serverConfig = data.serverConfig || {};
     app.profile = new Profile({ peerID: data.serverConfig.peerID });
-
+    
     app.settings = new Settings();
     initWalletCurs(app.serverConfig.wallets, data.walletCurDef);
     app.walletCurDef = data.walletCurDef;
@@ -534,13 +538,13 @@ function start() {
     });
 
     app.walletBalances = new WalletBalances();
-    app.searchProviders = new SearchProvidersCol();
+    // app.searchProviders = new SearchProvidersCol();
 
     onboardIfNeeded().done(() => {
       fetchStartupData2().done(() => {
         ensureValidSettingsCurrency().done(() => {
           window.vueApp.initialized = true;
-
+          console.log('window.vueApp.initialized: ', window.vueApp.initialized);
           const curConn = getCurrentConnection();
           if (curConn && curConn.status !== 'disconnected') {
             app.pageNav.torIndicatorOn = app.serverConfig.tor && curConn.server.get('useTor');
@@ -550,8 +554,8 @@ function start() {
           app.pageNav.setAppProfile();
           app.loadingModal.close();
 
-          // add the default search providers
-          app.searchProviders.add(defaultSearchProviders, { at: 0 });
+          // // add the default search providers
+          // app.searchProviders.add(defaultSearchProviders, { at: 0 });
 
           if (externalRoute) {
             // handle opening the app from an an external ob link

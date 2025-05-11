@@ -86,7 +86,7 @@ export class SolanaTransactionService {
 
       console.log('等待交易确认...');
       const confirmation = await confirmTransaction(this.connection, signature, {
-        maxRetries: 10,
+        maxRetries: 3,
         retryInterval: 2000
       });
             

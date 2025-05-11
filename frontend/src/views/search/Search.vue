@@ -150,8 +150,8 @@ export default {
         searchType: 'listings',
         provider: app.searchProviders.at(0),
         filters: {
-          nsfw: String(app.settings.get('showNsfw')),
-          acceptedCurrencies: supportedWalletCurs(),
+          // nsfw: String(app.settings.get('showNsfw')),
+          // acceptedCurrencies: supportedWalletCurs(),
           category: 'all'
         }
       },
