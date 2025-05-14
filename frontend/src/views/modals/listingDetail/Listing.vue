@@ -248,15 +248,6 @@
                     </template>
                   </div>
                   <h5>{{ ob.polyT('listingDetail.paymentsAccepted') }}</h5>
-                  <div class="js-supportedCurrenciesList">
-                    <SupportedCurrenciesList
-                      :options="{
-                        initialState: {
-                          currencies: model.get('metadata').get('acceptedCurrencies'),
-                        },
-                      }"
-                    />
-                  </div>
                   <template v-if="ob.hasVerifiedMods">
                     <div class="verifiedModBox clrBrAlert2 clrBAlert2Grad">
                       <div class="flexVCent flexHCent gutterHTn rowSm">
@@ -601,47 +592,13 @@ export default {
       let buyNowTranslationKey = ob.metadata.contractType !== 'CRYPTOCURRENCY' ? 'listingDetail.buyNow' : 'listingDetail.buyCryptoNow';
       let unpurchaseable = true;
 
-      let coinTypeRateAvailable;
-      let cryptoPaymentCoinRateAvailable;
-
       if (ob.metadata.contractType === 'CRYPTOCURRENCY') {
         coinTypeRateAvailable = !!ob.currencyMod.getExchangeRate(ob.item.cryptoListingCurrencyCode);
         cryptoPaymentCoinRateAvailable = !!ob.currencyMod.getExchangeRate(ob.metadata.acceptedCurrencies[0]);
       }
 
-      if (!ob.crypto.anySupportedByWallet(ob.metadata.acceptedCurrencies)) {
-        tip = ob.polyT('listingDetail.unableToPurchase.incompatibleCrypto', {
-          acceptedCurs: ob.metadata.acceptedCurrencies.join(', '),
-          walletCurs: ob.crypto.supportedWalletCurs().join(', '),
-        });
-      } else if (
-        ob.metadata.contractType !== 'CRYPTOCURRENCY' &&
-        !ob.currencyMod.getExchangeRate(ob.price.currencyCode) &&
-        !(ob.crypto.supportedWalletCurs().includes(ob.price.currencyCode) && ob.metadata.acceptedCurrencies.includes(ob.price.currencyCode))
-      ) {
-        // If it's priced in a wallet cur and that cur is one of the accepted
-        // curs, we won't disable purchase even if there's no exchange rate for the
-        // cur because they could still pay for it using that cur making the
-        // pricing and payment curs the same and therefore the exchange rate
-        // unnecessary.
-        tip = ob.polyT('listingDetail.unableToPurchase.noExchangeRateInfo', {
-          cur: ob.price.currencyCode,
-        });
-      } else if (
-        ob.metadata.contractType === 'CRYPTOCURRENCY' &&
-        ob.item.cryptoListingCurrencyCode !== ob.metadata.acceptedCurrencies[0] &&
-        (!coinTypeRateAvailable || !cryptoPaymentCoinRateAvailable)
-      ) {
-        const cursNoRate = [];
-        if (!coinTypeRateAvailable) cursNoRate.push(ob.item.cryptoListingCurrencyCode);
-        if (!cryptoPaymentCoinRateAvailable) cursNoRate.push(ob.metadata.acceptedCurrencies[0]);
-        tip = ob.polyT('listingDetail.unableToPurchase.noCryptoExchangeRateInfo', {
-          cur: cursNoRate.join(', '),
-        });
-      } else {
-        buyNowClass = '';
-        unpurchaseable = false;
-      }
+      buyNowClass = '';
+      unpurchaseable = false;
 
       return { tip, buyNowClass, buyNowTranslationKey, unpurchaseable };
     },

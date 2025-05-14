@@ -151,7 +151,6 @@ export default {
         provider: app.searchProviders.at(0),
         filters: {
           // nsfw: String(app.settings.get('showNsfw')),
-          // acceptedCurrencies: supportedWalletCurs(),
           category: 'all'
         }
       },

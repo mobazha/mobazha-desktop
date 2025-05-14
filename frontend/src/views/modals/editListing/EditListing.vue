@@ -477,25 +477,6 @@
                 <a class="btn clrP clrBr clrSh2 btnAddCoupon" @click="onClickAddCoupon">{{ ob.polyT('editListing.btnAddCoupon') }}</a>
               </section>
 
-              <section ref="sectionAcceptedCurs" class="acceptedCursSection contentBox padMd clrP clrBr clrSh3 tx3 acceptedCurrenciesSection">
-                <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.acceptedCurrencies') }}</h2>
-                <hr class="clrBr rowMd" />
-                <FormError
-                  v-if="ob.errors['metadata.acceptedCurrencies'] && formData.metadata.contractType !== 'CRYPTOCURRENCY'"
-                  :errors="ob.errors['metadata.acceptedCurrencies']"
-                />
-                <div class="js-cryptoCurSelectContainer rowSm">
-                  <CryptoCurSelector
-                    :options="{
-                      currencies: [...supportedWalletCurs()],
-                      sort: true,
-                    }"
-                    v-model:activeCurs="formData.metadata.acceptedCurrencies"
-                  />
-                </div>
-                <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperAcceptedCurrencies') }}</div>
-              </section>
-
               <div class="contentBox padMd clrP clrBr clrSh3">
                 <div class="flexHRight flexVCent gutterH">
                   <ViewListingLinks :createMode="ob.createMode" @viewListing="onClickViewListing" @viewListingOnWeb="onClickViewListingOnWeb" />
@@ -711,10 +692,6 @@ export default {
           key: 'coupons',
           name: ob.polyT('editListing.sectionNames.coupons'),
         },
-        {
-          key: 'acceptedCurs',
-          name: ob.polyT('editListing.sectionNames.acceptedCurrencies'),
-        },
       ];
     },
 
@@ -794,7 +771,6 @@ export default {
           pricingCurrency: {
             code: cur,
           },
-          acceptedCurrencies: model.metadata.acceptedCurrencies,
         },
         refundPolicy: model.refundPolicy,
         termsAndConditions: model.termsAndConditions,

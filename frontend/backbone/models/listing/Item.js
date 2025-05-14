@@ -120,6 +120,7 @@ export default class extends BaseModel {
       addError('title', app.polyglot.t('itemModelErrors.titleTooLong'));
     }
 
+    attrs.condition = attrs.condition.toUpperCase();
     if (this.conditionTypes.indexOf(attrs.condition) === -1) {
       addError('condition', app.polyglot.t('itemModelErrors.badConditionType'));
     }

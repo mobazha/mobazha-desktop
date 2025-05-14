@@ -84,31 +84,6 @@ export default class extends BaseModel {
       addError('expiry', 'The expiration date must be between now and the year 2038.');
     }
 
-    if (!Array.isArray(attrs.acceptedCurrencies) || !attrs.acceptedCurrencies.length) {
-      const translationKey = attrs.contractType === 'CRYPTOCURRENCY'
-        ? 'metadataModelErrors.provideAcceptedCurrencyCrypto'
-        : 'metadataModelErrors.provideAcceptedCurrency';
-      addError(
-        'acceptedCurrencies',
-        app.polyglot.t(translationKey),
-      );
-    } else if (attrs.acceptedCurrencies.findIndex((cur) => (typeof cur !== 'string' || !cur))
-      !== -1) {
-      // Ensure only non-empty strings are provided as accepted currencies
-      addError('acceptedCurrencies', 'Accepted currency values must be non-empty strings.');
-    } else {
-      // Ensure only supported wallet currencies are provided as accepted currencies
-      const unsupportedCurrencies = attrs.acceptedCurrencies
-        .filter((cur) => !isSupportedWalletCur(cur));
-
-      if (unsupportedCurrencies.length) {
-        addError('acceptedCurrencies', app.polyglot.t(
-          'metadataModelErrors.unsupportedAcceptedCurs',
-          { curs: unsupportedCurrencies.join(', ') },
-        ));
-      }
-    }
-
     if (attrs.contractType === 'CRYPTOCURRENCY') {
       if (Array.isArray(attrs.acceptedCurrencies) && attrs.acceptedCurrencies.length > 1) {
         addError('acceptedCurrencies', 'For cryptocurrency listings, only one acccepted '

@@ -64,14 +64,6 @@
                               </div>
                               <div class="goods-right">
                                 <div class="goods-title" @click="goToListing(item.vendorID, row.listing?.slug)">{{ row.listing?.item.title }}</div>
-                                <div class="goods-currency">
-                                  <CryptoIcon
-                                    :code="currency"
-                                    className="currency-icon"
-                                    v-for="(currency, index) in row.listing?.metadata.acceptedCurrencies"
-                                    :key="index"
-                                  />
-                                </div>
                               </div>
                             </div>
                             <OptionalFeatureLine :optionalFeatures="getRowOptionalFeatures(row)" :pricingCurrency="row.pricingCurrency?.code" :displayCurrency="localCurrency" />
@@ -511,15 +503,6 @@ export default {
 
     &:hover {
       opacity: 0.8;
-    }
-  }
-
-  .currency-icon {
-    width: 16px;
-    height: 16px;
-
-    &:not(:last-child) {
-      margin-right: 4px;
     }
   }
 }
