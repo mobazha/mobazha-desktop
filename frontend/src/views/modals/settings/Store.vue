@@ -247,11 +247,14 @@ import BulkCoinUpdateBtn from './BulkCoinUpdateBtn.vue';
 import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessage';
 import ShippingOptionMd from '../../../../backbone/models/settings/ShippingOption';
 import ShippingOption from './ShippingOption.vue';
+import Moderators from '../../../components/global/moderators/Moderators.vue';
 
 export default {
+  name: 'Store',
   components: {
     BulkCoinUpdateBtn,
     ShippingOption,
+    Moderators,
   },
   props: {
     options: {
@@ -540,13 +543,12 @@ export default {
       }
     },
     render() {
-      if (!this.$refs.modsSelected?.modFetches?.length) {
+      if (this.$refs.modsSelected) {
         this.$refs.modsSelected.getModeratorsByID({ moderatorIDs: this.currentMods });
       }
 
-      this.showModListByID = !!this.$refs.modsByID.allIDs.length;
-
-      this.showModListAvailable = !!this.$refs.modsAvailable.allIDs.length;
+      this.showModListByID = !!this.$refs.modsByID?.allIDs?.length;
+      this.showModListAvailable = !!this.$refs.modsAvailable?.allIDs?.length;
 
       return this;
     },

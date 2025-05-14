@@ -43,7 +43,7 @@ import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
 import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import { SolanaTransactionService } from '@/services/solanaTransaction';
 import { events } from '../backbone/utils/order';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 
 // Initialize AppKit
 createAppKit({
@@ -109,10 +109,17 @@ export default {
       disconnect
     };
   },
+  computed: {
+    ...mapGetters('wallet', [
+      'isWalletConnected',
+      'walletAddress'
+    ]),
+  },
   created() {
     this.$nextTick(() => {
       this.initAppKit();
       this.initialized = true;
+      this.setupOrderEvents();
     });
   },
   methods: {
@@ -200,6 +207,28 @@ export default {
           }, 0);
         }
       });
+    },
+
+    setupOrderEvents() {
+      // 监听钱包连接检查事件
+      events.on('checkWalletConnection', async ({ callback }) => {
+        try {
+          const isConnected = await this.checkWalletConnection();
+          callback(isConnected, this.walletAddress);
+        } catch (error) {
+          console.error('检查钱包连接失败:', error);
+          callback(false, null);
+        }
+      });
+
+      // 监听显示钱包连接提示事件
+      events.on('showWalletConnectMessage', ({ message, type }) => {
+        ElMessage({
+          message,
+          type: type || 'warning',
+          duration: 3000
+        });
+      });
     }
   },
   watch: {
@@ -229,6 +258,8 @@ export default {
   },
   beforeDestroy() {
     events.off('executeSolanaTransaction');
+    events.off('checkWalletConnection');
+    events.off('showWalletConnectMessage');
   }
 };
 </script>

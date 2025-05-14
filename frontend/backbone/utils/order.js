@@ -34,82 +34,104 @@ function confirmOrder(orderID, reject = false) {
   }
 
   if (!confirmRequest) {
-    confirmRequest = myPost(app.getServerUrl('instructions/order/confirm'), {
-      orderID,
-      reject,
-    })
-      .then(async (response) => {
-        if (response && response.instructions) {
-          // 触发事件，让 Vue 组件处理交易
-          events.trigger('executeSolanaTransaction', {
-            instructions: response.instructions,
-            orderID,
-            reject,
+    // 触发检查钱包连接状态的事件
+    events.trigger('checkWalletConnection', {
+      callback: async (isConnected, walletAddress) => {
+        if (!isConnected) {
+          // 触发显示钱包连接提示的事件
+          events.trigger('showWalletConnectMessage', {
+            message: '请先连接钱包',
+            type: 'warning'
           });
-          
-          // 返回一个 Promise，等待交易完成
-          return new Promise((resolve, reject) => {
-            const handleTransactionComplete = (e) => {
-              if (e.orderID === orderID) {
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionError', handleTransactionError);
-                
-                // 交易成功后，调用后端确认接口
-                myPost(app.getServerUrl('order/confirm'), {
-                  orderID,
-                  reject,
-                  transactionID: e.result
-                })
-                .then(resolve)
-                .catch(reject);
-              }
-            };
-
-            const handleTransactionError = (e) => {
-              if (e.orderID === orderID) {
-                console.log('Transaction error received:', e);
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionError', handleTransactionError);
-                reject(e.error);
-              }
-            };
-
-            // 立即绑定事件监听器
-            events.on('solanaTransactionComplete', handleTransactionComplete);
-            events.on('solanaTransactionError', handleTransactionError);
-          });
+          throw new Error('Please connect your wallet first');
         }
-        return response;
-      })
-      .always(() => {
+
+        if (!walletAddress) {
+          throw new Error('Wallet address not found');
+        }
+
+        // 调用后端接口获取SOL托管初始化指令
+        const requestData = {
+          orderID,
+          reject,
+          initiator: walletAddress
+        };
+
+        confirmRequest = myPost(app.getServerUrl('instructions/order/confirm'), requestData)
+          .then(async (response) => {
+            if (response && response.instructions) {
+              // 触发事件，让 Vue 组件处理交易
+              events.trigger('executeSolanaTransaction', {
+                instructions: response.instructions,
+                orderID,
+                reject,
+              });
+              
+              // 返回一个 Promise，等待交易完成
+              return new Promise((resolve, reject) => {
+                const handleTransactionComplete = (e) => {
+                  if (e.orderID === orderID) {
+                    events.off('solanaTransactionComplete', handleTransactionComplete);
+                    events.off('solanaTransactionError', handleTransactionError);
+                    
+                    // 交易成功后，调用后端确认接口
+                    myPost(app.getServerUrl('order/confirm'), {
+                      orderID,
+                      reject,
+                      transactionID: e.result
+                    })
+                    .then(resolve)
+                    .catch(reject);
+                  }
+                };
+
+                const handleTransactionError = (e) => {
+                  if (e.orderID === orderID) {
+                    console.log('Transaction error received:', e);
+                    events.off('solanaTransactionComplete', handleTransactionComplete);
+                    events.off('solanaTransactionError', handleTransactionError);
+                    reject(e.error);
+                  }
+                };
+
+                // 立即绑定事件监听器
+                events.on('solanaTransactionComplete', handleTransactionComplete);
+                events.on('solanaTransactionError', handleTransactionError);
+              });
+            }
+            return response;
+          })
+          .always(() => {
+            if (reject) {
+              delete rejectPosts[orderID];
+            } else {
+              delete acceptPosts[orderID];
+            }
+          })
+          .done(() => {
+            events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
+              id: orderID,
+              xhr: confirmRequest,
+            });
+          })
+          .fail((xhr) => {
+            events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
+              id: orderID,
+              xhr: confirmRequest,
+            });
+          });
+
         if (reject) {
-          delete rejectPosts[orderID];
+          rejectPosts[orderID] = confirmRequest;
         } else {
-          delete acceptPosts[orderID];
+          acceptPosts[orderID] = confirmRequest;
         }
-      })
-      .done(() => {
-        events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
+
+        events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
           id: orderID,
           xhr: confirmRequest,
         });
-      })
-      .fail((xhr) => {
-        events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
-          id: orderID,
-          xhr: confirmRequest,
-        });
-      });
-
-    if (reject) {
-      rejectPosts[orderID] = confirmRequest;
-    } else {
-      acceptPosts[orderID] = confirmRequest;
-    }
-
-    events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
-      id: orderID,
-      xhr: confirmRequest,
+      }
     });
   }
 

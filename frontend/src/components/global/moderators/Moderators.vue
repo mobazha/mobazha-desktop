@@ -477,8 +477,9 @@ export default {
 
     modShouldRender(model) {
       const hideOnUnverified = this.showVerifiedOnly && !model.isVerified;
-      const hideOnCur = this.modCurrency && !model.hasModCurrency(this.modCurrency);
-      return !(hideOnUnverified || hideOnCur);
+      // const hideOnCur = this.modCurrency && !model.hasModCurrency(this.modCurrency);
+      // return !(hideOnUnverified || hideOnCur);
+      return !hideOnUnverified;
     },
 
     deselectMod(peerID) {

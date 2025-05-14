@@ -274,10 +274,8 @@
                     <h2 class="h4 flexExpand required">{{ ob.polyT('purchase.paymentMethodTitle') }}</h2>
                     <PaymentMethodSelector
                       ref="paymentMethodSelector"
-                      :currencies="currencies"
                       :disabledMsg="ob.polyT('purchase.cryptoCurrencyInvalid')"
                       v-model="paymentCoin"
-                      @currencyClicked="onCurrencyClicked"
                       @methodClicked="onMethodClicked"
                     />
                   </div>
@@ -309,9 +307,6 @@
                           notSelected: 'unselected',
                           singleSelect: true,
                           radioStyle: true,
-                          initialState: {
-                            showOnlyCur: currencies[0],
-                          },
                         }"
                         :showVerifiedOnly="showVerifiedOnly"
                         :modCurrency="paymentCoin"
@@ -451,8 +446,10 @@ import Settings from '@/views/modals/settings/Settings.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
 import { mapGetters, mapActions } from 'vuex';
+import Moderators from '../../../components/global/moderators/Moderators.vue';
 
 export default {
+  name: 'Purchase',
   components: {
     ActionBtn,
     Complete,
@@ -463,6 +460,7 @@ export default {
     Shipping,
     Settings,
     PaymentMethodSelector,
+    Moderators,
   },
   props: {
     options: {
@@ -487,7 +485,6 @@ export default {
             coupons: [],
           },
         ],
-        activeCurs: [],
         emailAddress: '',
       },
       paymentCoin: 'USDT',
@@ -633,18 +630,6 @@ export default {
 
       return this.getTotalShippingPrice(sName, sService);
     },
-
-    currencies() {
-      let currencies = this.oneListing.get('metadata').get('acceptedCurrencies') || [];
-      const locale = app.localSettings.standardizedTranslatedLang() || 'en-US';
-      currencies.sort((a, b) => {
-        const aName = app.polyglot.t(`cryptoCurrencies.${a}`, { _: a });
-        const bName = app.polyglot.t(`cryptoCurrencies.${b}`, { _: b });
-        return aName.localeCompare(bName, locale, { sensitivity: 'base' });
-      });
-
-      return currencies;
-    },
   },
   methods: {
     ...mapActions({
@@ -778,9 +763,6 @@ export default {
         });
       });
 
-      let currencies = this.oneListing.get('metadata').get('acceptedCurrencies') || [];
-      this.formData.activeCurs = currencies.length && this.oneListing.isCrypto ? [currencies[0]] : [];
-
       this.cryptoAmountCurrency = this.oneListing.get('item').get('cryptoListingCurrencyCode');
 
       // If the parent has the inventory, pass it in, otherwise we'll fetch it.
@@ -823,10 +805,6 @@ export default {
         this._latestHash = e.oldHash;
         if (e.oldHash === this._renderedHash) this.outdateHash();
       });
-    },
-
-    onCurrencyClicked(cOpts) {
-      if (cOpts.active) this.$refs.moderators.setState({ showOnlyCur: cOpts.currency });
     },
 
     onReloadOutdated() {
@@ -1294,7 +1272,7 @@ export default {
 
         // 获取仲裁人
         const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
-        
+
         // 调用后端接口获取SOL托管初始化指令
         const requestData = {
           orderID: this.orderID,

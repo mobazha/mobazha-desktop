@@ -85,10 +85,6 @@
 
 export default {
   props: {
-    currencies: {
-      type: Array,
-      default: () => []
-    },
     disabledMsg: {
       type: String,
       default: ''
