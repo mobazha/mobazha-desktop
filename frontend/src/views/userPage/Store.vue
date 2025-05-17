@@ -165,6 +165,8 @@ export default {
       retryPressed: false,
 
       showSettings: false,
+      
+      fetch: null,
     };
   },
   created() {

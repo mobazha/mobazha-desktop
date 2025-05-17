@@ -68,7 +68,7 @@ export function convertSolanaGoInstruction(goInstruction) {
   let data;
   try {
     // 检查是否是 base64 字符串
-    if (typeof goInstruction.DataBytes === 'string' && goInstruction.DataBytes.includes('=')) {
+    if (typeof goInstruction.DataBytes === 'string') {
       data = Buffer.from(goInstruction.DataBytes, 'base64');
     } else if (goInstruction.DataBytes instanceof Uint8Array) {
       data = Buffer.from(goInstruction.DataBytes);

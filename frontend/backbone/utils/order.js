@@ -1,3 +1,5 @@
+
+import $ from 'jquery';
 import { Events } from 'backbone';
 import app from '../app.js';
 import { myPost } from '../../src/api/api.js';
@@ -6,6 +8,8 @@ import { openSimpleMessage } from '../views/modals/SimpleMessage.js';
 import OrderCompletion from '../models/order/orderCompletion/OrderCompletion.js';
 import OrderDispute from '../models/order/OrderDispute.js';
 import ResolveDispute from '../models/order/ResolveDispute.js';
+import { ElMessage } from 'element-plus';
+import Rating from '../models/order/orderCompletion/Rating';
 
 const events = {
   ...Events,
@@ -58,8 +62,15 @@ function confirmOrder(orderID, reject = false) {
         };
 
         confirmRequest = myPost(app.getServerUrl('instructions/order/confirm'), requestData)
-          .then(async (response) => {
-            if (response && response.instructions) {
+          .then(response => {
+            if (response && response.hasInstructions === false) {
+              // 如果没有指令，直接调用确认接口
+              return myPost(app.getServerUrl('order/confirm'), {
+                orderID,
+                reject,
+                transactionID: ""
+              });
+            } else if (response && response.instructions) {
               // 触发事件，让 Vue 组件处理交易
               events.trigger('executeSolanaTransaction', {
                 instructions: response.instructions,
@@ -314,50 +325,163 @@ export function completeOrder(orderID, data = {}) {
     throw new Error('Please provide an orderID');
   }
 
-  if (!completePosts[orderID]) {
-    const model = new OrderCompletion(data);
-    const save = model.save();
-
-    if (!save) {
-      Object.keys(model.validationError)
-        .forEach((errorKey) => {
-          throw new Error(`${errorKey}: ${model.validationError[errorKey][0]}`);
+  // 校验ratings数据
+  const validateRatings = (ratings) => {
+    const errors = [];
+    
+    ratings.forEach((ratingData, index) => {
+      const rating = new Rating(ratingData);
+      const validationErrors = rating.validate(ratingData);
+      
+      if (validationErrors) {
+        Object.entries(validationErrors).forEach(([field, fieldErrors]) => {
+          errors.push(`Item ${index + 1} - ${field}: ${fieldErrors.join(', ')}`);
         });
-    } else {
-      save.always(() => {
-        delete completePosts[orderID];
-      }).done(() => {
-        events.trigger('completeOrderComplete', {
-          id: orderID,
-          xhr: save,
-        });
-      })
-        .fail((xhr) => {
-          events.trigger('completeOrderFail', {
-            id: orderID,
-            xhr: save,
-          });
-
-          const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-          openSimpleMessage(
-            app.polyglot.t('orderUtil.failedCompleteHeading'),
-            failReason,
-          );
-        });
-
-      completePosts[orderID] = {
-        xhr: save,
-        data: model.toJSON(),
-      };
-    }
-
-    events.trigger('completingOrder', {
-      id: orderID,
-      xhr: save,
+      }
     });
+    
+    return errors;
+  };
+
+  // 检查是否有ratings数据
+  if (!data.ratings || !Array.isArray(data.ratings) || data.ratings.length === 0) {
+    ElMessage({
+      message: '请提供评分数据',
+      type: 'error',
+      duration: 3000
+    });
+    return Promise.reject(new Error('Ratings data is required'));
   }
 
-  return completePosts[orderID].xhr;
+  // 校验ratings数据
+  const validationErrors = validateRatings(data.ratings);
+  if (validationErrors.length > 0) {
+    ElMessage({
+      message: validationErrors.join('\n'),
+      type: 'error',
+      duration: 5000
+    });
+    return Promise.reject(new Error('Ratings validation failed'));
+  }
+
+  if (completePosts[orderID]) {
+    return completePosts[orderID].xhr;
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    // 触发检查钱包连接状态的事件
+    events.trigger('checkWalletConnection', {
+      callback: async (isConnected, walletAddress) => {
+        if (!isConnected) {
+          events.trigger('showWalletConnectMessage', {
+            message: '请先连接钱包',
+            type: 'warning'
+          });
+          reject(new Error('Please connect your wallet first'));
+          return;
+        }
+        if (!walletAddress) {
+          reject(new Error('Wallet address not found'));
+          return;
+        }
+
+        try {
+          // 先请求 instructions/order/complete
+          const requestData = {
+            orderID,
+            initiator: walletAddress,
+            ...data
+          };
+          
+          const response = await myPost(app.getServerUrl('instructions/order/complete'), requestData);
+          
+          if (response && response.hasInstructions === false) {
+            // 没有链上指令，直接调用order/complete
+            const result = await myPost(app.getServerUrl('order/complete'), {
+              orderID,
+              ...data,
+              transactionID: ""
+            });
+            resolve(result);
+          } else if (response && response.instructions) {
+            // 有链上指令，先走链上交易
+            events.trigger('executeSolanaTransaction', {
+              instructions: response.instructions,
+              orderID,
+              metadata: data
+            });
+            
+            // 等待链上交易完成
+            const transactionResult = await new Promise((resolveTx, rejectTx) => {
+              const handleTransactionComplete = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  resolveTx(e.result);
+                }
+              };
+              
+              const handleTransactionError = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  rejectTx(e.error);
+                }
+              };
+              
+              events.on('solanaTransactionComplete', handleTransactionComplete);
+              events.on('solanaTransactionError', handleTransactionError);
+            });
+            
+            // 交易完成后，调用order/complete
+            const result = await myPost(app.getServerUrl('order/complete'), {
+              orderID,
+              ...data,
+              transactionID: transactionResult
+            });
+            resolve(result);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      }
+    });
+  });
+
+  // 将Promise包装成jQuery的Promise对象
+  const jqPromise = $.Deferred();
+  promise
+    .then(result => {
+      jqPromise.resolve(result);
+    })
+    .catch(error => {
+      jqPromise.reject(error);
+      events.trigger('completeOrderFail', {
+        id: orderID,
+        xhr: jqPromise
+      });
+      // 显示错误消息
+      const failReason = error.message || '';
+      openSimpleMessage(
+        app.polyglot.t('orderUtil.failedCompleteHeading'),
+        failReason,
+      );
+    })
+    .finally(() => {
+      delete completePosts[orderID];
+      events.trigger('completeOrderComplete', {
+        id: orderID,
+        xhr: jqPromise
+      });
+    });
+
+  completePosts[orderID] = { xhr: jqPromise, data };
+  events.trigger('completingOrder', {
+    id: orderID,
+    xhr: jqPromise
+  });
+
+  return jqPromise;
 }
 
 /**
