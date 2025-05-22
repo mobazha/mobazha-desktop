@@ -84,12 +84,12 @@
                 id="Nav_PaymentMethods">
                 <i class="iconBtn ion-card"></i>
               </a>
-              <a class="navBtn toolTipNoWrap" @click="navWalletClick" :data-tip="ob.polyT('pageNav.toolTip.wallet')"
+              <!-- <a class="navBtn toolTipNoWrap" @click="navWalletClick" :data-tip="ob.polyT('pageNav.toolTip.wallet')"
                 id="Nav_Wallet">
                 <div class="iconBtn navWalletBtn">
                   <WalletIcon />
                 </div>
-              </a>
+              </a> -->
               <a class="navBtn toolTipNoWrap" @click.stop="onClickNavNotifBtn"
                 :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
                 <i class="iconBtn ion-android-notifications"></i>

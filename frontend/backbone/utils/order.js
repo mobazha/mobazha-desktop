@@ -1,4 +1,3 @@
-
 import $ from 'jquery';
 import { Events } from 'backbone';
 import app from '../app.js';
@@ -453,6 +452,10 @@ export function completeOrder(orderID, data = {}) {
   promise
     .then(result => {
       jqPromise.resolve(result);
+      events.trigger('completeOrderComplete', {
+        id: orderID,
+        xhr: jqPromise
+      });
     })
     .catch(error => {
       jqPromise.reject(error);
@@ -469,10 +472,6 @@ export function completeOrder(orderID, data = {}) {
     })
     .finally(() => {
       delete completePosts[orderID];
-      events.trigger('completeOrderComplete', {
-        id: orderID,
-        xhr: jqPromise
-      });
     });
 
   completePosts[orderID] = { xhr: jqPromise, data };
@@ -618,40 +617,117 @@ export function acceptPayout(orderID) {
     throw new Error('Please provide an orderID');
   }
 
-  let post = acceptPayoutPosts[orderID];
-
-  if (!post) {
-    post = myPost(app.getServerUrl('ob/releasefunds'), {
-      orderID,
-    }).always(() => {
-      delete acceptPayoutPosts[orderID];
-    }).done(() => {
-      events.trigger('acceptPayoutComplete', {
-        id: orderID,
-        xhr: post,
-      });
-    })
-      .fail((xhr) => {
-        events.trigger('acceptPayoutFail', {
-          id: orderID,
-          xhr: post,
-        });
-
-        const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-        openSimpleMessage(
-          app.polyglot.t('orderUtil.failedAcceptPayoutHeading'),
-          failReason,
-        );
-      });
-
-    acceptPayoutPosts[orderID] = post;
-    events.trigger('acceptingPayout', {
-      id: orderID,
-      xhr: post,
-    });
+  if (acceptPayoutPosts[orderID]) {
+    return acceptPayoutPosts[orderID].xhr;
   }
 
-  return post;
+  // 创建一个新的Promise来处理整个流程
+  const promise = new Promise((resolve, reject) => {
+    // 触发检查钱包连接状态的事件
+    events.trigger('checkWalletConnection', {
+      callback: async (isConnected, walletAddress) => {
+        if (!isConnected) {
+          events.trigger('showWalletConnectMessage', {
+            message: '请先连接钱包',
+            type: 'warning'
+          });
+          reject(new Error('Please connect your wallet first'));
+          return;
+        }
+        if (!walletAddress) {
+          reject(new Error('Wallet address not found'));
+          return;
+        }
+
+        try {
+          const requestData = {
+            orderID,
+            initiator: walletAddress
+          };
+          
+          const response = await myPost(app.getServerUrl('instructions/dispute/release'), requestData);
+          
+          if (response && response.hasInstructions === false) {
+            const result = await myPost(app.getServerUrl('dispute/release'), {
+              orderID
+            });
+            resolve(result);
+          } else if (response && response.instructions) {
+            events.trigger('executeSolanaTransaction', {
+              instructions: response.instructions,
+              orderID
+            });
+            
+            const transactionResult = await new Promise((resolveTx, rejectTx) => {
+              const handleTransactionComplete = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  resolveTx(e.result);
+                }
+              };
+              
+              const handleTransactionError = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  rejectTx(e.error);
+                }
+              };
+              
+              events.on('solanaTransactionComplete', handleTransactionComplete);
+              events.on('solanaTransactionError', handleTransactionError);
+            });
+            
+            // 交易完成后，调用dispute/release
+            const result = await myPost(app.getServerUrl('dispute/release'), {
+              orderID,
+              transactionID: transactionResult
+            });
+            resolve(result);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      }
+    });
+  });
+
+  // 将Promise包装成jQuery的Promise对象
+  const jqPromise = $.Deferred();
+  promise
+    .then(result => {
+      jqPromise.resolve(result);
+      events.trigger('acceptPayoutComplete', {
+        id: orderID,
+        xhr: jqPromise
+      });
+    })
+    .catch(error => {
+      jqPromise.reject(error);
+      events.trigger('acceptPayoutFail', {
+        id: orderID,
+        xhr: jqPromise
+      });
+
+      const failReason = error.message || '';
+      openSimpleMessage(
+        app.polyglot.t('orderUtil.failedAcceptPayoutHeading'),
+        failReason,
+      );
+    })
+    .finally(() => {
+      delete acceptPayoutPosts[orderID];
+    });
+
+  // 保存到acceptPayoutPosts中
+  acceptPayoutPosts[orderID] = { xhr: jqPromise };
+  events.trigger('acceptingPayout', {
+    id: orderID,
+    xhr: jqPromise
+  });
+
+  return jqPromise;
 }
 
 export function releasingEscrow(orderID) {
@@ -666,7 +742,7 @@ export function releaseEscrow(orderID) {
   let post = releaseEscrowPosts[orderID];
 
   if (!post) {
-    post = myPost(app.getServerUrl('ob/releaseescrow'), {
+    post = myPost(app.getServerUrl('dispute/releaseAfterTimeout'), {
       orderID,
     }).always(() => {
       delete releaseEscrowPosts[orderID];

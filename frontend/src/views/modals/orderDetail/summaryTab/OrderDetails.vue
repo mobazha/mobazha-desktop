@@ -385,7 +385,7 @@ export default {
       this.oneListing = this.listings[0];
 
       this.order = this.model.get('orderOpen');
-      this.payment = this.model.get('paymentSent');
+      this.payment = this.model.get('paymentSent') || {};
     },
 
     getItemOptionalFeatures(idx) {

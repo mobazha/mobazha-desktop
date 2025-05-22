@@ -990,6 +990,14 @@
   "cryptoTicker": {
     "currentPrice": "Current %{cur} price"
   },
+  "paymentMethods": {
+    "title": "Payment Methods",
+    "closeLink": "Close",
+    "cryptoSection": "Crypto Payment",
+    "tradPaymentSection": "Traditional Payment",
+    "saveSuccess": "Settings saved",
+    "errorSaving": "Error saving settings"
+  },
   "wallet": {
     "title": "Wallet",
     "closeLink": "Close wallet",
@@ -2080,7 +2088,7 @@
     "failedFulfillHeading": "There was an error fulfilling the order.",
     "failedRefundHeading": "There was an error refunding the order.",
     "failedCompleteHeading": "There was an error completing the order.",
-    "failedOpenDisputeHeading": "There was an error completing the order.",
+    "failedOpenDisputeHeading": "There was an error opening the dispute.",
     "failedResolveHeading": "There was an error resolving the order.",
     "failedAcceptPayoutHeading": "There was an error accepting the payout.",
     "failedReleaseEscrowHeading": "There was an error claiming the payment."

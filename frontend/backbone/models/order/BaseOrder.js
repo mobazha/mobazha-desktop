@@ -105,8 +105,7 @@ export default class extends BaseModel {
 
     try {
       paymentCoin = this.getContract(attrs)
-        .orderOpen
-        .payment
+        .paymentSent
         .coin;
     } catch (e) {
       // pass

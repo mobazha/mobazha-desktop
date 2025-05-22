@@ -70,7 +70,7 @@
           </template>
 
           <template v-else>
-            <span class="clrTErr">{{ ob.polyT('orderDetail.summaryTab.unableToShowPayments') }}</span>
+            <span class="clrTErr">{{ ob.polyT('orderDetail.summaryTab.unableToShowPayments', {cur: model.paymentCoin}) }}</span>
           </template>
         </div>
       </div>
@@ -333,7 +333,7 @@ export default {
       const vendorOrderConfirmation = this.contract.get('orderConfirmation');
 
       return (vendorOrderConfirmation && vendorOrderConfirmation.paymentAddress)
-        || this.contract.get('orderOpen').payment.address;
+        || this.contract.get('paymentSent').address;
     },
     shouldShowTimeoutInfoView () {
       const paymentCurData = this.model.paymentCoinData;

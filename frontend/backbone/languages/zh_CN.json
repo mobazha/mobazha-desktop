@@ -982,6 +982,14 @@
   "cryptoTicker": {
     "currentPrice": "%{cur}当前价格"
   },
+  "paymentMethods": {
+    "title": "收款账号管理",
+    "closeLink": "关闭",
+    "cryptoSection": "加密货币收款",
+    "tradPaymentSection": "传统支付方式",
+    "saveSuccess": "设置已保存",
+    "errorSaving": "保存设置时出错"
+  },
   "wallet": {
     "title": "钱包",
     "closeLink": "关闭钱包",

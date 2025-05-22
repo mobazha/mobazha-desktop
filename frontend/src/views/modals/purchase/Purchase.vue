@@ -1278,6 +1278,7 @@ export default {
           orderID: this.orderID,
           payer: this.walletAddress, // 使用Vuex中的钱包地址
           moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
+          coinType: this.paymentCoin,
           amount: parseInt(this.paymentData.amount.amount) // 转换为整数
         };
 
