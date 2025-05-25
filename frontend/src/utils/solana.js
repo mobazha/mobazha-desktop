@@ -14,7 +14,7 @@ export async function confirmTransaction(connection, signature, options = {}) {
   //  const confirmation = await this.connection.confirmTransaction(signature);
   // console.log('Transaction confirmation:', confirmation);
 
-  const { maxRetries = 3, retryInterval = 2000 } = options;
+  const { maxRetries = 10, retryInterval = 2000 } = options;
   let retries = 0;
   let confirmation = null;
 

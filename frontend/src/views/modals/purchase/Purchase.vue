@@ -1314,7 +1314,14 @@ export default {
                   this.setState({ phase: 'complete' });
                   resolve();
                 })
-                .catch(reject);
+                .catch(error => {
+                  ElMessage({
+                    message: error?.message || '发送支付信息失败',
+                    type: 'error',
+                    duration: 3000
+                  });
+                  reject(error);
+                });
             }
           };
 
@@ -1322,6 +1329,15 @@ export default {
             if (e.orderID === this.orderID) {
               events.off('solanaTransactionComplete', handleTransactionComplete);
               events.off('solanaTransactionError', handleTransactionError);
+              let errorMessage = e.error?.message || '交易失败';
+              if (errorMessage.includes('Error Number: 3012')) {
+                errorMessage = 'Insufficient balance or token not found';
+              }
+              ElMessage({
+                message: errorMessage,
+                type: 'error',
+                duration: 3000
+              });
               reject(e.error);
             }
           };
