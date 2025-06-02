@@ -281,6 +281,23 @@
                   </div>
                 </div>
               </section>
+              <section v-if="paymentCoin === 'stripe'" class="contentBox padMd clrP clrBr clrSh3">
+                <div class="stripe-payment-form">
+                  <div id="stripe-payment-element"></div>
+                  <div class="payment-summary">
+                    <h3>支付金额</h3>
+                    <p class="amount">{{ formatCurrency(totalAmount) }}</p>
+                  </div>
+                  <el-button 
+                    type="primary" 
+                    :loading="processingPayment"
+                    @click="handleStripePayment"
+                    class="payment-button"
+                  >
+                    确认支付
+                  </el-button>
+                </div>
+              </section>
               <section class="contentBox padMd clrP clrBr clrSh3">
                 <div class="flexColRows gutterVSm">
                   <div class="flexVCentClearMarg">
@@ -415,7 +432,7 @@ import 'velocity-animate';
 import { ERROR_DUST_AMOUNT } from '../../../../backbone/constants';
 import { removeProp } from '../../../../backbone/utils/object';
 import app from '../../../../backbone/app';
-import { myPost } from '../../../api/api.js';
+import { myPost, myGet } from '../../../api/api.js';
 // import {
 //   getInventory,
 //   events as inventoryEvents,
@@ -447,6 +464,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
 import { mapGetters, mapActions } from 'vuex';
 import Moderators from '../../../components/global/moderators/Moderators.vue';
+import { loadStripe } from '@stripe/stripe-js'
 
 export default {
   name: 'Purchase',
@@ -516,6 +534,9 @@ export default {
       showSettings: false,
       paymentData: undefined,
       errors: {},
+      stripe: null,
+      elements: null,
+      processingPayment: false,
     };
   },
   created() {
@@ -630,6 +651,11 @@ export default {
 
       return this.getTotalShippingPrice(sName, sService);
     },
+    totalAmount() {
+      return this.prices.reduce((total, price) => {
+        return total.plus(price.price).plus(price.vPrice).plus(price.sPrice)
+      }, bigNumber(0))
+    }
   },
   methods: {
     ...mapActions({
@@ -1160,91 +1186,123 @@ export default {
     },
 
     onMethodClicked(methodId) {
-      // 处理非加密货币支付方式的选择
-      this.paymentCoin = methodId;
+      this.paymentCoin = methodId
       
-      // 如果选择了Stripe或PayPal，可能需要禁用仲裁人选择
-      if (methodId === 'stripe' || methodId === 'paypal') {
-        this.isModerated = false;
+      if (methodId === 'stripe') {
+        this.isModerated = false
         if (this.$refs.moderators) {
-          this.$refs.moderators.deselectOthers();
+          this.$refs.moderators.deselectOthers()
         }
+        // 初始化Stripe
+        this.initializeStripe()
       }
       
-      // 更新订单的支付方式
-      this.order.set({ paymentCoin: methodId });
+      this.order.set({ paymentCoin: methodId })
     },
 
     // 添加Stripe支付处理方法
-    processStripePayment() {
-      this.setState({ phase: 'creatingOrder' });
-      
-      // 这里实现Stripe支付处理逻辑
-      // 可能需要调用后端API获取支付链接或打开支付弹窗
-      
-      // 示例实现
-      const orderData = {
-        items: this.order.get('items').map(item => ({
-          id: item.get('id'),
-          quantity: item.get('quantity'),
-          options: item.get('options')
-        })),
-        shippingAddress: this.$refs.shipping?.selectedAddress,
-        total: this.prices[0].price.toString()
-      };
-      
-      // 调用API创建Stripe支付会话
-      myPost(app.getServerUrl('ob/create-stripe-payment'), orderData)
-        .then(response => {
-          if (response && response.paymentUrl) {
-            // 重定向到Stripe支付页面
-            window.location.href = response.paymentUrl;
-          } else {
-            this.insertErrors('js-errors', ['Stripe支付创建失败']);
-            this.setState({ phase: 'checkout' });
+    async initializeStripe() {
+      try {
+        // 从后端获取Stripe公钥
+        const response = await myGet('/v1/stripe/public-key')
+        this.stripe = await loadStripe(response.publicKey)
+        
+        // 获取商户的Stripe账户ID
+        const merchantResponse = await myGet('/v1/stripe/account-status');
+        if (!merchantResponse.stripeAccountId) {
+          throw new Error('商户未完成Stripe账户设置');
+        }
+
+        // 创建支付意向
+        const paymentIntentResponse = await myPost('/v1/stripe/payment-intent', {
+          amount: parseInt(this.totalAmount * 100 * 100), // 转换为分
+          currency: 'cny', // 使用人民币
+          orderId: this.orderID
+        });
+
+        if (!paymentIntentResponse.clientSecret) {
+          throw new Error('创建支付意向失败');
+        }
+
+        // 创建支付元素
+        const elements = this.stripe.elements({
+          clientSecret: paymentIntentResponse.clientSecret,
+          locale: 'en',
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#409EFF',
+            }
           }
         })
-        .catch(err => {
-          console.error('Stripe支付错误:', err);
-          this.insertErrors('js-errors', ['Stripe支付处理出错']);
-          this.setState({ phase: 'checkout' });
-        });
+        
+        // 挂载支付元素
+        const paymentElement = elements.create('payment')
+        paymentElement.mount('#stripe-payment-element')
+        this.elements = elements
+      } catch (error) {
+        console.error('初始化Stripe失败:', error)
+        ElMessage.error('初始化支付失败，请重试')
+      }
     },
 
-    // 添加PayPal支付处理方法
-    processPayPalPayment() {
-      this.setState({ phase: 'creatingOrder' });
-      
-      // 这里实现PayPal支付处理逻辑
-      // 可能需要调用后端API获取支付链接或打开支付弹窗
-      
-      // 示例实现
-      const orderData = {
-        items: this.order.get('items').map(item => ({
-          id: item.get('id'),
-          quantity: item.get('quantity'),
-          options: item.get('options')
-        })),
-        shippingAddress: this.$refs.shipping?.selectedAddress,
-        total: this.prices[0].price.toString()
-      };
-      
-      // 调用API创建PayPal支付会话
-      myPost(app.getServerUrl('ob/create-paypal-payment'), orderData)
-        .then(response => {
-          if (response && response.paymentUrl) {
-            // 重定向到PayPal支付页面
-            window.location.href = response.paymentUrl;
-          } else {
-            this.insertErrors('js-errors', ['PayPal支付创建失败']);
-            this.setState({ phase: 'checkout' });
+    async handleStripePayment() {
+      if (!this.stripe || !this.elements) {
+        ElMessage.error('支付系统未初始化');
+        return;
+      }
+
+      try {
+        this.processingPayment = true;
+        
+        // 确认支付
+        const { error, paymentIntent } = await this.stripe.confirmPayment({
+          elements: this.elements,
+          confirmParams: {
+            return_url: `${window.location.origin}/payment/complete`,
+          },
+          redirect: 'if_required'
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (paymentIntent.status === 'succeeded') {
+          // 支付成功，更新订单状态
+          await this.updateOrderStatus(paymentIntent.id);
+          this.setState({ phase: 'complete' });
+          ElMessage.success('支付成功');
+        }
+      } catch (error) {
+        console.error('支付处理失败:', error);
+        ElMessage.error(error.message || '支付失败，请重试');
+      } finally {
+        this.processingPayment = false;
+      }
+    },
+
+    async updateOrderStatus(paymentIntentId) {
+      try {
+        await myPost('/v1/order/payment', {
+          orderID: this.orderID,
+          paymentData: {
+            paymentIntentId,
+            status: 'succeeded',
+            timestamp: new Date().toISOString()
           }
         })
-        .catch(err => {
-          console.error('PayPal支付错误:', err);
-          this.insertErrors('js-errors', ['PayPal支付处理出错']);
-          this.setState({ phase: 'checkout' });
-        });
+      } catch (error) {
+        console.error('更新订单状态失败:', error)
+        throw error
+      }
+    },
+
+    formatCurrency(amount) {
+      return new Intl.NumberFormat('zh-CN', {
+        style: 'currency',
+        currency: 'CNY'
+      }).format(amount)
     },
 
     async processSolPayment() {
@@ -1362,6 +1420,34 @@ export default {
 .purchaseQuantity {
   input[type='number'] {
     width: 100px;
+  }
+}
+.stripe-payment-form {
+  padding: 20px;
+
+  .payment-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+
+    h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      color: #606266;
+    }
+
+    .amount {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #303133;
+    }
+  }
+
+  .payment-button {
+    width: 100%;
+    margin-top: 20px;
   }
 }
 </style>
