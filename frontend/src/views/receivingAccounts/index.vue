@@ -36,6 +36,8 @@
         @disable="disableAccount"
         @delete="deleteAccount"
         @add-new="showApplyNewAccount = true"
+        @connect-stripe="connectStripe"
+        @reverify-stripe="reverifyStripe"
       />
       
       <!-- 编辑账户视图 -->
@@ -71,6 +73,8 @@ import app from '../../../backbone/app.js';
 import AccountList from './AccountList.vue';
 import EditAccount from './EditAccount.vue';
 import ApplyNewAccount from './ApplyNewAccount.vue';
+import { STRIPE_CONFIG } from '../../config/stripe'
+import { ElMessage } from 'element-plus';
 
 export default {
   components: {
@@ -151,6 +155,13 @@ export default {
     
     this.fetchReceivingAccounts();
     console.log('appKitEvents: ', this.appKitEvents);
+
+    // 检查是否是Stripe回调
+    if (this.$route.name === 'StripeConnectReturn') {
+      ElMessage.success('Stripe账户连接成功');
+    } else if (this.$route.name === 'StripeConnectRefresh') {
+      ElMessage.info('Stripe账户信息已更新');
+    }
   },
   mounted() {
     // 检查钱包是否已连接，如果已连接则断开
@@ -231,57 +242,75 @@ export default {
           },
           source: 'MetaMask'
         },
+        // Stripe账户 - 已验证
         {
-          name: 'solana',
-          chainType: 'SOL',
-          address: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5TNPN1',
-          activeTokens: '["SOLUSDT"]',
-          _activeTokens: ['SOLUSDT'],
-          enabled: true,
-          lastTransactionTime: '2023-05-14 11:20',
-          lastTransactionAmount: '5 SOL',
-          tokenTransactions: {
-            'SOLUSDT': { time: '2023-05-13 13:10', amount: '50 USDT' }
-          }
+          name: 'stripe',
+          chainType: 'Stripe',
+          stripeAccountId: 'acct_1N2XYZKjGLOD4E8S',
+          verificationStatus: 'verified',
+          requirements: [],
+          isActive: true,
+          lastTransactionTime: '2024-03-15 15:30',
+          lastTransactionAmount: '¥1,280.00',
+          source: 'Stripe Connect'
         },
+        // Stripe账户 - 验证中
         {
-          name: 'bsc',
-          chainType: 'BSC',
-          address: '0x7F367cC41522cE07553e823bf3be79A889DEbe1B',
-          activeTokens: '["BUSD","CAKE"]',
-          _activeTokens: ['BUSD', 'CAKE'],
-          enabled: false,
-          lastTransactionTime: '2023-04-20 08:45',
-          lastTransactionAmount: '2.3 BNB',
-          tokenTransactions: {
-            'BUSD': { time: '2023-04-18 15:30', amount: '500 BUSD' },
-            'CAKE': { time: '2023-04-15 12:20', amount: '25 CAKE' }
-          }
+          name: 'stripe_test',
+          chainType: 'Stripe',
+          stripeAccountId: 'acct_1N3ABCKjGLOD4E8T',
+          verificationStatus: 'pending',
+          requirements: [
+            '需要提供营业执照',
+            '需要提供银行账户信息',
+            '需要完成身份验证'
+          ],
+          isActive: false,
+          lastTransactionTime: '2024-03-14 10:20',
+          lastTransactionAmount: '¥0.00',
+          source: 'Stripe Connect'
         },
+        // Stripe账户 - 未验证
+        {
+          name: 'stripe_new',
+          chainType: 'Stripe',
+          stripeAccountId: 'acct_1N4DEFKjGLOD4E8U',
+          verificationStatus: 'unverified',
+          requirements: [
+            '需要完成账户设置',
+            '需要提供基本信息',
+            '需要完成身份验证'
+          ],
+          isActive: false,
+          lastTransactionTime: '2024-03-13 09:15',
+          lastTransactionAmount: '¥0.00',
+          source: 'Stripe Connect'
+        },
+        // PayPal账户
         {
           name: 'paypal',
+          chainType: 'PayPal',
           email: 'your-business@example.com',
           enabled: true,
           lastTransactionTime: '2023-05-11 10:05',
           lastTransactionAmount: '$120.00'
-        },
-        {
-          name: 'stripe',
-          id: 'acct_1N2XYZKjGLOD4E8S',
-          enabled: false,
-          lastTransactionTime: '2023-05-09 15:30',
-          lastTransactionAmount: '€75.50'
         }
       ];
     },
     
     async fetchReceivingAccounts() {
       try {
+        // 在开发环境下，如果已经有mock数据，则直接返回
+        if (import.meta.env.DEV && this.receivingAccounts.length > 0) {
+          console.log('使用mock数据');
+          return;
+        }
+
         const response = await myGet(app.getServerUrl('wallet/receivingaccountlist'));
         
         if (response && response.receivingAccounts && Array.isArray(response.receivingAccounts)) {
           // 处理每个账户的 activeTokens 字段
-          this.receivingAccounts = response.receivingAccounts.map(account => {
+          this.receivingAccounts = await Promise.all(response.receivingAccounts.map(async account => {
             if (account.activeTokens) {
               try {
                 if (Array.isArray(account.activeTokens)) {
@@ -297,16 +326,26 @@ export default {
               account._activeTokens = [];
             }
             
+            // 如果是Stripe账户，检查其状态
+            if (account.chainType === 'Stripe') {
+              const status = await this.checkStripeAccountStatus();
+              account.stripeAccountId = status.stripeAccountId;
+              account.isVerified = status.isVerified;
+              account.verificationStatus = status.verificationStatus;
+              account.requirements = status.requirements;
+            }
+            
             // 添加交易数据
             this.addTransactionData(account);
             
             return account;
-          });
+          }));
         } else {
           console.error('获取收款账户返回格式不正确:', response);
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
+        ElMessage.error('获取收款账户失败，请重试');
       }
     },
     
@@ -479,8 +518,69 @@ export default {
     },
     
     async connectStripe() {
-      // 这里实现连接Stripe的逻辑
-      alert('Stripe连接功能尚未实现');
+      try {
+        // 获取Stripe连接URL
+        const response = await myGet('/v1/stripe/connect-url');
+        if (!response.url) {
+          throw new Error('获取Stripe连接URL失败');
+        }
+
+        // 直接跳转到Stripe入驻页面
+        window.location.href = response.url;
+
+      } catch (error) {
+        console.error('连接Stripe失败:', error.responseJSON?.error);
+        ElMessage.error('连接Stripe失败: ' + error.responseJSON?.error);
+      }
+    },
+
+    async reverifyStripe(account) {
+      try {
+        // 获取Stripe重新验证URL
+        const response = await myPost('/v1/stripe/reverify-url');
+        if (!response.url) {
+          throw new Error('获取Stripe重新验证URL失败');
+        }
+
+        // 在新窗口打开Stripe验证页面
+        const stripeWindow = window.open(response.url, '_blank', 'width=800,height=600');
+        
+        // 监听窗口关闭事件
+        const checkWindow = setInterval(() => {
+          if (stripeWindow.closed) {
+            clearInterval(checkWindow);
+            // 重新获取账户信息
+            this.fetchReceivingAccounts();
+            // 显示成功提示
+            ElMessage.success('Stripe账户验证已更新');
+          }
+        }, 1000);
+
+      } catch (error) {
+        console.error('重新验证Stripe账户失败:', error);
+        ElMessage.error('重新验证失败，请重试');
+      }
+    },
+
+    // 检查Stripe账户状态
+    async checkStripeAccountStatus() {
+      try {
+        const response = await myGet('/v1/stripe/account-status');
+        return {
+          isRegistered: !!response.stripeAccountId,
+          isVerified: response.isVerified || false,
+          stripeAccountId: response.stripeAccountId || null,
+          status: response.status || 'pending'
+        };
+      } catch (error) {
+        console.error('检查Stripe账户状态失败:', error);
+        return {
+          isRegistered: false,
+          isVerified: false,
+          stripeAccountId: null,
+          status: 'pending'
+        };
+      }
     },
     
     getAvailableTokens(chainType) {
@@ -651,6 +751,33 @@ export default {
       margin-bottom: 20px;
       color: #ccc;
     }
+  }
+}
+
+.stripe-account-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  
+  &.verified {
+    background-color: #f0f9eb;
+    color: #67c23a;
+  }
+  
+  &.pending {
+    background-color: #fdf6ec;
+    color: #e6a23c;
+  }
+  
+  &.unverified {
+    background-color: #fef0f0;
+    color: #f56c6c;
+  }
+  
+  .status-icon {
+    margin-right: 4px;
   }
 }
 </style> 

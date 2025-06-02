@@ -17,7 +17,7 @@
     
     <!-- 区块链账户设置 -->
     <BlockchainWalletForm 
-      v-if="account.chainType"
+      v-if="account.chainType && account.chainType !== 'PayPal' && account.chainType !== 'Stripe'"
       :account="account"
       :tokens="tokens"
       :isConnecting="isConnecting"

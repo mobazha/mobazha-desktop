@@ -79,6 +79,16 @@ const constantRouterMap = [
     name: 'ReceivingAccounts',
     component: () => import('@/views/receivingAccounts/index.vue')
   },
+  {
+    path: '/stripe-connect/return',
+    name: 'StripeConnectReturn',
+    component: () => import('@/views/receivingAccounts/index.vue')
+  },
+  {
+    path: '/stripe-connect/refresh',
+    name: 'StripeConnectRefresh',
+    component: () => import('@/views/receivingAccounts/index.vue')
+  },
   // {
   //   path: 'connected-peers',
   //   name: 'pageNotFound',

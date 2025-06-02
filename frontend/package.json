@@ -16,6 +16,7 @@
     "@reown/appkit-adapter-solana": "^1.7.1",
     "@reown/appkit-adapter-wagmi": "^1.7.1",
     "@solana/wallet-adapter-wallets": "^0.19.34",
+    "@stripe/stripe-js": "^7.3.1",
     "@tanstack/vue-query": "^5.71.0",
     "@tencentcloud/call-uikit-vue": "2.3.2",
     "@tencentcloud/chat": "^3.1.1",

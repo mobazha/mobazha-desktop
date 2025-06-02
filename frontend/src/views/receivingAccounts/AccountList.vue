@@ -29,7 +29,7 @@
               <el-icon><component :is="getChainIcon(row.chainType)" /></el-icon>
             </div>
             <div class="walletInfo">
-              <span class="chainType">{{ row.chainType }}</span>
+              <span class="chainType">{{ row.chainType || row.name }}</span>
               <div class="walletSource">
                 <el-icon><component :is="getWalletIcon(row.chainType)" /></el-icon>
                 <span>{{ getWalletName(row.chainType) }}</span>
@@ -72,9 +72,18 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="isActive" label="状态" width="100">
+      <el-table-column prop="isActive" label="状态" width="150">
         <template #default="{ row }">
+          <div v-if="row.chainType === 'Stripe'" class="stripe-status">
+            <el-tag
+              :type="getStripeStatusType(row.status)"
+              size="small"
+            >
+              {{ getStripeStatusText(row.status) }}
+            </el-tag>
+          </div>
           <el-tag
+            v-else
             :type="row.isActive ? 'success' : 'info'"
             size="small"
           >
@@ -83,7 +92,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <div class="actionButtons" v-if="!row.isToken">
             <el-button
@@ -112,6 +121,26 @@
             >
               <el-icon><Check /></el-icon>
             </el-button>
+            <template v-if="row.chainType === 'Stripe'">
+              <el-button
+                v-if="!row.stripeAccountId"
+                type="primary"
+                link
+                @click="$emit('connect-stripe', row)"
+                title="连接Stripe账户"
+              >
+                <el-icon><Link /></el-icon>
+              </el-button>
+              <el-button
+                v-else-if="row.status !== 'approved'"
+                type="warning"
+                link
+                @click="$emit('reverify-stripe', row)"
+                title="重新验证Stripe账户"
+              >
+                <el-icon><Refresh /></el-icon>
+              </el-button>
+            </template>
           </div>
         </template>
       </el-table-column>
@@ -135,8 +164,13 @@ import {
   Check,
   Money,
   Wallet,
-  Coin
+  Coin,
+  Link,
+  Refresh,
+  Warning
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { myGet } from '../../api/api.js'
 
 export default {
   components: {
@@ -147,7 +181,10 @@ export default {
     Check,
     Money,
     Wallet,
-    Coin
+    Coin,
+    Link,
+    Refresh,
+    Warning
   },
   props: {
     receivingAccounts: {
@@ -219,7 +256,9 @@ export default {
         Ethereum: 'MetaMask',
         Solana: 'Phantom',
         BSC: 'Binance Wallet',
-        Base: 'Base Wallet'
+        Base: 'Base Wallet',
+        Stripe: 'Stripe',
+        PayPal: 'PayPal',
       }
       return walletNames[chainType] || '区块链钱包'
     }
@@ -229,7 +268,9 @@ export default {
         Ethereum: 'Wallet',
         Solana: 'Coin',
         BSC: 'Money',
-        Base: 'Money'
+        Base: 'Money',
+        Stripe: 'Money',
+        PayPal: 'Money',
       }
       return walletIcons[chainType] || 'Wallet'
     }
@@ -249,6 +290,42 @@ export default {
       return 'Money'
     }
 
+    const connectStripeAccount = async (account) => {
+      try {
+        const response = await myGet('/v1/stripe/connect-url')
+        if (response.url) {
+          window.open(response.url, '_blank')
+        } else {
+          throw new Error('获取Stripe连接URL失败')
+        }
+      } catch (error) {
+        console.error('连接Stripe账户失败:', error)
+        ElMessage.error('连接Stripe账户失败，请重试')
+      }
+    }
+
+    const getStripeStatusType = (status) => {
+      switch (status) {
+        case 'approved':
+          return 'success';
+        case 'pending':
+          return 'warning';
+        default:
+          return 'danger';
+      }
+    }
+    
+    const getStripeStatusText = (status) => {
+      switch (status) {
+        case 'approved':
+          return '已验证';
+        case 'pending':
+          return '验证中';
+        default:
+          return '未验证';
+      }
+    }
+
     return {
       tableData,
       formatAddress,
@@ -257,7 +334,10 @@ export default {
       getWalletName,
       getWalletIcon,
       getTokenIcon,
-      getChainIcon
+      getChainIcon,
+      connectStripeAccount,
+      getStripeStatusType,
+      getStripeStatusText
     }
   }
 }
@@ -379,6 +459,36 @@ export default {
   .actionButtons {
     display: flex;
     gap: 5px;
+  }
+
+  .stripe-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .requirements-tooltip {
+      cursor: pointer;
+      color: #e6a23c;
+    }
+  }
+
+  .requirements-list {
+    text-align: left;
+    padding: 8px;
+    
+    p {
+      margin: 0 0 8px 0;
+      font-weight: bold;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 16px;
+      
+      li {
+        margin: 4px 0;
+      }
+    }
   }
 }
 </style> 
