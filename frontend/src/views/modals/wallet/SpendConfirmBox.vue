@@ -70,7 +70,6 @@ import {
   ERROR_INSUFFICIENT_FUNDS,
   ERROR_DUST_AMOUNT,
 } from '../../../../backbone/constants';
-import { estimateFee } from '../../../../backbone/utils/fees';
 import { validateNumberType } from '../../../../backbone/utils/number';
 import {
   startPrefixedAjaxEvent,
@@ -188,62 +187,12 @@ export default {
       };
 
       this.setState({
-        fetchingFee: true,
+        fetchingFee: false,
+        fee: 0,
         fetchError: '',
         fetchFailed: false,
         coinType,
       });
-
-      startPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin);
-
-      estimateFee(coinType, feeLevel, amount)
-        .done(fee => {
-          let state = {
-            fee,
-            fetchingFee: false,
-          };
-
-          if (
-            app.walletBalances &&
-            app.walletBalances.get(coinType) &&
-            fee
-              .plus(amount)
-              .gt(
-                app.walletBalances
-                  .get(coinType)
-                  .get('confirmed')
-              )
-          ) {
-            state = {
-              // The fetch didn't actually fail, but since the server allows unconfirmed spends and
-              // we don't want to allow that, we'll pretend it failed and simulate the server
-              // ERROR_INSUFFICIENT_FUNDS error.
-              fetchFailed: true,
-              fetchError: 'ERROR_INSUFFICIENT_FUNDS',
-              ...state,
-            };
-            endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
-              errors: 'ERROR_INSUFFICIENT_FUNDS',
-            });
-          } else {
-            endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
-              errors: 'none',
-            });
-          }
-
-          this.setState(state);
-        }).fail(err => {
-          const fetchError = err || '';
-          this.setState({
-            fetchingFee: false,
-            fetchFailed: true,
-            fetchError,
-          });
-
-          endPrefixedAjaxEvent('ConfirmBoxEstimateFee', this.metricsOrigin, {
-            errors: fetchError || 'unknown error',
-          });
-        });
     },
   }
 }

@@ -210,11 +210,6 @@
           model: editListingModel,
         };
       }" @close="closeEditListingModal" />
-      <Wallet v-if="showWallet" :bb="() => {
-        return {
-          walletBalances: app.walletBalances,
-        };
-      }" @close="closeWallet" />
       <ShoppingCart v-if="showShoppingCart" @close="closeShoppingCart" />
     </Teleport>
   </div>
@@ -293,7 +288,6 @@ export default {
 
       showDiscoverCallout: false,
 
-      showWallet: false,
       showSettings: false,
 
       showWooImporter: false,
@@ -765,20 +759,10 @@ export default {
       this.closeNavMenu();
     },
 
-    navWalletClick () {
-      recordEvent('NavClick', { target: 'walletOpen' });
-
-      this.showWallet = true;
-    },
-
     navLogoutClick() {
       casdoor.logout();
 
       casdoor.goToLink('/');
-    },
-
-    closeWallet() {
-      this.showWallet = false;
     },
 
     navCreateListingClick () {
