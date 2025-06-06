@@ -1216,7 +1216,7 @@ export default {
         // 创建支付意向
         const paymentIntentResponse = await myPost('/v1/stripe/payment-intent', {
           amount: parseInt(this.totalAmount * 100 * 100), // 转换为分
-          currency: 'cny', // 使用人民币
+          currency: 'USD', // 使用人民币
           orderId: this.orderID
         });
 
@@ -1270,7 +1270,7 @@ export default {
 
         if (paymentIntent.status === 'succeeded') {
           // 支付成功，更新订单状态
-          await this.updateOrderStatus(paymentIntent.id);
+          await this.updateStripeOrderStatus(paymentIntent);
           this.setState({ phase: 'complete' });
           ElMessage.success('支付成功');
         }
@@ -1282,19 +1282,24 @@ export default {
       }
     },
 
-    async updateOrderStatus(paymentIntentId) {
+    async updateStripeOrderStatus(paymentIntent) {
       try {
-        await myPost('/v1/order/payment', {
+        // 构建支付数据
+        const paymentData = {
           orderID: this.orderID,
-          paymentData: {
-            paymentIntentId,
-            status: 'succeeded',
-            timestamp: new Date().toISOString()
-          }
-        })
+          transactionID: paymentIntent.id,
+          coin: 'STRIPE' + paymentIntent.currency.toUpperCase(), // 使用支付货币类型
+          amount: paymentIntent.amount,
+          // 支付时间
+          timestamp: new Date(paymentIntent.created * 1000).toISOString(),
+        };
+
+        // 发送到后端
+        await myPost('/v1/order/payment', { paymentData });
+        
       } catch (error) {
-        console.error('更新订单状态失败:', error)
-        throw error
+        console.error('更新订单状态失败:', error);
+        throw error;
       }
     },
 

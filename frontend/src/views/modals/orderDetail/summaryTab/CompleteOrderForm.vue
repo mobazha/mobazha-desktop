@@ -204,7 +204,7 @@ export default {
       })
 
       if (!hasError) {
-        completeOrder(this.model.id, this.model.toJSON());
+        completeOrder(this.model.id, this.model.toJSON(), this.options.paymentCoin);
         recordEvent('OrderDetails_CompleteOrder');
       }
 

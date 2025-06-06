@@ -28,6 +28,7 @@
       <CompleteOrderForm ref="completeOrderForm" v-if="showCompleteOrderForm"
         :options="{
           orderID: model.id,
+          paymentCoin: model.paymentCoin,
           listings,
         }"/>
       <OrderComplete ref="orderComplete" v-if="showOrderComplete" :dataObject="contract.get('orderComplete')" />

@@ -164,7 +164,7 @@ export default {
     },
 
     onCancelClick() {
-      cancelOrder(this.orderID);
+      cancelOrder(this.orderID, this.paymentCoin);
     },
 
     onCancelingOrder(e) {
@@ -186,7 +186,7 @@ export default {
     },
 
     onAcceptClick() {
-      acceptOrder(this.orderID);
+      acceptOrder(this.orderID, this.paymentCoin);
     },
 
     onAcceptingOrder(e) {
@@ -208,7 +208,7 @@ export default {
     },
 
     onRejectClick() {
-      rejectOrder(this.orderID);
+      rejectOrder(this.orderID, this.paymentCoin);
     },
 
     onRejectingOrder(e) {

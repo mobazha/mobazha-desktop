@@ -48,9 +48,9 @@
               model: transaction,
             };
           }"
-          @clickAcceptOrder="onClickAcceptOrder(transaction.id)"
-          @clickRejectOrder="onClickRejectOrder(transaction.id)"
-          @clickCancelOrder="onClickCancelOrder(transaction.id)"
+          @clickAcceptOrder="onClickAcceptOrder(transaction.id, transaction.paymentCoin)"
+          @clickRejectOrder="onClickRejectOrder(transaction.id, transaction.paymentCoin)"
+          @clickCancelOrder="onClickCancelOrder(transaction.id, transaction.paymentCoin)"
           @clickRow="onClickRow(transaction.id)"
         />
       </table>
@@ -276,8 +276,8 @@ export default {
       this.fetchTransactions();
     },
 
-    onClickRejectOrder(txid) {
-      rejectOrder(txid);
+    onClickRejectOrder(txid, paymentCoin) {
+      rejectOrder(txid, paymentCoin);
     },
 
     onRejectingOrder(e) {
@@ -308,8 +308,8 @@ export default {
       }
     },
 
-    onClickAcceptOrder(txid) {
-      acceptOrder(txid);
+    onClickAcceptOrder(txid, paymentCoin) {
+      acceptOrder(txid, paymentCoin);
     },
 
     onAcceptingOrder(e) {
@@ -340,8 +340,8 @@ export default {
       }
     },
 
-    onClickCancelOrder(txid) {
-      cancelOrder(txid);
+    onClickCancelOrder(txid, paymentCoin) {
+      cancelOrder(txid, paymentCoin);
     },
 
     onCancelingOrder(e) {

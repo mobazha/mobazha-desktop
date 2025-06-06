@@ -25,7 +25,67 @@ const resolvePosts = {};
 const acceptPayoutPosts = {};
 const releaseEscrowPosts = {};
 
-function confirmOrder(orderID, reject = false) {
+function isStripeChain(paymentCoin) {
+  return paymentCoin && paymentCoin.toUpperCase().startsWith('STRIPE');
+}
+
+function confirmStripeOrder(orderID, reject = false) {
+  if (!orderID) {
+    throw new Error('Please provide an orderID');
+  }
+
+  let post = acceptPosts[orderID];
+
+  if (reject) {
+    post = rejectPosts[orderID];
+  }
+
+  if (!post) {
+    post = myPost(app.getServerUrl('order/confirm'), {
+      orderID,
+      reject,
+      transactionID: ""
+    }).always(() => {
+      if (reject) {
+        delete rejectPosts[orderID];
+      } else {
+        delete acceptPosts[orderID];
+      }
+    }).done(() => {
+      events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
+        id: orderID,
+        xhr: post,
+      });
+    })
+    .fail(xhr => {
+      events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
+        id: orderID,
+        xhr: post,
+      });
+
+      const failReason = xhr.responseJSON && xhr.responseJSON.reason || '';
+      openSimpleMessage(
+        app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`),
+        failReason
+      );
+    });
+
+    if (reject) {
+      rejectPosts[orderID] = post;
+    } else {
+      acceptPosts[orderID] = post;
+    }
+
+    events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
+      id: orderID,
+      xhr: post,
+    });
+  }
+
+  return post;
+}
+
+function confirmOrder(orderID, reject) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -91,7 +151,14 @@ function confirmOrder(orderID, reject = false) {
                       transactionID: e.result
                     })
                     .then(resolve)
-                    .catch(reject);
+                    .catch(error => {
+                      ElMessage({
+                        message: error?.message || '发送确认信息失败',
+                        type: 'error',
+                        duration: 3000
+                      });
+                      reject(error);
+                    });
                   }
                 };
 
@@ -100,6 +167,15 @@ function confirmOrder(orderID, reject = false) {
                     console.log('Transaction error received:', e);
                     events.off('solanaTransactionComplete', handleTransactionComplete);
                     events.off('solanaTransactionError', handleTransactionError);
+                    let errorMessage = e.error?.message || '交易失败';
+                    if (errorMessage.includes('Error Number: 3012')) {
+                      errorMessage = 'Insufficient balance or token not found';
+                    }
+                    ElMessage({
+                      message: errorMessage,
+                      type: 'error',
+                      duration: 3000
+                    });
                     reject(e.error);
                   }
                 };
@@ -154,15 +230,21 @@ export function acceptingOrder(orderID) {
   return !!acceptPosts[orderID];
 }
 
-export function acceptOrder(orderID) {
-  return confirmOrder(orderID);
+export function acceptOrder(orderID, paymentCoin) {
+  if (isStripeChain(paymentCoin)) {
+    return confirmStripeOrder(orderID, false);
+  }
+  return confirmOrder(orderID, false);
 }
 
 export function rejectingOrder(orderID) {
   return !!rejectPosts[orderID];
 }
 
-export function rejectOrder(orderID) {
+export function rejectOrder(orderID, paymentCoin) {
+  if (isStripeChain(paymentCoin)) {
+    return confirmStripeOrder(orderID, true);
+  }
   return confirmOrder(orderID, true);
 }
 
@@ -170,7 +252,7 @@ export function cancelingOrder(orderID) {
   return !!cancelPosts[orderID];
 }
 
-export function cancelOrder(orderID) {
+export function cancelOrder(orderID, paymentCoin) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -319,7 +401,66 @@ export function completingOrder(orderID) {
   return !!completePosts[orderID];
 }
 
-export function completeOrder(orderID, data = {}) {
+export function completeStripeOrder(orderID, data = {}) {
+  if (!orderID) {
+    throw new Error('Please provide an orderID');
+  }
+
+  if (!completePosts[orderID]) {
+    const model = new OrderCompletion(data);
+    const save = model.save();
+
+    if (!save) {
+      Object.keys(model.validationError)
+        .forEach(errorKey => {
+          throw new Error(`${errorKey}: ${model.validationError[errorKey][0]}`);
+        });
+    } else {
+      save.always(() => {
+        delete completePosts[orderID];
+      }).done(() => {
+        events.trigger('completeOrderComplete', {
+          id: orderID,
+          xhr: save,
+        });
+      })
+      .fail(xhr => {
+        events.trigger('completeOrderFail', {
+          id: orderID,
+          xhr: save,
+        });
+
+        const failReason = xhr.responseJSON && xhr.responseJSON.reason || '';
+        openSimpleMessage(
+          app.polyglot.t('orderUtil.failedCompleteHeading'),
+          failReason
+        );
+      });
+
+      completePosts[orderID] = {
+        xhr: save,
+        data: model.toJSON(),
+      };
+    }
+
+    events.trigger('completingOrder', {
+      id: orderID,
+      xhr: save,
+    });
+  }
+
+  return completePosts[orderID].xhr;
+}
+
+export function completeOrder(orderID, data = {}, paymentCoin) {
+  console.log('completeOrder', orderID, data, paymentCoin);
+  if (isStripeChain(paymentCoin)) {
+    return completeStripeOrder(orderID, data);
+  }
+  return completeCryptoOrder(orderID, data);
+}
+
+function completeCryptoOrder(orderID, data = {}) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -424,6 +565,15 @@ export function completeOrder(orderID, data = {}) {
                 if (e.orderID === orderID) {
                   events.off('solanaTransactionComplete', handleTransactionComplete);
                   events.off('solanaTransactionError', handleTransactionError);
+                  let errorMessage = e.error?.message || '交易失败';
+                  if (errorMessage.includes('Error Number: 3012')) {
+                    errorMessage = 'Insufficient balance or token not found';
+                  }
+                  ElMessage({
+                    message: errorMessage,
+                    type: 'error',
+                    duration: 3000
+                  });
                   rejectTx(e.error);
                 }
               };
@@ -671,6 +821,15 @@ export function acceptPayout(orderID) {
                 if (e.orderID === orderID) {
                   events.off('solanaTransactionComplete', handleTransactionComplete);
                   events.off('solanaTransactionError', handleTransactionError);
+                  let errorMessage = e.error?.message || '交易失败';
+                  if (errorMessage.includes('Error Number: 3012')) {
+                    errorMessage = 'Insufficient balance or token not found';
+                  }
+                  ElMessage({
+                    message: errorMessage,
+                    type: 'error',
+                    duration: 3000
+                  });
                   rejectTx(e.error);
                 }
               };

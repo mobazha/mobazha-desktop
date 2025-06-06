@@ -85,7 +85,7 @@ import moment from 'moment';
 import { myPost } from '../../../../api/api.js';
 import { ipc } from '../../../../utils/ipcRenderer.js';
 import { setTimeagoInterval } from '../../../../../backbone/utils/index.js';
-import { getFees } from '../../../../../backbone/utils/fees.js';
+// import { getFees } from '../../../../../backbone/utils/fees.js';
 import { getCurrencyByCode as getWalletCurByCode } from '../../../../../backbone/data/walletCurrencies.js';
 import app from '../../../../../backbone/app.js';
 import { openSimpleMessage } from '../../../../../backbone/views/modals/SimpleMessage';
@@ -322,30 +322,32 @@ export default {
     },
 
     fetchFees() {
-      this.setState({
-        retryConfirmOn: true,
-        fetchingEstimatedFee: true,
-        fetchFeeError: '',
-        fetchFeeFailed: false,
-      });
+      return;
+      
+      // this.setState({
+      //   retryConfirmOn: true,
+      //   fetchingEstimatedFee: true,
+      //   fetchFeeError: '',
+      //   fetchFeeFailed: false,
+      // });
 
-      getFees(this.coinType)
-        .done((fees) => {
-          if (this.isRemoved()) return;
-          this.setState({
-            fetchingEstimatedFee: false,
-            // server doubles the fee when bumping
-            estimatedFee: this.walletCur.feeBumpTransactionSize * fees.priority * 2,
-          });
-        })
-        .fail((reason) => {
-          if (this.isRemoved()) return;
-          this.setState({
-            fetchingEstimatedFee: false,
-            fetchFeeFailed: true,
-            fetchFeeError: reason || '',
-          });
-        });
+      // getFees(this.coinType)
+      //   .done((fees) => {
+      //     if (this.isRemoved()) return;
+      //     this.setState({
+      //       fetchingEstimatedFee: false,
+      //       // server doubles the fee when bumping
+      //       estimatedFee: this.walletCur.feeBumpTransactionSize * fees.priority * 2,
+      //     });
+      //   })
+      //   .fail((reason) => {
+      //     if (this.isRemoved()) return;
+      //     this.setState({
+      //       fetchingEstimatedFee: false,
+      //       fetchFeeFailed: true,
+      //       fetchFeeError: reason || '',
+      //     });
+      //   });
     },
 
     closeRetryConfirmBox() {
