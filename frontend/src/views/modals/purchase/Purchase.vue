@@ -1171,8 +1171,12 @@ export default {
     },
 
     async payListing() {
-      // 处理SOL支付
-      await this.processSolPayment();
+      // 根据支付币种选择不同的处理方式
+      if (this.paymentCoin === 'ETH') {
+        await this.processEthPayment();
+      } else if (this.paymentCoin === 'SOL' || this.paymentCoin === 'SOLUSDT') {
+        await this.processSolPayment();
+      }
     },
 
     insertErrors(container, errors = []) {
@@ -1339,7 +1343,7 @@ export default {
         // 调用后端接口获取SOL托管初始化指令
         const requestData = {
           orderID: this.orderID,
-          payer: this.walletAddress, // 使用Vuex中的钱包地址
+          payerAddress: this.walletAddress, // 使用Vuex中的钱包地址
           moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
           coinType: this.paymentCoin,
           amount: parseInt(this.paymentData.amount.amount) // 转换为整数
