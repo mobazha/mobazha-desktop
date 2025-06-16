@@ -38,16 +38,17 @@ import LoadingModal from '@/views/modals/Loading.vue';
 import PageNav from '@/views/PageNav.vue';
 
 import { createAppKit } from '@reown/appkit/vue';
-import {wagmiAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
+import {ethersAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
 import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
-import { useAppKit, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
+import { useAppKit, useAppKitNetwork, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import { SolanaTransactionService } from '@/services/solanaTransaction';
 import { events } from '../backbone/utils/order';
 import { mapActions, mapGetters } from 'vuex';
+import { EthTransactionService } from '@/services/ethTransaction';
 
 // Initialize AppKit
 createAppKit({
-  adapters: [wagmiAdapter, solanaWeb3JsAdapter, bitcoinAdapter],
+  adapters: [ethersAdapter, solanaWeb3JsAdapter],
   networks,
   projectId,
   themeMode: 'light',
@@ -89,12 +90,14 @@ export default {
       modalName: '',
       modalOptions: {},
       modalBBFunc: undefined,
-      transactionService: null
+      transactionService: null,
+      ethTransactionService: null
     };
   },
   setup() {
     const { connection } = useAppKitConnection();
     const appKit = useAppKit();
+    const networkData = useAppKitNetwork();
     const accountData = useAppKitAccount();
     const appKitState = useAppKitState();
     const appKitEvents = useAppKitEvents();
@@ -103,6 +106,7 @@ export default {
     return {
       connection,
       appKit,
+      networkData,
       accountData,
       appKitState,
       appKitEvents,
@@ -131,14 +135,20 @@ export default {
     initAppKit() {
       try {
         // 初始化交易服务
-        this.initTransactionService();
+        // this.initTransactionService();
+        this.initEthTransactionService();
         // 设置交易监听器
-        this.setupTransactionListener();
+        // this.setupTransactionListener();
+        this.setupEthTransactionListener();
         // 初始化钱包状态
         this.updateWalletStatus();
       } catch (error) {
         console.error('Failed to initialize AppKit:', error);
       }
+    },
+
+    switchNetwork(network) {
+      this.networkData.value.switchNetwork(network);
     },
 
     updateWalletStatus() {
@@ -158,6 +168,16 @@ export default {
       if (this.connection && walletProvider && this.accountData.address) {
         this.transactionService = new SolanaTransactionService(
           this.connection,
+          walletProvider,
+          this.accountData.address
+        );
+      }
+    },
+
+    initEthTransactionService() {
+      const { walletProvider } = useAppKitProvider('eip155');
+      if (walletProvider && this.accountData.address) {
+        this.ethTransactionService = new EthTransactionService(
           walletProvider,
           this.accountData.address
         );
@@ -189,6 +209,7 @@ export default {
           
           // 确保成功事件被正确触发
           setTimeout(() => {
+            console.log('交易完成:', signature);
             events.trigger('solanaTransactionComplete', {
               orderID: data.orderID,
               result: signature,
@@ -201,6 +222,49 @@ export default {
           // 确保错误事件被正确触发
           setTimeout(() => {
             events.trigger('solanaTransactionError', {
+              orderID: data.orderID,
+              error: error
+            });
+          }, 0);
+        }
+      });
+    },
+
+    setupEthTransactionListener() {
+      events.on('executeEthTransaction', async (data) => {
+        if (!this.ethTransactionService) {
+          console.error('ETH Transaction service not initialized');
+          ElMessage({
+            message: '请先连接钱包',
+            type: 'warning',
+            duration: 3000
+          });
+          
+          setTimeout(() => {
+            events.trigger('ethTransactionError', {
+              orderID: data.orderID,
+              error: new Error('请先连接钱包')
+            });
+          }, 0);
+          return;
+        }
+
+        try {
+          const hash = await this.ethTransactionService.executeTransaction(data.txData);
+          
+          setTimeout(() => {
+            console.log('交易完成:', hash);
+            events.trigger('ethTransactionComplete', {
+              orderID: data.orderID,
+              result: hash,
+              metadata: data.metadata
+            });
+          }, 0);
+        } catch (error) {
+          console.error('交易执行失败: ', error);
+          
+          setTimeout(() => {
+            events.trigger('ethTransactionError', {
               orderID: data.orderID,
               error: error
             });
@@ -237,7 +301,8 @@ export default {
         console.log('钱包连接状态变化:', newValue);
         if (newValue) {
           console.log('钱包已连接，地址：', this.accountData.address);
-          this.initTransactionService();
+          // this.initTransactionService();
+          this.initEthTransactionService();
         } else {
           this.transactionService = null;
           console.log('钱包已断开连接');
@@ -250,7 +315,8 @@ export default {
       handler(newValue, oldValue) {
         if (newValue && newValue !== oldValue && this.accountData.isConnected) {
           console.log('钱包地址变化:', newValue);
-          this.initTransactionService();
+          // this.initTransactionService();
+          this.initEthTransactionService();
         }
         this.updateWalletStatus();
       }

@@ -7,9 +7,7 @@ import 'element-plus/dist/index.css';
 import './assets/scss/main.scss';
 // import { TUIComponents, TUICore } from './TUIKit';
 
-import { WagmiPlugin } from '@wagmi/vue';
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query';
-import { wagmiAdapter } from './config/wallet';
 
 import VueVideoPlayer from '@videojs-player/vue'
 import 'video.js/dist/video-js.css'
@@ -57,7 +55,6 @@ function mountVueApp(container) {
   vueApp.config.productionTip = false;
   vueApp.use(VueScrollTo);
   vueApp.use(VueVideoPlayer);
-  vueApp.use(WagmiPlugin, { config: wagmiAdapter.wagmiConfig })
   vueApp.use(VueQueryPlugin, { queryClient })
 
   vueApp.use(ElementPlus);

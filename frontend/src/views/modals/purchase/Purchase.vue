@@ -1422,6 +1422,110 @@ export default {
         });
       }
     },
+
+    async processEthPayment() {
+      try {
+        // 检查钱包连接状态
+        const isConnected = await this.checkWalletConnection();
+        if (!isConnected) {
+          const confirmed = await ElMessageBox.confirm(
+            '请先连接钱包',
+            '提示',
+            {
+              confirmButtonText: '连接钱包',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }
+          );
+          
+          if (confirmed) {
+            events.trigger('connectWallet');
+            return;
+          }
+          return;
+        }
+
+        // 获取仲裁人
+        const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
+
+        // 调用后端接口获取ETH托管初始化指令
+        const requestData = {
+          orderID: this.orderID,
+          payerAddress: this.walletAddress,
+          moderator: moderator ? moderator : null,
+          coinType: this.paymentCoin,
+          amount: parseInt(this.paymentData.amount.amount)
+        };
+
+        const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
+        if (!response || !response.instructions) {
+          throw new Error('获取订单支付指令失败');
+        }
+        if (!response.paymentData) {
+          throw new Error('获取订单支付数据失败');
+        }
+
+        // 触发交易执行事件
+        events.trigger('executeEthTransaction', {
+          txData: response.instructions,
+          orderID: this.orderID,
+          metadata: response.paymentData
+        });
+
+        // 等待交易完成
+        return new Promise((resolve, reject) => {
+          const handleTransactionComplete = (e) => {
+            if (e.orderID === this.orderID) {
+              events.off('ethTransactionComplete', handleTransactionComplete);
+              events.off('ethTransactionError', handleTransactionError);
+              
+              // 交易成功后，更新支付数据并通知后端
+              const paymentData = e.metadata;
+              paymentData.transactionID = e.result;
+              paymentData.timestamp = new Date().toISOString();
+
+              myPost(app.getServerUrl('order/payment'), {paymentData})
+                .then(() => {
+                  this.setState({ phase: 'complete' });
+                  resolve();
+                })
+                .catch(error => {
+                  ElMessage({
+                    message: error?.message || '发送支付信息失败',
+                    type: 'error',
+                    duration: 3000
+                  });
+                  reject(error);
+                });
+            }
+          };
+
+          const handleTransactionError = (e) => {
+            if (e.orderID === this.orderID) {
+              events.off('ethTransactionComplete', handleTransactionComplete);
+              events.off('ethTransactionError', handleTransactionError);
+              ElMessage({
+                message: e.error?.message || '交易失败',
+                type: 'error',
+                duration: 3000
+              });
+              reject(e.error);
+            }
+          };
+
+          // 绑定事件监听器
+          events.on('ethTransactionComplete', handleTransactionComplete);
+          events.on('ethTransactionError', handleTransactionError);
+        });
+      } catch (error) {
+        console.error('支付处理失败:', error);
+        ElMessage({
+          message: error.message || '支付处理失败',
+          type: 'error',
+          duration: 3000
+        });
+      }
+    },
   },
 };
 </script>
