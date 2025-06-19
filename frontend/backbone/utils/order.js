@@ -3,7 +3,6 @@ import { Events } from 'backbone';
 import app from '../app.js';
 import { myPost } from '../../src/api/api.js';
 import OrderFulfillment from '../models/order/orderFulfillment/OrderFulfillment.js';
-import { openSimpleMessage } from '../views/modals/SimpleMessage.js';
 import OrderCompletion from '../models/order/orderCompletion/OrderCompletion.js';
 import OrderDispute from '../models/order/OrderDispute.js';
 import ResolveDispute from '../models/order/ResolveDispute.js';
@@ -63,11 +62,14 @@ function confirmStripeOrder(orderID, reject = false) {
         xhr: post,
       });
 
-      const failReason = xhr.responseJSON && xhr.responseJSON.reason || '';
-      openSimpleMessage(
-        app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`),
-        failReason
-      );
+      ElMessage({
+        message: {
+          header: app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`),
+          content: xhr.responseJSON && xhr.responseJSON.reason || ''
+        },
+        type: 'error',
+        duration: 3000
+      });
     });
 
     if (reject) {
@@ -97,128 +99,164 @@ function confirmOrder(orderID, reject) {
   }
 
   if (!confirmRequest) {
-    // 触发检查钱包连接状态的事件
-    events.trigger('checkWalletConnection', {
-      callback: async (isConnected, walletAddress) => {
-        if (!isConnected) {
-          // 触发显示钱包连接提示的事件
-          events.trigger('showWalletConnectMessage', {
-            message: '请先连接钱包',
-            type: 'warning'
-          });
-          throw new Error('Please connect your wallet first');
-        }
+    const promise = new Promise((resolve, reject) => {
+      // 触发检查钱包连接状态的事件
+      events.trigger('checkWalletConnection', {
+        callback: async (isConnected, walletAddress) => {
+          if (!isConnected) {
+            events.trigger('showWalletConnectMessage', {
+              message: '请先连接钱包',
+              type: 'warning'
+            });
+            reject(new Error('Please connect your wallet first'));
+            return;
+          }
 
-        if (!walletAddress) {
-          throw new Error('Wallet address not found');
-        }
+          if (!walletAddress) {
+            reject(new Error('Wallet address not found'));
+            return;
+          }
 
-        // 调用后端接口获取SOL托管初始化指令
-        const requestData = {
-          orderID,
-          reject,
-          initiator: walletAddress
-        };
+          try {
+            const requestData = {
+              orderID,
+              reject,
+              initiatorAddress: walletAddress
+            };
 
-        confirmRequest = myPost(app.getServerUrl('instructions/order/confirm'), requestData)
-          .then(response => {
+            const response = await myPost(app.getServerUrl('instructions/order/confirm'), requestData);
+
             if (response && response.hasInstructions === false) {
               // 如果没有指令，直接调用确认接口
-              return myPost(app.getServerUrl('order/confirm'), {
+              const result = await myPost(app.getServerUrl('order/confirm'), {
                 orderID,
                 reject,
                 transactionID: ""
               });
+              resolve(result);
             } else if (response && response.instructions) {
-              // 触发事件，让 Vue 组件处理交易
-              events.trigger('executeSolanaTransaction', {
-                instructions: response.instructions,
-                orderID,
-                reject,
-              });
-              
-              // 返回一个 Promise，等待交易完成
-              return new Promise((resolve, reject) => {
-                const handleTransactionComplete = (e) => {
-                  if (e.orderID === orderID) {
-                    events.off('solanaTransactionComplete', handleTransactionComplete);
-                    events.off('solanaTransactionError', handleTransactionError);
-                    
-                    // 交易成功后，调用后端确认接口
-                    myPost(app.getServerUrl('order/confirm'), {
-                      orderID,
-                      reject,
-                      transactionID: e.result
-                    })
-                    .then(resolve)
-                    .catch(error => {
-                      ElMessage({
-                        message: error?.message || '发送确认信息失败',
-                        type: 'error',
-                        duration: 3000
-                      });
-                      reject(error);
-                    });
-                  }
-                };
+              if (response.paymentChain === 'ETH') {
+                events.trigger('executeEthTransaction', {
+                  txData: response.instructions,
+                  orderID,
+                  reject,
+                  metadata: response
+                });
+              } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
+                events.trigger('executeSolanaTransaction', {
+                  instructions: response.instructions,
+                  orderID,
+                  reject,
+                  metadata: response
+                });
+              } else {
+                reject(new Error('暂不支持该链支付: ' + response.paymentChain));
+                return;
+              }
 
-                const handleTransactionError = (e) => {
-                  if (e.orderID === orderID) {
-                    console.log('Transaction error received:', e);
-                    events.off('solanaTransactionComplete', handleTransactionComplete);
-                    events.off('solanaTransactionError', handleTransactionError);
-                    let errorMessage = e.error?.message || '交易失败';
-                    if (errorMessage.includes('Error Number: 3012')) {
-                      errorMessage = 'Insufficient balance or token not found';
-                    }
+              const handleTransactionComplete = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('ethTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('ethTransactionError', handleTransactionError);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  
+                  // 交易成功后，调用后端确认接口
+                  myPost(app.getServerUrl('order/confirm'), {
+                    orderID,
+                    reject,
+                    transactionID: e.result
+                  })
+                  .then(resolve)
+                  .catch(error => {
                     ElMessage({
-                      message: errorMessage,
+                      message: error?.message || '发送确认信息失败',
                       type: 'error',
                       duration: 3000
                     });
-                    reject(e.error);
+                    reject(error);
+                  });
+                }
+              };
+
+              const handleTransactionError = (e) => {
+                if (e.orderID === orderID) {
+                  events.off('ethTransactionComplete', handleTransactionComplete);
+                  events.off('solanaTransactionComplete', handleTransactionComplete);
+                  events.off('ethTransactionError', handleTransactionError);
+                  events.off('solanaTransactionError', handleTransactionError);
+                  let errorMessage = e.error?.message || '交易失败';
+                  if (errorMessage.includes('Error Number: 3012')) {
+                    errorMessage = 'Insufficient balance or token not found';
                   }
-                };
+                  ElMessage({
+                    message: errorMessage,
+                    type: 'error',
+                    duration: 3000
+                  });
+                  reject(e.error);
+                }
+              };
 
-                // 立即绑定事件监听器
-                events.on('solanaTransactionComplete', handleTransactionComplete);
-                events.on('solanaTransactionError', handleTransactionError);
-              });
+              // 绑定事件监听器
+              events.on('ethTransactionComplete', handleTransactionComplete);
+              events.on('solanaTransactionComplete', handleTransactionComplete);
+              events.on('ethTransactionError', handleTransactionError);
+              events.on('solanaTransactionError', handleTransactionError);
             }
-            return response;
-          })
-          .always(() => {
-            if (reject) {
-              delete rejectPosts[orderID];
-            } else {
-              delete acceptPosts[orderID];
-            }
-          })
-          .done(() => {
-            events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
-              id: orderID,
-              xhr: confirmRequest,
-            });
-          })
-          .fail((xhr) => {
-            events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
-              id: orderID,
-              xhr: confirmRequest,
-            });
-          });
-
-        if (reject) {
-          rejectPosts[orderID] = confirmRequest;
-        } else {
-          acceptPosts[orderID] = confirmRequest;
+          } catch (error) {
+            reject(error);
+          }
         }
-
-        events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
-          id: orderID,
-          xhr: confirmRequest,
-        });
-      }
+      });
     });
+
+    // 将Promise包装成jQuery的Promise对象
+    const jqPromise = $.Deferred();
+    promise
+      .then(result => {
+        jqPromise.resolve(result);
+        events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
+          id: orderID,
+          xhr: jqPromise
+        });
+      })
+      .catch(error => {
+        jqPromise.reject(error);
+        events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
+          id: orderID,
+          xhr: jqPromise
+        });
+
+        ElMessage({
+          message: {
+            header: app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`),
+            content: error.message || ''
+          },
+          type: 'error',
+          duration: 3000
+        });
+      })
+      .finally(() => {
+        if (reject) {
+          delete rejectPosts[orderID];
+        } else {
+          delete acceptPosts[orderID];
+        }
+      });
+
+    if (reject) {
+      rejectPosts[orderID] = jqPromise;
+    } else {
+      acceptPosts[orderID] = jqPromise;
+    }
+
+    events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
+      id: orderID,
+      xhr: jqPromise
+    });
+
+    return jqPromise;
   }
 
   return confirmRequest;
@@ -276,11 +314,14 @@ export function cancelOrder(orderID, paymentCoin) {
           xhr: post,
         });
 
-        const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-        openSimpleMessage(
-          app.polyglot.t('orderUtil.failedCancelHeading'),
-          failReason,
-        );
+        ElMessage({
+          message: {
+            header: app.polyglot.t('orderUtil.failedCancelHeading'),
+            content: xhr.responseJSON && xhr.responseJSON.reason || ''
+          },
+          type: 'error',
+          duration: 3000
+        });
       });
 
     cancelPosts[orderID] = post;
@@ -330,11 +371,14 @@ export function fulfillOrder(contractType = 'PHYSICAL_GOOD', isLocalPickup = fal
             xhr: post,
           });
 
-          const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-          openSimpleMessage(
-            app.polyglot.t('orderUtil.failedFulfillHeading'),
-            failReason,
-          );
+          ElMessage({
+            message: {
+              header: app.polyglot.t('orderUtil.failedFulfillHeading'),
+              content: xhr.responseJSON && xhr.responseJSON.reason || ''
+            },
+            type: 'error',
+            duration: 3000
+          });
         });
 
       fulfillPosts[orderID] = post;
@@ -376,11 +420,14 @@ export function refundOrder(orderID) {
           xhr: post,
         });
 
-        const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-        openSimpleMessage(
-          app.polyglot.t('orderUtil.failedRefundHeading'),
-          failReason,
-        );
+        ElMessage({
+          message: {
+            header: app.polyglot.t('orderUtil.failedRefundHeading'),
+            content: xhr.responseJSON && xhr.responseJSON.reason || ''
+          },
+          type: 'error',
+          duration: 3000
+        });
       });
 
     refundPosts[orderID] = post;
@@ -430,11 +477,14 @@ export function completeStripeOrder(orderID, data = {}) {
           xhr: save,
         });
 
-        const failReason = xhr.responseJSON && xhr.responseJSON.reason || '';
-        openSimpleMessage(
-          app.polyglot.t('orderUtil.failedCompleteHeading'),
-          failReason
-        );
+        ElMessage({
+          message: {
+            header: app.polyglot.t('orderUtil.failedCompleteHeading'),
+            content: xhr.responseJSON && xhr.responseJSON.reason || ''
+          },
+          type: 'error',
+          duration: 3000
+        });
       });
 
       completePosts[orderID] = {
@@ -465,47 +515,23 @@ function completeCryptoOrder(orderID, data = {}) {
     throw new Error('Please provide an orderID');
   }
 
-  // 校验ratings数据
-  const validateRatings = (ratings) => {
-    const errors = [];
-    
-    ratings.forEach((ratingData, index) => {
-      const rating = new Rating(ratingData);
-      const validationErrors = rating.validate(ratingData);
-      
-      if (validationErrors) {
-        Object.entries(validationErrors).forEach(([field, fieldErrors]) => {
-          errors.push(`Item ${index + 1} - ${field}: ${fieldErrors.join(', ')}`);
-        });
-      }
-    });
-    
-    return errors;
-  };
-
-  // 检查是否有ratings数据
-  if (!data.ratings || !Array.isArray(data.ratings) || data.ratings.length === 0) {
-    ElMessage({
-      message: '请提供评分数据',
-      type: 'error',
-      duration: 3000
-    });
-    return Promise.reject(new Error('Ratings data is required'));
-  }
-
-  // 校验ratings数据
-  const validationErrors = validateRatings(data.ratings);
-  if (validationErrors.length > 0) {
-    ElMessage({
-      message: validationErrors.join('\n'),
-      type: 'error',
-      duration: 5000
-    });
-    return Promise.reject(new Error('Ratings validation failed'));
-  }
-
   if (completePosts[orderID]) {
     return completePosts[orderID].xhr;
+  }
+
+  const validateRatings = (ratings) => {
+    if (!ratings) return true;
+    if (typeof ratings !== 'object') return false;
+    if (ratings.overall && (typeof ratings.overall !== 'number' || ratings.overall < 1 || ratings.overall > 5)) return false;
+    if (ratings.quality && (typeof ratings.quality !== 'number' || ratings.quality < 1 || ratings.quality > 5)) return false;
+    if (ratings.description && (typeof ratings.description !== 'number' || ratings.description < 1 || ratings.description > 5)) return false;
+    if (ratings.customerService && (typeof ratings.customerService !== 'number' || ratings.customerService < 1 || ratings.customerService > 5)) return false;
+    if (ratings.delivery && (typeof ratings.delivery !== 'number' || ratings.delivery < 1 || ratings.delivery > 5)) return false;
+    return true;
+  };
+
+  if (!validateRatings(data.ratings)) {
+    throw new Error('Invalid ratings data');
   }
 
   const promise = new Promise((resolve, reject) => {
@@ -520,6 +546,7 @@ function completeCryptoOrder(orderID, data = {}) {
           reject(new Error('Please connect your wallet first'));
           return;
         }
+
         if (!walletAddress) {
           reject(new Error('Wallet address not found'));
           return;
@@ -529,12 +556,12 @@ function completeCryptoOrder(orderID, data = {}) {
           // 先请求 instructions/order/complete
           const requestData = {
             orderID,
-            initiator: walletAddress,
+            initiatorAddress: walletAddress,
             ...data
           };
-          
+
           const response = await myPost(app.getServerUrl('instructions/order/complete'), requestData);
-          
+
           if (response && response.hasInstructions === false) {
             // 没有链上指令，直接调用order/complete
             const result = await myPost(app.getServerUrl('order/complete'), {
@@ -544,51 +571,74 @@ function completeCryptoOrder(orderID, data = {}) {
             });
             resolve(result);
           } else if (response && response.instructions) {
-            // 有链上指令，先走链上交易
-            events.trigger('executeSolanaTransaction', {
-              instructions: response.instructions,
-              orderID,
-              metadata: data
-            });
-            
-            // 等待链上交易完成
-            const transactionResult = await new Promise((resolveTx, rejectTx) => {
-              const handleTransactionComplete = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionError', handleTransactionError);
-                  resolveTx(e.result);
-                }
-              };
-              
-              const handleTransactionError = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionError', handleTransactionError);
-                  let errorMessage = e.error?.message || '交易失败';
-                  if (errorMessage.includes('Error Number: 3012')) {
-                    errorMessage = 'Insufficient balance or token not found';
-                  }
+            // 根据支付币种选择不同的处理方式
+            if (response.paymentChain === 'ETH') {
+              events.trigger('executeEthTransaction', {
+                txData: response.instructions,
+                orderID,
+                metadata: response
+              });
+            } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
+              events.trigger('executeSolanaTransaction', {
+                instructions: response.instructions,
+                orderID,
+                metadata: response
+              });
+            } else {
+              reject(new Error('暂不支持该链支付: ' + response.paymentChain));
+              return;
+            }
+
+            // 等待交易完成
+            const handleTransactionComplete = (e) => {
+              if (e.orderID === orderID) {
+                events.off('ethTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('ethTransactionError', handleTransactionError);
+                events.off('solanaTransactionError', handleTransactionError);
+                
+                // 交易成功后，调用后端完成接口
+                myPost(app.getServerUrl('order/complete'), {
+                  orderID,
+                  ...data,
+                  transactionID: e.result
+                })
+                .then(resolve)
+                .catch(error => {
                   ElMessage({
-                    message: errorMessage,
+                    message: error?.message || '发送完成信息失败',
                     type: 'error',
                     duration: 3000
                   });
-                  rejectTx(e.error);
+                  reject(error);
+                });
+              }
+            };
+
+            const handleTransactionError = (e) => {
+              if (e.orderID === orderID) {
+                events.off('ethTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('ethTransactionError', handleTransactionError);
+                events.off('solanaTransactionError', handleTransactionError);
+                let errorMessage = e.error?.message || '交易失败';
+                if (errorMessage.includes('Error Number: 3012')) {
+                  errorMessage = 'Insufficient balance or token not found';
                 }
-              };
-              
-              events.on('solanaTransactionComplete', handleTransactionComplete);
-              events.on('solanaTransactionError', handleTransactionError);
-            });
-            
-            // 交易完成后，调用order/complete
-            const result = await myPost(app.getServerUrl('order/complete'), {
-              orderID,
-              ...data,
-              transactionID: transactionResult
-            });
-            resolve(result);
+                ElMessage({
+                  message: errorMessage,
+                  type: 'error',
+                  duration: 3000
+                });
+                reject(e.error);
+              }
+            };
+
+            // 绑定事件监听器
+            events.on('ethTransactionComplete', handleTransactionComplete);
+            events.on('solanaTransactionComplete', handleTransactionComplete);
+            events.on('ethTransactionError', handleTransactionError);
+            events.on('solanaTransactionError', handleTransactionError);
           }
         } catch (error) {
           reject(error);
@@ -613,18 +663,22 @@ function completeCryptoOrder(orderID, data = {}) {
         id: orderID,
         xhr: jqPromise
       });
-      // 显示错误消息
-      const failReason = error.message || '';
-      openSimpleMessage(
-        app.polyglot.t('orderUtil.failedCompleteHeading'),
-        failReason,
-      );
+
+      ElMessage({
+        message: {
+          header: app.polyglot.t('orderUtil.failedCompleteHeading'),
+          content: error.message || ''
+        },
+        type: 'error',
+        duration: 3000
+      });
     })
     .finally(() => {
       delete completePosts[orderID];
     });
 
   completePosts[orderID] = { xhr: jqPromise, data };
+
   events.trigger('completingOrder', {
     id: orderID,
     xhr: jqPromise
@@ -671,11 +725,14 @@ export function openDispute(orderID, data = {}) {
             xhr: save,
           });
 
-          const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-          openSimpleMessage(
-            app.polyglot.t('orderUtil.failedOpenDisputeHeading'),
-            failReason,
-          );
+          ElMessage({
+            message: {
+              header: app.polyglot.t('orderUtil.failedOpenDisputeHeading'),
+              content: xhr.responseJSON && xhr.responseJSON.reason || ''
+            },
+            type: 'error',
+            duration: 3000
+          });
         });
 
       openDisputePosts[orderID] = {
@@ -736,11 +793,14 @@ export function resolveDispute(model) {
             xhr: save,
           });
 
-          const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-          openSimpleMessage(
-            app.polyglot.t('orderUtil.failedResolveHeading'),
-            failReason,
-          );
+          ElMessage({
+            message: {
+              header: app.polyglot.t('orderUtil.failedResolveHeading'),
+              content: xhr.responseJSON && xhr.responseJSON.reason || ''
+            },
+            type: 'error',
+            duration: 3000
+          });
         });
 
       resolvePosts[orderID] = {
@@ -784,6 +844,7 @@ export function acceptPayout(orderID) {
           reject(new Error('Please connect your wallet first'));
           return;
         }
+
         if (!walletAddress) {
           reject(new Error('Wallet address not found'));
           return;
@@ -792,7 +853,7 @@ export function acceptPayout(orderID) {
         try {
           const requestData = {
             orderID,
-            initiator: walletAddress
+            initiatorAddress: walletAddress
           };
           
           const response = await myPost(app.getServerUrl('instructions/dispute/release'), requestData);
@@ -803,47 +864,73 @@ export function acceptPayout(orderID) {
             });
             resolve(result);
           } else if (response && response.instructions) {
-            events.trigger('executeSolanaTransaction', {
-              instructions: response.instructions,
-              orderID
-            });
-            
-            const transactionResult = await new Promise((resolveTx, rejectTx) => {
-              const handleTransactionComplete = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionError', handleTransactionError);
-                  resolveTx(e.result);
-                }
-              };
-              
-              const handleTransactionError = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionError', handleTransactionError);
-                  let errorMessage = e.error?.message || '交易失败';
-                  if (errorMessage.includes('Error Number: 3012')) {
-                    errorMessage = 'Insufficient balance or token not found';
-                  }
+            // 根据支付币种选择不同的处理方式
+            if (response.paymentChain === 'ETH') {
+              events.trigger('executeEthTransaction', {
+                txData: response.instructions,
+                orderID,
+                metadata: response
+              });
+            } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
+              events.trigger('executeSolanaTransaction', {
+                instructions: response.instructions,
+                orderID,
+                metadata: response
+              });
+            } else {
+              reject(new Error('暂不支持该链支付: ' + response.paymentChain));
+              return;
+            }
+
+            // 等待交易完成
+            const handleTransactionComplete = (e) => {
+              if (e.orderID === orderID) {
+                events.off('ethTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('ethTransactionError', handleTransactionError);
+                events.off('solanaTransactionError', handleTransactionError);
+                
+                // 交易成功后，调用dispute/release
+                myPost(app.getServerUrl('dispute/release'), {
+                  orderID,
+                  transactionID: e.result
+                })
+                .then(resolve)
+                .catch(error => {
                   ElMessage({
-                    message: errorMessage,
+                    message: error?.message || '发送支付信息失败',
                     type: 'error',
                     duration: 3000
                   });
-                  rejectTx(e.error);
+                  reject(error);
+                });
+              }
+            };
+
+            const handleTransactionError = (e) => {
+              if (e.orderID === orderID) {
+                events.off('ethTransactionComplete', handleTransactionComplete);
+                events.off('solanaTransactionComplete', handleTransactionComplete);
+                events.off('ethTransactionError', handleTransactionError);
+                events.off('solanaTransactionError', handleTransactionError);
+                let errorMessage = e.error?.message || '交易失败';
+                if (errorMessage.includes('Error Number: 3012')) {
+                  errorMessage = 'Insufficient balance or token not found';
                 }
-              };
-              
-              events.on('solanaTransactionComplete', handleTransactionComplete);
-              events.on('solanaTransactionError', handleTransactionError);
-            });
-            
-            // 交易完成后，调用dispute/release
-            const result = await myPost(app.getServerUrl('dispute/release'), {
-              orderID,
-              transactionID: transactionResult
-            });
-            resolve(result);
+                ElMessage({
+                  message: errorMessage,
+                  type: 'error',
+                  duration: 3000
+                });
+                reject(e.error);
+              }
+            };
+
+            // 绑定事件监听器
+            events.on('ethTransactionComplete', handleTransactionComplete);
+            events.on('solanaTransactionComplete', handleTransactionComplete);
+            events.on('ethTransactionError', handleTransactionError);
+            events.on('solanaTransactionError', handleTransactionError);
           }
         } catch (error) {
           reject(error);
@@ -869,18 +956,21 @@ export function acceptPayout(orderID) {
         xhr: jqPromise
       });
 
-      const failReason = error.message || '';
-      openSimpleMessage(
-        app.polyglot.t('orderUtil.failedAcceptPayoutHeading'),
-        failReason,
-      );
+      ElMessage({
+        message: {
+          header: app.polyglot.t('orderUtil.failedAcceptPayoutHeading'),
+          content: error.message || ''
+        },
+        type: 'error',
+        duration: 3000
+      });
     })
     .finally(() => {
       delete acceptPayoutPosts[orderID];
     });
 
-  // 保存到acceptPayoutPosts中
   acceptPayoutPosts[orderID] = { xhr: jqPromise };
+
   events.trigger('acceptingPayout', {
     id: orderID,
     xhr: jqPromise
@@ -917,11 +1007,14 @@ export function releaseEscrow(orderID) {
           xhr: post,
         });
 
-        const failReason = (xhr.responseJSON && xhr.responseJSON.reason) || '';
-        openSimpleMessage(
-          app.polyglot.t('orderUtil.failedReleaseEscrowHeading'),
-          failReason,
-        );
+        ElMessage({
+          message: {
+            header: app.polyglot.t('orderUtil.failedReleaseEscrowHeading'),
+            content: xhr.responseJSON && xhr.responseJSON.reason || ''
+          },
+          type: 'error',
+          duration: 3000
+        });
       });
 
     releaseEscrowPosts[orderID] = post;
