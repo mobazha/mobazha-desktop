@@ -35,7 +35,7 @@
             <CryptoIcon :code="token.id" />
           </div>
           <div class="tokenInfo">
-            <span class="tokenName">{{ token.name }}</span>
+            <span class="tokenName">{{ token.token }}</span>
             <span v-if="token.type" class="tokenType">({{ token.type }})</span>
           </div>
         </div>
@@ -82,6 +82,7 @@
 </template>
 
 <script>
+import { tokens, chains, fiatMethods } from '@/config/token.js';
 
 export default {
   props: {
@@ -100,63 +101,9 @@ export default {
       selectedToken: this.modelValue,
       showAllTokens: false,
       maxVisibleTokens: 12, // 每行4个，最多显示3行
-      chains: [
-        { id: 'all', name: '全部', icon: 'ion-android-list', count: 0 },
-        { id: 'bitcoin', name: 'Bitcoin', iconCode: 'BTC', count: 0 },
-        { id: 'ethereum', name: '以太坊', iconCode: 'ETH', count: 0 },
-        { id: 'solana', name: 'Solana', iconCode: 'SOL', count: 0 },
-        { id: 'bsc', name: 'BNB Chain', iconCode: 'BNB', count: 0 },
-        { id: 'base', name: 'Base', iconCode: 'BASE', count: 0 },
-        { id: 'polygon', name: 'Polygon', iconCode: 'MATIC', count: 0 },
-        { id: 'privacy', name: '隐私币', icon: 'ion-ios-locked', count: 0 }
-      ],
-      tokens: [
-        // Bitcoin
-        { id: 'BTC', name: 'BTC', chain: 'bitcoin', disabled: false },
-        
-        // 以太坊代币
-        { id: 'ETH', name: 'ETH', chain: 'ethereum', disabled: false },
-        { id: 'USDT', name: 'USDT', chain: 'ethereum', type: 'ERC20', disabled: false },
-        { id: 'USDC', name: 'USDC', chain: 'ethereum', type: 'ERC20', disabled: false },
-        { id: 'DAI', name: 'DAI', chain: 'ethereum', type: 'ERC20', disabled: false },
-        
-        // Solana代币
-        { id: 'SOL', name: 'SOL', chain: 'solana', disabled: false },
-        { id: 'SOLUSDT', name: 'USDT', chain: 'solana', type: 'SPL', disabled: false },
-        { id: 'SOLUSDC', name: 'USDC', chain: 'solana', type: 'SPL', disabled: false },
-        
-        // BSC代币
-        { id: 'BNB', name: 'BNB', chain: 'bsc', disabled: false },
-        { id: 'BUSD', name: 'BUSD', chain: 'bsc', type: 'BEP20', disabled: false },
-        { id: 'BSCUSDT', name: 'USDT', chain: 'bsc', type: 'BEP20', disabled: false },
-        
-        // Base代币
-        { id: 'BASEETH', name: 'ETH', chain: 'base', disabled: false },
-        { id: 'BASEUSDC', name: 'USDC', chain: 'base', type: 'Base', disabled: false },
-        
-        // Polygon代币
-        { id: 'MATIC', name: 'MATIC', chain: 'polygon', disabled: false },
-        { id: 'MATICUSDT', name: 'USDT', chain: 'polygon', type: 'Polygon', disabled: false },
-        { id: 'MATICUSDC', name: 'USDC', chain: 'polygon', type: 'Polygon', disabled: false },
-        
-        // 隐私币
-        { id: 'XMR', name: 'XMR', chain: 'privacy', disabled: false },
-        { id: 'ZEC', name: 'ZEC', chain: 'privacy', disabled: false }
-      ],
-      fiatMethods: [
-        { 
-          id: 'stripe', 
-          name: 'Stripe', 
-          icon: 'ion-card',
-          disabled: false
-        },
-        { 
-          id: 'paypal', 
-          name: 'PayPal', 
-          icon: 'ion-social-usd',
-          disabled: false
-        }
-      ]
+      chains,
+      tokens,
+      fiatMethods
     };
   },
   computed: {

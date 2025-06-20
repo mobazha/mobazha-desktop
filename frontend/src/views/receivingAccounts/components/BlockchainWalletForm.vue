@@ -70,7 +70,7 @@
                  :value="token.id" 
                  v-model="localTokens" 
                  @change="updateTokens" />
-          <label :for="token.id">{{ token.name }}</label>
+          <label :for="token.id">{{ token.token }}</label>
         </div>
       </div>
     </div>
@@ -86,6 +86,7 @@
 
 <script>
 import ToggleSwitch from './ToggleSwitch.vue';
+import { getTokensByChain } from '@/config/token.js';
 
 export default {
   components: {
@@ -161,37 +162,8 @@ export default {
     },
     
     getAvailableTokens(chainType) {
-      switch (chainType) {
-        case 'BTC':
-          return [
-            { id: 'BTC', name: 'BTC (比特币)' }
-          ];
-        case 'ETH':
-          return [
-            { id: 'ETH', name: 'ETH (以太坊)' },
-            { id: 'USDT', name: 'USDT (泰达币)' },
-            { id: 'USDC', name: 'USDC (USD Coin)' },
-            { id: 'DAI', name: 'DAI (Dai)' }
-          ];
-        case 'SOL':
-          return [
-            { id: 'SOL', name: 'SOL (Solana)' },
-            { id: 'SOLUSDT', name: 'USDT (Solana USDT)' },
-            { id: 'SOLUSDC', name: 'USDC (Solana USDC)' }
-          ];
-        case 'BSC':
-          return [
-            { id: 'BNB', name: 'BNB (Binance Coin)' },
-            { id: 'BUSD', name: 'BUSD (Binance USD)' },
-            { id: 'CAKE', name: 'CAKE (PancakeSwap)' }
-          ];
-        case 'Base':
-          return [
-            { id: 'ETH', name: 'ETH (Base ETH)' }
-          ];
-        default:
-          return [];
-      }
+      // 使用配置文件中的代币数据
+      return getTokensByChain(chainType);
     }
   }
 };
