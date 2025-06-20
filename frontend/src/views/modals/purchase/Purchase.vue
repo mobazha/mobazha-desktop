@@ -449,6 +449,7 @@ import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessa
 import PopInMessage, { buildRefreshAlertMessage } from '../../../../backbone/views/components/PopInMessage';
 import * as casdoor from '../../../utils/casdoor';
 import { events } from '../../../../backbone/utils/order';
+import { convertCurrency } from '../../../utils/exchangeRate';
 
 import ActionBtn from './ActionBtn.vue';
 import Complete from './Complete.vue';
@@ -1104,10 +1105,11 @@ export default {
           // Strip the 'cid' so it doesn't go to the server. Normally this is
           // done in the sync of the baseModel, but since we're POSTing outside of
           // that, we'll replicate that cleanup here.
+          let pricingCoin = this.oneListing.get('metadata').get('pricingCurrency').code
           const postData = removeProp(
             {
               ...this.order.toJSON(),
-              pricingCoin: this.paymentCoin,
+              pricingCoin,
               items: this.oneListing.isCrypto ? cryptoItems : this.order.get('items').toJSON(),
             },
             'cid'
@@ -1340,13 +1342,35 @@ export default {
         // 获取仲裁人
         const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
 
+        // 计算转换后的金额
+        let convertedAmount = this.paymentData.amount.amount;
+        
+        // 如果定价币种和支付币种不同，需要进行汇率转换
+        if (this.paymentData.pricingCoin !== this.paymentCoin) {
+          const conversionResult = await convertCurrency(
+            this.paymentData.amount.amount,
+            this.paymentData.pricingCoin,
+            this.paymentCoin
+          );
+          
+          if (!conversionResult.success) {
+            ElMessage.error(`汇率转换失败: ${conversionResult.error}`);
+            return;
+          }
+          
+          // 使用最小精度单位
+          convertedAmount = conversionResult.convertedAmountInSmallestUnit;
+          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${conversionResult.convertedAmountInSmallestUnit} 最小单位)`);
+          console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
+        }
+
         // 调用后端接口获取SOL托管初始化指令
         const requestData = {
           orderID: this.orderID,
           payerAddress: this.walletAddress, // 使用Vuex中的钱包地址
           moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
           coinType: this.paymentCoin,
-          amount: parseInt(this.paymentData.amount.amount) // 转换为整数
+          amount: convertedAmount // 直接使用最小精度单位
         };
 
         const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
@@ -1448,13 +1472,35 @@ export default {
         // 获取仲裁人
         const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
 
+        // 计算转换后的金额
+        let convertedAmount = this.paymentData.amount.amount;
+        
+        // 如果定价币种和支付币种不同，需要进行汇率转换
+        if (this.paymentData.pricingCoin !== this.paymentCoin) {
+          const conversionResult = await convertCurrency(
+            this.paymentData.amount.amount,
+            this.paymentData.pricingCoin,
+            this.paymentCoin
+          );
+          
+          if (!conversionResult.success) {
+            ElMessage.error(`汇率转换失败: ${conversionResult.error}`);
+            return;
+          }
+          
+          // 使用最小精度单位
+          convertedAmount = conversionResult.convertedAmountInSmallestUnit;
+          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${conversionResult.convertedAmountInSmallestUnit} 最小单位)`);
+          console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
+        }
+
         // 调用后端接口获取ETH托管初始化指令
         const requestData = {
           orderID: this.orderID,
           payerAddress: this.walletAddress,
           moderator: moderator ? moderator : null,
           coinType: this.paymentCoin,
-          amount: parseInt(this.paymentData.amount.amount)
+          amount: convertedAmount // 直接使用最小精度单位
         };
 
         const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);

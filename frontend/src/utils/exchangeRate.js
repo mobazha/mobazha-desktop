@@ -56,6 +56,14 @@ const POLYGON_RPC_URL = 'https://polygon-rpc.com';
 
 // 价格源配置
 const PRICE_FEEDS = {
+  USDT: {
+    name: 'USDT/USD',
+    address: '0x0A6513e40db6EB1b165753AD52E80663aeA50545'
+  },
+  USDC: {
+    name: 'USDC/USD',
+    address: '0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7'
+  },
   SOL: {
     name: 'SOL/USD',
     address: '0x10C8264C0935b3B9870013e057f330Ff3e9C56dC'
@@ -76,10 +84,6 @@ const PRICE_FEEDS = {
     name: 'ETH/USD',
     address: '0xF9680D99D6C9589e2a93a78A04A279e509205945'
   },
-  USDT: {
-    name: 'USDT/USD',
-    address: '0x0A6513e40db6EB1b165753AD52E80663aeA50545'
-  },
   BCH: {
     name: 'BCH/USD',
     address: '0x327d9822e9932996f55b39F557AEC838313da8b7'
@@ -98,17 +102,44 @@ const PRICE_FEEDS = {
   },
 };
 
+// 币种精度配置
+const CURRENCY_DIVISIBILITY = {
+  USD: 100,    // USD 精度为 2 位小数
+  USDT: 100,   // USDT 精度为 2 位小数
+  USDC: 100,   // USDC 精度为 2 位小数
+  BTC: 100000000,  // BTC 精度为 8 位小数
+  ETH: 1000000000000000000,  // ETH 精度为 18 位小数
+  SOL: 1000000000,  // SOL 精度为 9 位小数
+  BNB: 1000000000000000000,  // BNB 精度为 18 位小数
+  MATIC: 1000000000000000000,  // MATIC 精度为 18 位小数
+  BCH: 100000000,  // BCH 精度为 8 位小数
+  LTC: 100000000,  // LTC 精度为 8 位小数
+  ZEC: 100000000,  // ZEC 精度为 8 位小数
+  XMR: 1000000000000,  // XMR 精度为 12 位小数
+};
+
+// 创建Provider的辅助函数
+function createProvider() {
+  return new ethers.JsonRpcProvider(POLYGON_RPC_URL);
+}
+
 // 获取单个价格源的最新价格数据
 async function getPriceFeedData(provider, feedAddress) {
   try {
     const priceFeed = new ethers.Contract(feedAddress, CHAINLINK_ABI, provider);
     const roundData = await priceFeed.latestRoundData();
     const decimals = await priceFeed.decimals();
-    const price = roundData.answer.toNumber() / Math.pow(10, decimals);
+    
+    // 安全转换BigInt到Number
+    const answerValue = Number(roundData.answer.toString());
+    const updatedAtValue = Number(roundData.updatedAt.toString());
+    const decimalsValue = Number(decimals.toString());
+    
+    const price = answerValue / Math.pow(10, decimalsValue);
     
     return {
       price,
-      updatedAt: new Date(roundData.updatedAt.toNumber() * 1000).toLocaleString(),
+      updatedAt: new Date(updatedAtValue * 1000).toLocaleString(),
       roundId: roundData.roundId.toString()
     };
   } catch (error) {
@@ -123,7 +154,7 @@ async function getAllPrices() {
     console.log('正在从 Chainlink 获取加密货币价格...');
     
     // 创建 Provider
-    const provider = new ethers.providers.JsonRpcProvider(POLYGON_RPC_URL);
+    const provider = createProvider();
     
     // 获取所有价格
     const results = {};
@@ -156,7 +187,7 @@ async function getExchangeRate(symbol) {
     console.log(`正在获取 ${symbol}/USD 汇率...`);
     
     // 创建 Provider
-    const provider = new ethers.providers.JsonRpcProvider(POLYGON_RPC_URL);
+    const provider = createProvider();
     
     // 获取价格数据
     const data = await getPriceFeedData(provider, PRICE_FEEDS[symbol].address);
@@ -178,9 +209,110 @@ async function getExchangeRate(symbol) {
   }
 }
 
+// 汇率转换辅助方法
+async function convertCurrency(amount, fromCurrency, toCurrency) {
+  try {
+    // 如果源币种和目标币种相同，直接返回原金额
+    if (fromCurrency === toCurrency) {
+      return {
+        originalAmount: amount,
+        convertedAmount: amount,
+        fromCurrency,
+        toCurrency,
+        rate: 1,
+        success: true
+      };
+    }
+
+    let fromRate, toRate;
+
+    // 处理源币种是USD的情况
+    if (fromCurrency === 'USD') {
+      fromRate = 1; // USD对USD的汇率是1
+    } else {
+      // 获取源币种对USD的汇率
+      const fromRateData = await getExchangeRate(fromCurrency);
+      if (!fromRateData) {
+        throw new Error(`无法获取源币种汇率数据: ${fromCurrency}`);
+      }
+      fromRate = fromRateData.rate;
+    }
+
+    // 处理目标币种是USD的情况
+    if (toCurrency === 'USD') {
+      toRate = 1; // USD对USD的汇率是1
+    } else {
+      // 获取目标币种对USD的汇率
+      const toRateData = await getExchangeRate(toCurrency);
+      if (!toRateData) {
+        throw new Error(`无法获取目标币种汇率数据: ${toCurrency}`);
+      }
+      toRate = toRateData.rate;
+    }
+
+    // 获取币种精度
+    const fromDivisibility = CURRENCY_DIVISIBILITY[fromCurrency] || 1;
+    const toDivisibility = CURRENCY_DIVISIBILITY[toCurrency] || 1;
+
+    // 计算转换后的金额（考虑精度）
+    // 输入金额已经是最小精度单位，需要先转换为标准单位
+    const amountInStandardUnit = amount / fromDivisibility;
+    
+    // 公式：转换后金额 = 标准单位金额 × (源币种汇率 ÷ 目标币种汇率)
+    const convertedAmount = amountInStandardUnit * (fromRate / toRate);
+    
+    // 转换为最小精度单位
+    const convertedAmountInSmallestUnit = Math.round(convertedAmount * toDivisibility);
+    
+    // 计算直接汇率（源币种对目标币种的汇率）
+    const directRate = fromRate / toRate;
+
+    return {
+      originalAmount: amount,
+      originalAmountInStandardUnit: amountInStandardUnit, // 标准单位金额
+      convertedAmount,
+      convertedAmountInSmallestUnit, // 以最小精度单位返回
+      fromCurrency,
+      toCurrency,
+      fromRate,
+      toRate,
+      fromDivisibility,
+      toDivisibility,
+      directRate,
+      success: true,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error(`汇率转换失败 (${fromCurrency} -> ${toCurrency}):`, error.message);
+    return {
+      originalAmount: amount,
+      convertedAmount: null,
+      fromCurrency,
+      toCurrency,
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// 精度转换辅助方法
+function convertToSmallestUnit(amount, currency) {
+  const divisibility = CURRENCY_DIVISIBILITY[currency] || 1;
+  return Math.round(amount * divisibility);
+}
+
+function convertFromSmallestUnit(amountInSmallestUnit, currency) {
+  const divisibility = CURRENCY_DIVISIBILITY[currency] || 1;
+  return amountInSmallestUnit / divisibility;
+}
+
 // 导出方法
 export {
   getAllPrices,
   getExchangeRate,
+  convertCurrency,
+  convertToSmallestUnit,
+  convertFromSmallestUnit,
+  CURRENCY_DIVISIBILITY,
   PRICE_FEEDS
 };

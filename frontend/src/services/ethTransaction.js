@@ -14,13 +14,18 @@ export class EthTransactionService {
     try {
       // 确保地址格式正确
       const toAddress = ethers.getAddress(txData.to);
-      
-      // txData.value = "0.0001"
 
-      // 处理 value 字段
+      // 处理 value 字段 - 从 Wei 转换为 ETH 标准单位
       let valueHex;
       if (txData.value && txData.value !== '0') {
-        valueHex = ethers.toBeHex(ethers.parseEther(txData.value));
+        // 使用 ethers.formatEther 将 Wei 转换为 ETH
+        const valueInEth = ethers.formatEther(txData.value);
+        console.log('转换后的 value (ETH):', valueInEth);
+        
+        // 使用 parseEther 将 ETH 转换为 Wei，然后转换为 hex
+        const valueInWei = ethers.parseEther(valueInEth);
+        // 直接使用 BigInt 转换为 hex，避免前导零问题
+        valueHex = '0x' + valueInWei.toString(16);
       }
 
       // 构建 eth_call 参数
