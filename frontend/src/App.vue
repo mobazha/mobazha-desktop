@@ -14,6 +14,10 @@
       </div>
     </section>
     <section id="statusBar"></section>
+    
+    <!-- Vue聊天组件 -->
+    <ChatContainer />
+    
     <div id="chatCloseBtn" class="chatCloseBtn js-chatClose ion-ios-close-empty iconBtn clrP clrBr4 clrT2"></div>
     <div id="chatContainer"></div>
     <div id="chatConvoContainer" class="clrP clrBr3"></div>
@@ -36,6 +40,7 @@ import ShoppingCart from '@/views/ShoppingCart.vue';
 import Purchase from '@/views/modals/purchase/Purchase.vue';
 import LoadingModal from '@/views/modals/Loading.vue';
 import PageNav from '@/views/PageNav.vue';
+import ChatContainer from '@/components/chat/ChatContainer.vue';
 
 import { createAppKit } from '@reown/appkit/vue';
 import {ethersAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
@@ -80,6 +85,7 @@ export default {
     Purchase,
     LoadingModal,
     PageNav,
+    ChatContainer,
   },
   name: 'App',
   data() {

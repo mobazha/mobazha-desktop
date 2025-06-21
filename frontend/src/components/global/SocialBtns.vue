@@ -82,8 +82,25 @@ export default {
     },
 
     onClickMessage() {
-      // activate the chat message
-      app.chat.openConversation(this.options.targetID);
+      // 使用新的Vue聊天系统
+      if (window.vueApp && window.vueApp.$store) {
+        // 先打开聊天窗口
+        if (window.vueApp.$chat) {
+          window.vueApp.$chat.open();
+        }
+        
+        // 然后设置当前会话
+        const conversation = {
+          peerID: this.options.targetID,
+          profile: null // 稍后会通过API获取
+        };
+        
+        window.vueApp.$store.dispatch('chat/setCurrentConversation', conversation);
+        
+        // 获取用户资料
+        window.vueApp.$store.dispatch('chat/fetchConversations');
+      }
+      
       recordEvent('Social_OpenChat');
     },
 

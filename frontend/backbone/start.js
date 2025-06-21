@@ -19,15 +19,12 @@ import serverConnect, {
 import { myGet, myPost } from '../src/api/api';
 
 import ObRouter from './router';
-import { getChatContainer, getBody } from './utils/selectors';
 import { addFeedback } from './utils/feedback';
 import { addMetrics, showMetricsModal, isNewerVersion } from './utils/metrics';
 import { showUpdateStatus, updateReady } from './utils/autoUpdate';
 import { handleLinks } from './utils/dom';
 import { persist as persistOutdatedListingHashes } from './utils/outdatedListingHashes';
 import { printLog } from './utils/log.js';
-import Chat from './views/chat/Chat';
-import ChatHeads from './collections/ChatHeads';
 import LoadingModal from './views/modals/Loading';
 import StartupConnectMessaging from './views/StartupConnectMessaging';
 import { openSimpleMessage } from './views/modals/SimpleMessage';
@@ -604,24 +601,17 @@ function start() {
             Backbone.history.start();
           }
 
-          // load chat
-          const chatConvos = new ChatHeads();
-
-          chatConvos.once('request', (cl, xhr) => {
-            xhr.always(() => app.chat.attach(getChatContainer()));
-          });
-
-          app.chat = new Chat({
-            collection: chatConvos,
-            $scrollContainer: getChatContainer(),
-          });
-
-          chatConvos.fetch();
-          $('#chatCloseBtn').on('click', () => (app.chat.close()));
-
-          getChatContainer()
-            .on('mouseenter', () => getBody().addClass('chatHover'))
-            .on('mouseleave', () => getBody().removeClass('chatHover'));
+          // 初始化Vue聊天模块
+          if (window.vueApp && window.vueApp.$chat) {
+            // 获取WebSocket连接并传递给聊天模块
+            const serverSocket = getSocket();
+            if (serverSocket) {
+              window.vueApp.$store.dispatch('chat/initSocket', serverSocket);
+            }
+            
+            // 初始化聊天数据
+            window.vueApp.$chat.getConversations();
+          }
 
           fetchVerifiedMods();
           setInterval(() => fetchVerifiedMods(), 1000 * 60 * 60);
@@ -697,7 +687,6 @@ serverConnectEvents.on('connected', () => {
   } else {
     connectedAtLeastOnce = true;
     app.connectionManagmentModal.close();
-    if (app.chat) app.chat.show();
   }
 });
 
@@ -709,9 +698,8 @@ serverConnectEvents.on('disconnected', () => {
     showCloseButton: false,
   });
 
-  if (app.chat) {
-    app.chat.close();
-    app.chat.hide();
+  if (window.vueApp && window.vueApp.$chat) {
+    window.vueApp.$chat.close();
   }
 
   app.pageNav.navigable = false;

@@ -19,6 +19,7 @@ import '/styles/lib/select2.css';
 import "/styles/main.scss";
 
 import VueBackbone from './plugins/vue-backbone/vue-backbone';
+import ChatPlugin from './plugins/chat';
 
 import app from '../backbone/app';
 
@@ -75,7 +76,7 @@ function mountVueApp(container) {
     }
   );
 
-  const appInstance = vueApp.use(Router).use(store).use(VueBackbone).mount(container);
+  const appInstance = vueApp.use(Router).use(store).use(VueBackbone).use(ChatPlugin).mount(container);
   Router.beforeEach((to, from) => {
     appInstance.showLoadingModal = true;
   });

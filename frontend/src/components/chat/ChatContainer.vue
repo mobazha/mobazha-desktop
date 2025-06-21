@@ -13,34 +13,7 @@
     <div v-else class="chat-main-container">
       <!-- 聊天头部 -->
       <div class="chat-header">
-        <div class="chat-header-content">
-          <h3 v-if="!currentConversation">{{ $t('chat.title') }}</h3>
-          
-          <!-- 用户信息显示区域 -->
-          <div v-if="currentConversation" class="user-info-section">
-            <div class="user-details">
-              <div class="user-name">
-                {{ getUserDisplayName(currentConversation) }}
-              </div>
-              <div class="user-location">
-                {{ currentConversation.profile?.location || $t('userPage.noLocation') }}
-                <a class="ratingStrip clickable" 
-                   v-if="currentConversation.profile?.stats"
-                   @click="goToUserRating(currentConversation.peerID)"
-                   :title="$t('chat.userInfo.viewRating')"
-                   v-html="formatRating(currentConversation.profile.stats.averageRating, currentConversation.profile.stats.ratingCount)">
-                </a>
-              </div>
-              <div class="user-id">
-                <span class="id-label">{{ $t('chat.userInfo.idLabel') }}</span>
-                <span class="id-value clickable" @click="goToUserStore(currentConversation.peerID)">
-                  {{ currentConversation.peerID }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
+        <h3>聊天</h3>
         <el-button type="text" @click="closeChat" class="close-btn">
           <el-icon><Close /></el-icon>
         </el-button>
@@ -50,25 +23,9 @@
       <div class="chat-body">
         <!-- 左侧会话列表 -->
         <div class="conversations-sidebar">
-          <!-- 搜索框 -->
-          <div class="search-section">
-            <div class="search-container">
-              <el-input
-                v-model="searchQuery"
-                :placeholder="$t('chat.conversations.searchPlaceholder')"
-                class="search-input"
-                clearable
-              >
-                <template #prefix>
-                  <el-icon><Search /></el-icon>
-                </template>
-              </el-input>
-            </div>
-          </div>
-          
           <div class="conversations-list">
             <div 
-              v-for="conversation in filteredConversations" 
+              v-for="conversation in conversations" 
               :key="conversation.peerID"
               class="conversation-item"
               :class="{ 
@@ -93,7 +50,7 @@
               </div>
               
               <div class="conversation-info">
-                <div class="conversation-name">{{ getUserDisplayName(conversation) }}</div>
+                <div class="conversation-name">{{ conversation.peerID }}</div>
                 <div class="conversation-last-message" v-html="conversation.lastMessage"></div>
               </div>
               
@@ -102,18 +59,16 @@
               </div>
             </div>
             
-            <div v-if="loading" class="loading-container" v-loading="loading">
-              <div class="loading-content">
-                <div class="loading-text">{{ $t('chat.loading') }}</div>
-              </div>
+            <div v-if="loading" class="loading-container">
+              <el-loading />
             </div>
             
             <div v-if="error" class="error-container">
               <el-alert :title="error" type="error" show-icon />
             </div>
             
-            <div v-if="filteredConversations.length === 0 && !loading" class="no-conversations">
-              <el-empty :description="searchQuery ? $t('chat.conversations.noMatchingConversations') : $t('chat.conversations.noConversations')" />
+            <div v-if="conversations.length === 0 && !loading" class="no-conversations">
+              <el-empty description="暂无会话" />
             </div>
           </div>
         </div>
@@ -132,7 +87,7 @@
           
           <!-- 未选择会话时的提示 -->
           <div v-else class="no-conversation-selected">
-            <el-empty :description="$t('chat.conversations.selectConversation')" />
+            <el-empty description="选择一个会话开始聊天" />
           </div>
         </div>
       </div>
@@ -142,14 +97,12 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useChatStore } from '@/stores/chat';
-import { ElButton, ElIcon, ElAvatar, ElBadge, ElAlert, ElEmpty, ElInput } from 'element-plus';
-import { ChatDotRound, Close, Search } from '@element-plus/icons-vue';
+import { useStore } from 'vuex';
+import { ElButton, ElIcon, ElAvatar, ElBadge, ElLoading, ElAlert, ElEmpty } from 'element-plus';
+import { ChatDotRound, Close } from '@element-plus/icons-vue';
 import ChatMessages from './ChatMessages.vue';
 import moment from 'moment';
 import { getAvatarBgImage } from '../../../backbone/utils/responsive';
-import { formatRating } from '../../../backbone/utils/templateHelpers';
 
 export default {
   name: 'ChatContainer',
@@ -158,46 +111,28 @@ export default {
     ElIcon,
     ElAvatar,
     ElBadge,
+    ElLoading,
     ElAlert,
     ElEmpty,
-    ElInput,
     ChatMessages,
     ChatDotRound,
-    Close,
-    Search
+    Close
   },
   setup() {
-    const { t } = useI18n();
-    const chatStore = useChatStore();
+    const store = useStore();
     const isOpen = ref(false);
     const debug = ref(false);
-    const searchQuery = ref('');
     
     // 计算属性
-    const conversations = computed(() => chatStore.conversations);
-    const currentConversation = computed(() => chatStore.currentConversation);
-    const currentMessages = computed(() => chatStore.currentMessages);
-    const unreadCount = computed(() => chatStore.unreadCount);
-    const loading = computed(() => chatStore.loading);
-    const error = computed(() => chatStore.error);
-    
-    // 过滤后的会话列表
-    const filteredConversations = computed(() => {
-      if (!searchQuery.value.trim()) {
-        return conversations.value;
-      }
-      
-      const query = searchQuery.value.toLowerCase().trim();
-      return conversations.value.filter(conversation => {
-        const userName = getUserDisplayName(conversation).toLowerCase();
-        const userID = conversation.peerID.toLowerCase();
-        const userLocation = (conversation.profile?.location || '').toLowerCase();
-        
-        return userName.includes(query) || 
-               userID.includes(query) || 
-               userLocation.includes(query);
-      });
+    const conversations = computed(() => store.getters['chat/conversations']);
+    const currentConversation = computed(() => store.getters['chat/currentConversation']);
+    const currentMessages = computed(() => {
+      if (!currentConversation.value) return [];
+      return store.getters['chat/messages'](currentConversation.value.peerID);
     });
+    const unreadCount = computed(() => store.getters['chat/unreadCount']);
+    const loading = computed(() => store.getters['chat/loading']);
+    const error = computed(() => store.getters['chat/error']);
     
     // 方法
     const openChat = () => {
@@ -208,19 +143,19 @@ export default {
       isOpen.value = false;
     };
     
-    const selectConversation = async (conversation) => {
-      await chatStore.setCurrentConversationAndFetch(conversation);
+    const selectConversation = (conversation) => {
+      store.dispatch('chat/setCurrentConversation', conversation);
     };
     
     const sendMessage = async (message, file = null) => {
       if (!currentConversation.value) return;
       
       try {
-        await chatStore.sendMessage(
-          currentConversation.value.peerID,
+        await store.dispatch('chat/sendMessage', {
+          peerID: currentConversation.value.peerID,
           message,
           file
-        );
+        });
       } catch (error) {
         console.error('发送消息失败:', error);
       }
@@ -249,43 +184,9 @@ export default {
       return moment(timestamp).fromNow();
     };
     
-    // 获取用户显示名称
-    const getUserDisplayName = (conversation) => {
-      if (conversation.profile?.name) {
-        return conversation.profile.name;
-      }
-      if (conversation.profile?.handle) {
-        return `@${conversation.profile.handle}`;
-      }
-      return conversation.peerID;
-    };
-    
-    // 跳转到用户店铺页面
-    const goToUserStore = (peerID) => {
-      // 使用backbone路由系统导航到用户页面
-      if (window.app && window.app.router) {
-        window.app.router.navigate(`${peerID}/store`, { trigger: true });
-      } else {
-        // 备用方案：直接修改hash
-        window.location.hash = `#${peerID}/store`;
-      }
-    };
-    
-    // 跳转到用户评价页面
-    const goToUserRating = (peerID) => {
-      // 使用backbone路由系统导航到用户评价页面
-      if (window.app && window.app.router) {
-        window.app.router.navigate(`ob://${peerID}/reputation`, { trigger: true });
-      } else {
-        // 备用方案：直接修改hash
-        window.location.hash = `#ob://${peerID}/reputation`;
-      }
-    };
-    
-    
     // 生命周期
     onMounted(async () => {
-      await chatStore.fetchConversations();
+      await store.dispatch('chat/fetchConversations');
       
       // 开发模式下启用debug
       if (import.meta.env.DEV) {
@@ -294,12 +195,9 @@ export default {
     });
     
     return {
-      t,
       isOpen,
       debug,
-      searchQuery,
       conversations,
-      filteredConversations,
       currentConversation,
       currentMessages,
       unreadCount,
@@ -312,20 +210,13 @@ export default {
       getAvatarUrl,
       getAvatarStyle,
       getInitials,
-      formatTime,
-      getUserDisplayName,
-      goToUserStore,
-      goToUserRating,
-      formatRating
+      formatTime
     };
   }
 };
 </script>
 
-<style lang="scss" scoped>
-@use "sass:color";
-@use '@/assets/scss/variables' as *;
-
+<style scoped>
 .chat-container {
   position: fixed;
   right: 32px;
@@ -336,9 +227,9 @@ export default {
 .chat-container .chat-icon-container {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba($emphasis1, 0.3);
+  box-shadow: 0 4px 20px rgba(64, 158, 255, 0.3);
   border-radius: 50%;
-  background: $emphasisGradient;
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
   width: 60px;
   height: 60px;
   display: flex;
@@ -400,15 +291,15 @@ export default {
   bottom: 80px;
   width: 900px;
   height: 650px;
-  background: $overlayP;
-  backdrop-filter: blur(8px);
+  background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba($text, 0.15);
-  border: 1px solid color.adjust($border, $alpha: -0.6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(228, 231, 237, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 1001;
+  backdrop-filter: blur(10px);
   animation: slideInUp 0.3s ease-out;
 }
 
@@ -427,15 +318,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid color.adjust($border, $alpha: -0.4);
-  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
+  border-bottom: 1px solid rgba(228, 231, 237, 0.6);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
-}
-
-.chat-container .chat-main-container .chat-header .chat-header-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
 }
 
 .chat-container .chat-main-container .chat-header::before {
@@ -452,7 +337,7 @@ export default {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: $text;
+  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -465,7 +350,7 @@ export default {
 
 .chat-container .chat-main-container .chat-header .close-btn {
   padding: 8px;
-  color: $text3;
+  color: #64748b;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -476,84 +361,6 @@ export default {
   transform: scale(1.1);
 }
 
-/* 用户信息区域样式 */
-.chat-container .chat-main-container .chat-header .user-info-section {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: $text;
-  margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.3;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-location {
-  font-size: 13px;
-  color: $text3;
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-location::before {
-  content: '📍';
-  font-size: 12px;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id {
-  font-size: 12px;
-  color: $text3;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id .id-label {
-  font-weight: 600;
-  color: $text2;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id .id-value {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  user-select: all;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id .id-value.clickable:hover {
-  background: $emphasis1;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
-  border-color: $emphasis1;
-}
-
-.chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id .id-value.clickable:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
-}
-
 .chat-container .chat-main-container .chat-body {
   flex: 1;
   display: flex;
@@ -562,59 +369,9 @@ export default {
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar {
   width: 320px;
-  border-right: 1px solid color.adjust($border, $alpha: -0.4);
-  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
+  border-right: 1px solid rgba(228, 231, 237, 0.6);
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 搜索区域样式 */
-.search-section {
-  padding: 16px;
-  border-bottom: 1px solid color.adjust($border, $alpha: -0.4);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-}
-
-.search-container {
-  position: relative;
-}
-
-.search-input {
-  width: 100%;
-}
-
-.search-input :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid color.adjust($border, $alpha: -0.6);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.search-input :deep(.el-input__wrapper):hover {
-  border-color: $emphasis1;
-  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.15);
-}
-
-.search-input :deep(.el-input__wrapper.is-focus) {
-  border-color: $emphasis1;
-  box-shadow: 0 0 0 3px color.adjust($emphasis1, $alpha: -0.9);
-}
-
-.search-input :deep(.el-input__inner) {
-  color: $text;
-  font-size: 14px;
-}
-
-.search-input :deep(.el-input__inner)::placeholder {
-  color: $text3;
-}
-
-.search-input :deep(.el-input__prefix-inner) {
-  color: $text3;
 }
 
 @media (max-width: 768px) {
@@ -622,47 +379,10 @@ export default {
     width: 100%;
     border-right: none;
   }
-  
-  .chat-container .chat-main-container .chat-header {
-    padding: 16px 20px;
-  }
-  
-  .chat-container .chat-main-container .chat-header .user-info-section {
-    gap: 12px;
-  }
-  
-  .chat-container .chat-main-container .chat-header .user-info-section .user-details .user-name {
-    font-size: 14px;
-  }
-  
-  .chat-container .chat-main-container .chat-header .user-info-section .user-details .user-location {
-    font-size: 12px;
-  }
-  
-  .chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id {
-    font-size: 11px;
-  }
-  
-  .chat-container .chat-main-container .chat-header .user-info-section .user-details .user-id .id-value {
-    padding: 1px 6px;
-    font-size: 10px;
-  }
-  
-  .search-section {
-    padding: 12px;
-  }
-  
-  .search-input :deep(.el-input__wrapper) {
-    border-radius: 10px;
-  }
-  
-  .search-input :deep(.el-input__inner) {
-    font-size: 13px;
-  }
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list {
-  flex: 1;
+  height: 100%;
   overflow-y: auto;
   padding: 12px;
 }
@@ -697,18 +417,15 @@ export default {
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item:hover {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   border-color: rgba(64, 158, 255, 0.2);
-  transform: translateX(4px) translateY(-1px);
-  box-shadow: 0 4px 16px rgba(100, 115, 135, 0.15);
+  transform: translateX(4px);
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.active {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   border-color: #409eff;
-  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.active::before {
@@ -724,8 +441,7 @@ export default {
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.unread {
-  background: rgba(254, 243, 199, 0.8);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border-color: rgba(245, 108, 108, 0.2);
 }
 
@@ -781,13 +497,12 @@ export default {
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item .conversation-info .conversation-name {
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #1e293b;
-  font-size: 15px;
-  line-height: 1.3;
+  font-size: 14px;
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item .conversation-info .conversation-last-message {
@@ -810,8 +525,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: #ffffff;
 }
 
 .chat-container .chat-main-container .chat-body .chat-messages-area .messages-container {
@@ -824,7 +538,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .chat-container .chat-main-container .chat-body .chat-messages-area .no-conversation-selected .el-empty .el-empty__description {

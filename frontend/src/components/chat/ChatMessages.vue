@@ -10,7 +10,7 @@
     <!-- 消息列表 -->
     <div class="messages-list" ref="messagesList">
       <div v-if="loading" class="loading-messages">
-        <div class="loading-spinner">{{ $t('chat.loading') }}</div>
+        <div class="loading-spinner">加载中...</div>
       </div>
       
       <div 
@@ -22,19 +22,6 @@
           'incoming': !message.outgoing
         }"
       >
-        <!-- 消息头像 -->
-        <div class="message-avatar">
-          <div 
-            class="avatar-disc" 
-            :style="getMessageAvatarStyle(message.outgoing ? getCurrentUserProfile() : conversation)"
-            :title="message.outgoing ? $t('chat.messages.me') : (conversation.profile?.name || conversation.peerID)"
-          >
-            <span v-if="!getMessageAvatarUrl(message.outgoing ? getCurrentUserProfile() : conversation)" class="avatar-initials">
-              {{ message.outgoing ? $t('chat.messages.me') : getMessageInitials(conversation.peerID) }}
-            </span>
-          </div>
-        </div>
-        
         <div class="message-content">
           <!-- 文本消息 -->
           <div v-if="message.message" class="message-text" v-html="getProcessedMessage(message)"></div>
@@ -67,7 +54,7 @@
               size="small" 
               @click="downloadFile(message.file)"
             >
-              {{ $t('chat.messages.downloadFile') }}
+              下载
             </el-button>
           </div>
           
@@ -80,7 +67,7 @@
       </div>
       
       <div v-if="messages.length === 0 && !loading" class="no-messages">
-        <el-empty :description="$t('chat.messages.noMessages')" />
+        <el-empty description="暂无消息" />
       </div>
     </div>
     
@@ -88,8 +75,8 @@
     <div class="message-input-area">
       <!-- 图片上传进度提示 -->
       <div v-if="imageUploading" class="upload-progress">
-        <span>{{ $t('chat.messages.uploadingImage') }}</span>
-        <el-button type="text" size="small" @click="cancelImageUpload">{{ $t('chat.messages.cancelUpload') }}</el-button>
+        <span>正在上传图片...</span>
+        <el-button type="text" size="small" @click="cancelImageUpload">取消</el-button>
       </div>
       
       <div class="input-toolbar">
@@ -99,7 +86,7 @@
           @click="onClickAddImage"
           :disabled="imageUploading"
           class="toolbar-btn"
-          :title="$t('chat.messages.sendImage')"
+          title="发送图片"
         >
           <el-icon><Picture /></el-icon>
         </el-button>
@@ -109,7 +96,7 @@
           type="text" 
           @click="toggleEmojiPicker"
           class="toolbar-btn"
-          :title="$t('chat.messages.emoji')"
+          title="表情"
         >
           <el-icon><Star /></el-icon>
         </el-button>
@@ -120,7 +107,7 @@
           v-model="messageText"
           type="textarea"
           :rows="3"
-          :placeholder="$t('chat.messages.inputPlaceholder')"
+          placeholder="输入消息..."
           @keydown.enter.prevent="handleEnterKey"
           resize="none"
           class="message-textarea"
@@ -132,7 +119,7 @@
           :disabled="!messageText.trim()"
           class="send-btn"
         >
-          {{ $t('chat.messages.sendButton') }}
+          发送
         </el-button>
       </div>
       
@@ -164,8 +151,7 @@
 
 <script>
 import { ref, computed, nextTick, watch, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useChatStore } from '@/stores/chat';
+import { useStore } from 'vuex';
 import { 
   ElButton, 
   ElIcon, 
@@ -180,7 +166,6 @@ import moment from 'moment';
 import DOMPurify from 'dompurify';
 import twemoji from 'twemoji';
 import { getEmojiByName } from '../../../backbone/data/emojis';
-import { getAvatarBgImage } from '../../../backbone/utils/responsive';
 import app from '../../../backbone/app';
 import { myAjax } from '../../../src/api/api';
 
@@ -207,16 +192,11 @@ export default {
     messages: {
       type: Array,
       default: () => []
-    },
-    debug: {
-      type: Boolean,
-      default: false
     }
   },
   emits: ['send-message'],
   setup(props, { emit }) {
-    const { t } = useI18n();
-    const chatStore = useChatStore();
+    const store = useStore();
     const messageText = ref('');
     const showEmojiPicker = ref(false);
     const messagesList = ref(null);
@@ -224,7 +204,7 @@ export default {
     const imageUploading = ref(false);
     const imageUploads = ref([]);
     
-    const loading = computed(() => chatStore.loading);
+    const loading = computed(() => store.getters['chat/loading']);
     
     // 常用emoji
     const commonEmojis = [
@@ -338,13 +318,13 @@ export default {
       
       // 检查文件类型
       if (!file.type.startsWith('image/')) {
-        ElMessage.error(t('chat.errors.invalidFileType'));
+        ElMessage.error('请选择图片文件');
         return;
       }
       
       // 检查文件大小 (限制为5MB)
       if (file.size > 5 * 1024 * 1024) {
-        ElMessage.error(t('chat.errors.imageSizeExceeded'));
+        ElMessage.error('图片大小不能超过5MB');
         return;
       }
       
@@ -388,7 +368,7 @@ export default {
           emit('send-message', '', fileInChat);
         }).fail((jqXhr) => {
           ElMessage.error(
-            jqXhr.responseJSON && jqXhr.responseJSON.reason || t('chat.errors.imageUploadFailed')
+            jqXhr.responseJSON && jqXhr.responseJSON.reason || '图片上传失败'
           );
         });
         
@@ -396,7 +376,7 @@ export default {
       };
       
       fileReader.onerror = (error) => {
-        ElMessage.error(t('chat.errors.fileReadFailed'));
+        ElMessage.error('读取图片文件失败');
         imageUploading.value = false;
       };
     };
@@ -475,16 +455,20 @@ export default {
     }, { deep: true });
     
     // 监听会话变化，自动拉取最新消息
-    watch(() => props.conversation, (newConversation, oldConversation) => {
-      if (newConversation && newConversation.peerID !== oldConversation?.peerID) {
-        chatStore.fetchMessages(newConversation.peerID);
+    watch(
+      () => props.conversation && props.conversation.peerID,
+      (newPeerID, oldPeerID) => {
+        if (newPeerID && newPeerID !== oldPeerID) {
+          store.dispatch('chat/fetchMessages', newPeerID);
         }
-    });
+      },
+      { immediate: true }
+    );
     
     // 组件挂载时
     onMounted(() => {
-      if (props.conversation && props.conversation.peerID) {
-        chatStore.fetchMessages(props.conversation.peerID);
+      if (props.conversation?.peerID) {
+        store.dispatch('chat/fetchMessages', props.conversation.peerID);
       }
     });
     
@@ -499,40 +483,7 @@ export default {
       console.log('图片被点击，预览功能已激活');
     };
     
-    // 获取消息头像URL
-    const getMessageAvatarUrl = (conversation) => {
-      if (conversation.profile && conversation.profile.avatarHashes) {
-        return getAvatarBgImage(conversation.profile.avatarHashes, {}, true);
-      }
-      return null;
-    };
-    
-    // 获取消息头像样式
-    const getMessageAvatarStyle = (conversation) => {
-      if (conversation.profile && conversation.profile.avatarHashes) {
-        return getAvatarBgImage(conversation.profile.avatarHashes);
-      }
-      return '';
-    };
-    
-    // 获取消息头像首字母
-    const getMessageInitials = (peerID) => {
-      return peerID.substring(0, 2).toUpperCase();
-    };
-    
-    // 获取当前用户profile
-    const getCurrentUserProfile = () => {
-      return {
-        profile: {
-          avatarHashes: app.profile.get('avatarHashes').toJSON(),
-          name: app.profile.get('name'),
-          handle: app.profile.get('handle')
-        }
-      };
-    };
-    
     return {
-      t,
       messageText,
       showEmojiPicker,
       messagesList,
@@ -553,42 +504,35 @@ export default {
       onImageSelected,
       cancelImageUpload,
       toggleEmojiPicker,
-      handleImageClick,
-      getMessageAvatarUrl,
-      getMessageAvatarStyle,
-      getMessageInitials,
-      getCurrentUserProfile
+      handleImageClick
     };
   }
 };
 </script>
 
-<style lang="scss" scoped>
-@use "sass:color";
-@use '@/assets/scss/variables' as *;
-
+<style scoped>
 .chat-messages-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
 }
 
 .debug-info {
-  background: color.adjust($emphasis1, $lightness: +35%, $saturation: -20%) !important;
-  border-bottom: 2px solid $emphasis1;
-  color: color.adjust($emphasis1, $lightness: -25%);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border-bottom: 2px solid #409eff;
+  color: #1e40af;
   padding: 12px 16px;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 8px color.adjust($emphasis1, $alpha: -0.9);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
 }
 
 .messages-list {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 20px 20px 16px; /* 右侧padding减少，确保消息靠右 */
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -603,12 +547,12 @@ export default {
 }
 
 .messages-list::-webkit-scrollbar-thumb {
-  background: color.adjust($text3, $alpha: -0.7);
+  background: rgba(100, 116, 139, 0.3);
   border-radius: 3px;
 }
 
 .messages-list::-webkit-scrollbar-thumb:hover {
-  background: color.adjust($text3, $alpha: -0.5);
+  background: rgba(100, 116, 139, 0.5);
 }
 
 .loading-messages {
@@ -619,7 +563,7 @@ export default {
 }
 
 .loading-spinner {
-  color: $text3;
+  color: #64748b;
   font-size: 16px;
   font-weight: 600;
   display: flex;
@@ -635,107 +579,45 @@ export default {
 
 .message-item {
   display: flex;
-  align-items: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   animation: fadeInUp 0.3s ease-out;
-  gap: 12px;
-}
-
-.message-item:last-child {
-  margin-bottom: 8px;
 }
 
 .message-item.outgoing {
   justify-content: flex-end;
-  flex-direction: row-reverse; /* 发送消息头像在右侧 */
-  margin-left: auto; /* 确保整个消息项靠右 */
-}
-
-.message-item.outgoing .message-content {
-  max-width: calc(75% - 48px); /* 增加最大宽度，减去头像宽度和间距 */
-  margin-right: 0; /* 确保消息完全靠右 */
 }
 
 .message-item.incoming {
   justify-content: flex-start;
-  margin-right: auto; /* 确保整个消息项靠左 */
-}
-
-.message-item.incoming .message-content {
-  max-width: calc(75% - 48px); /* 增加最大宽度，减去头像宽度和间距 */
-}
-
-/* 消息头像样式 */
-.message-avatar {
-  flex-shrink: 0;
-  margin-bottom: 2px;
-}
-
-.message-avatar .avatar-disc {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f1f5f9;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.message-avatar .avatar-disc:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  border-color: rgba(64, 158, 255, 0.3);
-}
-
-.message-avatar .avatar-disc .avatar-initials {
-  font-size: 13px;
-  font-weight: 700;
-  color: #475569;
-  text-transform: uppercase;
 }
 
 .message-content {
   max-width: 70%;
-  padding: 14px 18px;
-  border-radius: 18px;
+  padding: 16px 20px;
+  border-radius: 20px;
   position: relative;
-  box-shadow: 0 2px 8px rgba($text, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  flex: 1;
-  min-width: 0;
 }
 
 .message-content:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba($text, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 .outgoing .message-content {
-  background: $emphasisGradient;
-  color: $textOnEmph;
-  border-bottom-right-radius: 6px;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  border-bottom-left-radius: 18px;
-  box-shadow: 0 3px 12px rgba($emphasis1, 0.25);
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  color: white;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
 }
 
 .incoming .message-content {
-  background: $overlayP;
-  backdrop-filter: blur(8px);
-  color: $text;
-  border: 1px solid transparentize($border, 0.6);
-  border-bottom-left-radius: 6px;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
-  border-bottom-right-radius: 18px;
-  box-shadow: 0 3px 12px rgba($text, 0.06);
+  background: white;
+  color: #1e293b;
+  border: 1px solid rgba(228, 231, 237, 0.8);
+  border-bottom-left-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .message-text {
@@ -837,7 +719,7 @@ export default {
 .file-icon {
   font-size: 28px;
   margin-right: 12px;
-  color: $text3;
+  color: #64748b;
 }
 
 .file-details {
@@ -847,23 +729,22 @@ export default {
 .file-name {
   font-weight: 600;
   margin-bottom: 4px;
-  color: $text;
+  color: #1e293b;
   font-size: 14px;
 }
 
 .file-size {
   font-size: 12px;
-  color: $text3;
+  color: #64748b;
   font-weight: 500;
 }
 
 .message-time {
   font-size: 11px;
-  opacity: 0.8;
+  opacity: 0.7;
   text-align: right;
-  margin-top: 6px;
+  margin-top: 4px;
   font-weight: 500;
-  color: $text4;
 }
 
 .message-status {
@@ -899,8 +780,7 @@ export default {
 
 .message-input-area {
   border-top: 1px solid rgba(228, 231, 237, 0.6);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   padding: 20px;
   position: relative;
 }
@@ -958,12 +838,10 @@ export default {
 }
 
 .toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   color: #409eff;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
 }
 
 .toolbar-btn:disabled {
@@ -992,8 +870,7 @@ export default {
   font-size: 14px;
   line-height: 1.6;
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -1022,7 +899,7 @@ export default {
 
 .send-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.4);
 }
 
 .send-btn:active:not(:disabled) {
@@ -1046,9 +923,8 @@ export default {
   bottom: 100%;
   left: 20px;
   right: 20px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(220, 225, 230, 0.4);
+  background: white;
+  border: 1px solid rgba(228, 231, 237, 0.8);
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -1117,28 +993,8 @@ export default {
     gap: 12px;
   }
   
-  .message-item {
-    gap: 8px;
-  }
-  
-  .message-avatar .avatar-disc {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .message-avatar .avatar-disc .avatar-initials {
-    font-size: 11px;
-  }
-  
-  .message-item.outgoing .message-content {
-    max-width: calc(90% - 40px); /* 增加移动端最大宽度，减去头像宽度和间距 */
-  }
-  
-  .message-item.incoming .message-content {
-    max-width: calc(90% - 40px); /* 增加移动端最大宽度，减去头像宽度和间距 */
-  }
-  
   .message-content {
+    max-width: 85%;
     padding: 12px 16px;
   }
   
@@ -1149,15 +1005,6 @@ export default {
   
   .message-input-area {
     padding: 16px;
-  }
-  
-  .input-toolbar {
-    gap: 8px;
-  }
-  
-  .toolbar-btn {
-    padding: 6px 10px;
-    font-size: 14px;
   }
   
   .input-container {

@@ -44,7 +44,7 @@
     "buffer": "^6.0.3",
     "casdoor-js-sdk": "^0.14.0",
     "cropit": "0.5.1",
-    "dompurify": "3.0.5",
+    "dompurify": "^3.0.5",
     "dotenv": "^16.0.3",
     "element-plus": "^2.3.9",
     "ethers": "^6.13.5",

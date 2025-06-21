@@ -38,7 +38,6 @@
 
 <script>
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import app from '../../backbone/app';
 
 export default {
@@ -63,8 +62,6 @@ export default {
   },
   emits: ['click'],
   setup(props, { emit }) {
-    const { t } = useI18n();
-    
     const hasUnread = computed(() => {
       return props.conversation.unread && props.conversation.unread > 0;
     });
@@ -124,7 +121,7 @@ export default {
     
     const getLastMessage = () => {
       if (!props.conversation.lastMessage) {
-        return t('receivingAccounts.noMessage');
+        return '暂无消息';
       }
       
       // 处理图片消息
@@ -160,10 +157,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-@use "sass:color";
-@use '@/assets/scss/variables' as *;
-
+<style scoped>
 .chat-head-item {
   display: flex;
   align-items: center;
@@ -174,23 +168,21 @@ export default {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   border: 2px solid transparent;
-  background: $overlayP;
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
 }
 
 .chat-head-item:hover {
-  background: color.adjust($overlayP, $alpha: +0.1);
-  backdrop-filter: blur(12px);
-  border-color: color.adjust($emphasis1, $alpha: -0.7);
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: rgba(64, 158, 255, 0.3);
   transform: translateX(4px) translateY(-1px);
-  box-shadow: 0 8px 24px rgba($text3, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .chat-head-item.active {
-  background: color.adjust($overlayP, $alpha: +0.1);
-  backdrop-filter: blur(12px);
-  border-color: $emphasis1;
-  box-shadow: 0 8px 24px rgba($emphasis1, 0.3);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #409eff;
+  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.2);
 }
 
 .chat-head-item.active::before {
@@ -206,8 +198,7 @@ export default {
 }
 
 .chat-head-item.unread {
-  background: rgba(254, 243, 199, 0.8);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border-color: rgba(245, 108, 108, 0.3);
   animation: pulse 2s infinite;
 }
@@ -222,32 +213,32 @@ export default {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, color.adjust($primary, $lightness: -5%) 0%, color.adjust($primary, $lightness: -10%) 100%);
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid $border;
+  border: 3px solid #e2e8f0;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba($text, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
 
 .chat-head-item:hover .avatar {
   transform: scale(1.05);
-  border-color: $emphasis1;
-  box-shadow: 0 6px 20px rgba($emphasis1, 0.2);
+  border-color: #409eff;
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.2);
 }
 
 .chat-head-item.active .avatar {
-  border-color: $emphasis1;
-  box-shadow: 0 6px 20px rgba($emphasis1, 0.3);
+  border-color: #409eff;
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.3);
 }
 
 .avatar-initials {
   font-size: 18px;
   font-weight: 700;
-  color: $text2;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -295,7 +286,7 @@ export default {
 
 .conversation-name {
   font-weight: 600;
-  color: $text;
+  color: #1e293b;
   font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -306,7 +297,7 @@ export default {
 
 .conversation-time {
   font-size: 12px;
-  color: $text4;
+  color: #94a3b8;
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -319,7 +310,7 @@ export default {
 
 .last-message {
   font-size: 13px;
-  color: $text3;
+  color: #64748b;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

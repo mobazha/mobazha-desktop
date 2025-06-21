@@ -1,4 +1,4 @@
-import { myGet, myPost, myAjax } from '../api/api';
+import { myGet, myPost } from '../api/api';
 import app from '../../backbone/app';
 
 class ChatService {
@@ -51,30 +51,6 @@ class ChatService {
     }
   }
 
-  // 获取群组消息
-  async getGroupMessages(orderID, params = {}) {
-    try {
-      // 构建查询参数
-      const queryParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, value);
-        }
-      });
-      
-      // 使用路径参数格式: ob/groupchatmessages/{orderID}
-      const url = queryParams.toString() 
-        ? app.getServerUrl(`ob/groupchatmessages/${orderID}?${queryParams}`)
-        : app.getServerUrl(`ob/groupchatmessages/${orderID}`);
-        
-      const response = await myGet(url);
-      return response;
-    } catch (error) {
-      console.error('Failed to fetch group messages:', error);
-      throw error;
-    }
-  }
-
   // 发送消息
   async sendMessage(peerID, message, orderID = '', file = null) {
     try {
@@ -98,19 +74,12 @@ class ChatService {
   }
 
   // 发送群组消息
-  async sendGroupMessage(peerIDs, message, orderID = '', file = null) {
+  async sendGroupMessage(peerIDs, message) {
     try {
       const messageData = {
         peerIDs,
-        message,
-        orderID,
-        timestamp: Date.now()
+        message
       };
-      
-      // 如果有文件，添加到消息数据中
-      if (file) {
-        messageData.file = file;
-      }
       
       const response = await myPost(app.getServerUrl('ob/groupchatmessage'), messageData);
       return response;
@@ -134,19 +103,6 @@ class ChatService {
     }
   }
 
-  // 标记群组会话为已读
-  async markGroupAsRead(orderID) {
-    try {
-      return await myPost(app.getServerUrl('ob/markchatasread'), {
-        orderID,
-      })
-    } catch (error) {
-      console.error('Failed to mark group conversation as read:', error);
-      // 不抛出错误，因为这不是关键功能
-      return null;
-    }
-  }
-
   // 发送正在输入状态
   async sendTyping(peerID) {
     try {
@@ -162,43 +118,15 @@ class ChatService {
   }
 
   // 发送群组正在输入状态
-  async sendGroupTyping(peerIDs, orderID = '') {
+  async sendGroupTyping(peerIDs) {
     try {
       const response = await myPost(app.getServerUrl('ob/grouptypingmessage'), {
         peerIDs,
-        orderID,
+        message: ''
       });
       return response;
     } catch (error) {
       console.error('Failed to send group typing status:', error);
-      throw error;
-    }
-  }
-
-  // 上传图片
-  async uploadImage(file) {
-    try {
-      const response = await myAjax({
-        url: app.getServerUrl('ob/images'),
-        type: 'POST',
-        data: JSON.stringify([file]),
-        dataType: 'json',
-        contentType: 'application/json',
-      });
-      return response;
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      throw error;
-    }
-  }
-
-  // 添加客服
-  async addCustomerService(data) {
-    try {
-      const response = await myPost(app.getServerUrl('ob/addcustomerservice'), data);
-      return response;
-    } catch (error) {
-      console.error('Failed to add customer service:', error);
       throw error;
     }
   }
