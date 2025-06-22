@@ -47,8 +47,6 @@ import defaultSearchProviders from './data/defaultSearchProviders';
 import VerifiedMods from './collections/VerifiedMods';
 import VerifiedModsError from './views/modals/VerifiedModsFetchError';
 
-import MyChatSDK from '../src/TUIKit/myChatSDK';
-
 import * as casdoor from '../src/utils/casdoor';
 
 fixLinuxZoomIssue();
@@ -85,9 +83,6 @@ app.localSettings.on('change:language', (localSettings, lang) => {
 //   e.preventDefault();
 //   ipc.send('contextmenu-click');
 // }, false);
-
-
-// MyChatSDK.emit(window.TUIKit.TIM.EVENT.SDK_READY, {});
 
 app.pageNav = window.vueApp.$refs.pageNav;
 

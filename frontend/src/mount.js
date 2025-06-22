@@ -18,5 +18,5 @@ export function mountChat(container, conversationID) {
     chat.component(i, components[i]);
   }
 
-  return chat.use(Router).use(window.TUIKit).mount(container);
+  return chat.use(Router).mount(container);
 }

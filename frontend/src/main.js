@@ -5,7 +5,6 @@ import ElementPlus from 'element-plus';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import 'element-plus/dist/index.css';
 import './assets/scss/main.scss';
-// import { TUIComponents, TUICore } from './TUIKit';
 
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query';
 
@@ -39,13 +38,6 @@ window.Buffer = Buffer;
 
 import $ from 'jquery';
 window.jQuery = window.$ = $;
-
-// // init TUIKit
-// const TUIKit = TUICore.init({});
-// // TUIKit add TUIComponents
-// TUIKit.use(TUIComponents);
-
-// window.TUIKit = TUIKit;
 
 window.app = app;
 
