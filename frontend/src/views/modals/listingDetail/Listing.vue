@@ -211,32 +211,34 @@
                   <hr class="rowLg" />
                   <h5 v-if="ob.item.optionalFeatures.length > 0">{{ ob.polyT('editListing.sectionNames.optionalFeatures') }}</h5>
                   <table class="table" v-if="ob.item.optionalFeatures.length > 0">
-                    <tr>
-                      <th><input type="checkbox" @change="changeCheckAll" :checked="allOptionalFeaturesChecked" /></th>
-                      <th>{{ ob.polyT('editListing.optionalFeatures.name') }}</th>
-                      <th>{{ ob.polyT('editListing.optionalFeatures.surcharge') }}</th>
-                      <th>{{ ob.polyT('editListing.optionalFeatures.sku') }}</th>
-                      <th>{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
-                    </tr>
-                    <template v-for="(optionalFeature, i) in ob.item.optionalFeatures" :key="optionalFeature.name">
+                    <tbody>
                       <tr>
-                        <td>
-                          <input type="checkbox" v-model="optionalFeaturesCheckBox[i]" />
-                        </td>
-                        <td>{{ optionalFeature.name }}</td>
-                        <td>{{ renderPrice(optionalFeature.surcharge) }}</td>
-                        <td>{{ optionalFeature.skuID }}</td>
-                        <td>
-                          <el-image
-                            v-if="optionalFeature.images?.length"
-                            style="width: 60px; height: 60px"
-                            :src="ob.getServerUrl(`ob/image/${optionalFeature.images[0].small}`)"
-                            fit="cover"
-                            :preview-src-list="[ob.getServerUrl(`ob/image/${ob.isHiRez() ? optionalFeature.images[0].large : optionalFeature.images[0].medium}`)]"
-                          />
-                        </td>
+                        <th><input type="checkbox" @change="changeCheckAll" :checked="allOptionalFeaturesChecked" /></th>
+                        <th>{{ ob.polyT('editListing.optionalFeatures.name') }}</th>
+                        <th>{{ ob.polyT('editListing.optionalFeatures.surcharge') }}</th>
+                        <th>{{ ob.polyT('editListing.optionalFeatures.sku') }}</th>
+                        <th>{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
                       </tr>
-                    </template>
+                      <template v-for="(optionalFeature, i) in ob.item.optionalFeatures" :key="optionalFeature.name">
+                        <tr>
+                          <td>
+                            <input type="checkbox" v-model="optionalFeaturesCheckBox[i]" />
+                          </td>
+                          <td>{{ optionalFeature.name }}</td>
+                          <td>{{ renderPrice(optionalFeature.surcharge) }}</td>
+                          <td>{{ optionalFeature.skuID }}</td>
+                          <td>
+                            <el-image
+                              v-if="optionalFeature.images?.length"
+                              style="width: 60px; height: 60px"
+                              :src="ob.getServerUrl(`ob/image/${optionalFeature.images[0].small}`)"
+                              fit="cover"
+                              :preview-src-list="[ob.getServerUrl(`ob/image/${ob.isHiRez() ? optionalFeature.images[0].large : optionalFeature.images[0].medium}`)]"
+                            />
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
                   </table>
                   <h5>{{ ob.polyT('listingDetail.tags') }}</h5>
                   <div class="tagWrapper rowLg">

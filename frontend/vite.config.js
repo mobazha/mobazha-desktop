@@ -48,9 +48,6 @@ export default defineConfig(({ command, mode }) => {
           },
           javascriptEnabled: true,
         },
-        scss: {
-          additionalData: `@import "@/styles/variables.scss";`
-        }
       },
     },
     build: {

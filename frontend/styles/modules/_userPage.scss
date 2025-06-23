@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .userPage {
   height: 100%;
   position: relative;
@@ -114,12 +116,12 @@
       .userCardsContainer {
         flex-wrap: wrap;
         width: auto;
-        margin: 0 #{-$padMd / 2};
+        margin: 0 -#{math.div($padMd, 2)};
 
         .userCard {
           width: 33.33333333333333%;
           flex: 0 0 auto;
-          padding: 0 $padMd / 2 $padMd $padMd / 2;
+          padding: 0 calc($padMd / 2) $padMd calc($padMd / 2);
           box-sizing: border-box;
         }
       }

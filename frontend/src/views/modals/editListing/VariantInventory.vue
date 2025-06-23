@@ -11,34 +11,36 @@
     <template v-else>
       <div class="inventoryTableWrap rowSm">
         <table>
-          <tr>
-            <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
-            <template v-for="(column, j) in columns" :key="j">
-              <th class="clrBr">{{ column }}</th>
+          <tbody>
+            <tr>
+              <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
+              <template v-for="(column, j) in columns" :key="j">
+                <th class="clrBr">{{ column }}</th>
+              </template>
+              <th class="clrBr surcharge">{{ ob.polyT('editListing.variantInventory.surcharge') }}</th>
+              <th class="clrBr totalPrice">{{ ob.polyT('editListing.variantInventory.totalPrice') }}</th>
+              <th class="clrBr">{{ ob.polyT('editListing.variantInventory.sku') }}</th>
+              <th class="clrBr quantityCol">{{ ob.polyT('editListing.variantInventory.quantity') }}</th>
+              <th class="clrBr"></th>
+            </tr>
+            <template v-for="item in collection" :key="item.cid">
+              <VariantInventoryItem
+                ref="itemViews"
+                :options="{
+                  basePrice: options.basePrice,
+                  listingCurrency: options.listingCurrency,
+                }"
+                :bb="
+                  function () {
+                    return {
+                      model: item,
+                    };
+                  }
+                "
+                @removeClick="onRemoveClick"
+              />
             </template>
-            <th class="clrBr surcharge">{{ ob.polyT('editListing.variantInventory.surcharge') }}</th>
-            <th class="clrBr totalPrice">{{ ob.polyT('editListing.variantInventory.totalPrice') }}</th>
-            <th class="clrBr">{{ ob.polyT('editListing.variantInventory.sku') }}</th>
-            <th class="clrBr quantityCol">{{ ob.polyT('editListing.variantInventory.quantity') }}</th>
-            <th class="clrBr"></th>
-          </tr>
-          <template v-for="item in collection" :key="item.cid">
-            <VariantInventoryItem
-              ref="itemViews"
-              :options="{
-                basePrice: options.basePrice,
-                listingCurrency: options.listingCurrency,
-              }"
-              :bb="
-                function () {
-                  return {
-                    model: item,
-                  };
-                }
-              "
-              @removeClick="onRemoveClick"
-            />
-          </template>
+          </tbody>
         </table>
         <a class="clrBr clrP clrTEm" @click="onClickAddMissingSkus" v-if="collection.length < fullSkus.fullSkus.length">{{ ob.polyT('editListing.variantInventory.addMissingSku') }}</a>
       </div>

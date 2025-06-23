@@ -339,6 +339,5 @@ function cellStyle({ columnIndex, rowIndex }) {
 }
 ::v-deep() {
   @import '../assets/scss/module/table.scss';
-  @import '../assets/scss/module/table.scss';
 }
 </style>

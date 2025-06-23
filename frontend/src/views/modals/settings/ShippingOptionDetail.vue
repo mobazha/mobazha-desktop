@@ -3,20 +3,20 @@
     <div class="template-name">{{ `${this.shippingOption.get('name')}: ${templateName}` }}</div>
     <div class="tips" v-if="formData.serviceType"><span class="tips-btn">{{ ob.polyT('settings.storeTab.shippingOptions.services.notice') }}</span>{{ serviceTypeTip }}</div>
     <table class="table" width="100%" border="1" cellpadding="0" cellspacing="0">
-      <tr>
-        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.nameLabel') }}</th>
-        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.estimatedDeliveryLabel') }}</th>
-        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.weightRange') }}</th>
-        <template v-if="formData.serviceType === 'FIRST_RENEWAL_FEE'">
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.firstWeightAndFee') }}</th>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.renewalUnitWeightAndFee') }}</th>
-        </template>
-        <template v-else>
-          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.fee') }}</th>
-        </template>
-        <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.registrationFee') }}</th>
-      </tr>
       <tbody>
+        <tr>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.nameLabel') }}</th>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.estimatedDeliveryLabel') }}</th>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.weightRange') }}</th>
+          <template v-if="formData.serviceType === 'FIRST_RENEWAL_FEE'">
+            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.firstWeightAndFee') }}</th>
+            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.renewalUnitWeightAndFee') }}</th>
+          </template>
+          <template v-else>
+            <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.fee') }}</th>
+          </template>
+          <th>{{ ob.polyT('settings.storeTab.shippingOptions.services.registrationFee') }}</th>
+        </tr>
         <tr v-for="(item, index) in formData.services" :key="index">
           <td>{{ item.name }}</td>
           <td>{{ item.estimatedDelivery }}</td>

@@ -7,26 +7,28 @@
     <template v-else>
       <div class="mb2">
         <table>
-          <tr>
-            <th class="clrBr"><label class="required">{{ ob.polyT('editListing.optionalFeatures.name') }}</label></th>
-            <th class="clrBr surcharge">{{ ob.polyT('editListing.optionalFeatures.surcharge') }}</th>
-            <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.sku') }}</th>
-            <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
-            <th class="clrBr"></th>
-          </tr>
-          <template v-for="model in collection" :key="model.cid">
-            <OptionalFeatureItem
-              ref="itemViews"
-              :bb="
-                function () {
-                  return {
-                    model,
-                  };
-                }
-              "
-              @removeClick="onRemoveClick"
-            />
-          </template>
+          <tbody>
+            <tr>
+              <th class="clrBr"><label class="required">{{ ob.polyT('editListing.optionalFeatures.name') }}</label></th>
+              <th class="clrBr surcharge">{{ ob.polyT('editListing.optionalFeatures.surcharge') }}</th>
+              <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.sku') }}</th>
+              <th class="clrBr">{{ ob.polyT('editListing.optionalFeatures.image') }}</th>
+              <th class="clrBr"></th>
+            </tr>
+            <template v-for="model in collection" :key="model.cid">
+              <OptionalFeatureItem
+                ref="itemViews"
+                :bb="
+                  function () {
+                    return {
+                      model,
+                    };
+                  }
+                "
+                @removeClick="onRemoveClick"
+              />
+            </template>
+          </tbody>
         </table>
       </div>
       <a class="clrBr clrP clrTEm" v-show="collection.length > 0 && collection.length < ob.maxOptionalFeatureCount" @click="onClickAddOptionalFeature">{{ ob.polyT('editListing.optionalFeatures.addOptionalFeature') }}</a>
