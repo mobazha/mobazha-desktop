@@ -463,9 +463,9 @@ import Settings from '@/views/modals/settings/Settings.vue';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
 import PaymentMethodSelector from './PaymentMethodSelector.vue';
-import { mapGetters, mapActions } from 'vuex';
 import Moderators from '../../../components/global/moderators/Moderators.vue';
 import { loadStripe } from '@stripe/stripe-js'
+import { useWalletStore } from '@/stores/wallet';
 
 export default {
   name: 'Purchase',
@@ -491,6 +491,12 @@ export default {
       },
     },
     bb: Function,
+  },
+  setup() {
+    const walletStore = useWalletStore();
+    return {
+      walletStore
+    };
   },
   data() {
     return {
@@ -551,10 +557,12 @@ export default {
     clearTimeout(this.quantityKeyUpTimer);
   },
   computed: {
-    ...mapGetters({
-      isWalletConnected: 'wallet/isWalletConnected',
-      walletAddress: 'wallet/walletAddress'
-    }),
+    isWalletConnected() {
+      return this.walletStore.isWalletConnected;
+    },
+    walletAddress() {
+      return this.walletStore.walletAddress;
+    },
     ob() {
       const item = this.order.get('items').at(0);
       let uiQuantity = item ? item.get('quantity') : 0;
@@ -659,9 +667,6 @@ export default {
     }
   },
   methods: {
-    ...mapActions({
-      checkWalletConnection: 'wallet/checkWalletConnection'
-    }),
     curDefToDecimal,
 
     totalPrice(i) {
