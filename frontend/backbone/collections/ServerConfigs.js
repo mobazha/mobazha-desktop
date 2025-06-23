@@ -90,7 +90,7 @@ export default class extends BaseCollection {
       }
 
       if (serverConfig.get('builtIn')) {
-        if (serverConfig.get('port') === 4002 && process.env.TESTNET !== 'true') {
+        if (serverConfig.get('port') === 4002 && import.meta.env.VITE_TESTNET !== 'true') {
           const configSave = serverConfig.save({ port: 5102 });
 
           if (!configSave) {
@@ -98,7 +98,7 @@ export default class extends BaseCollection {
             console.error('There was an error migrating the server config, '
               + `${serverConfig.get('name')}, from the port 4002 to 5102.`);
           }
-        } else if (serverConfig.get('port') === 5102 && process.env.TESTNET === 'true') {
+        } else if (serverConfig.get('port') === 5102 && import.meta.env.VITE_TESTNET === 'true') {
           const configSave = serverConfig.save({ port: 4002 });
 
           if (!configSave) {

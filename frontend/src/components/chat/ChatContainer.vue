@@ -97,7 +97,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useChatStore } from '@/stores/chat';
 import { ElButton, ElIcon, ElAvatar, ElBadge, ElLoading, ElAlert, ElEmpty } from 'element-plus';
 import { ChatDotRound, Close } from '@element-plus/icons-vue';
 import ChatMessages from './ChatMessages.vue';
@@ -119,20 +119,17 @@ export default {
     Close
   },
   setup() {
-    const store = useStore();
+    const chatStore = useChatStore();
     const isOpen = ref(false);
     const debug = ref(false);
     
     // 计算属性
-    const conversations = computed(() => store.getters['chat/conversations']);
-    const currentConversation = computed(() => store.getters['chat/currentConversation']);
-    const currentMessages = computed(() => {
-      if (!currentConversation.value) return [];
-      return store.getters['chat/messages'](currentConversation.value.peerID);
-    });
-    const unreadCount = computed(() => store.getters['chat/unreadCount']);
-    const loading = computed(() => store.getters['chat/loading']);
-    const error = computed(() => store.getters['chat/error']);
+    const conversations = computed(() => chatStore.conversations);
+    const currentConversation = computed(() => chatStore.currentConversation);
+    const currentMessages = computed(() => chatStore.currentMessages);
+    const unreadCount = computed(() => chatStore.unreadCount);
+    const loading = computed(() => chatStore.loading);
+    const error = computed(() => chatStore.error);
     
     // 方法
     const openChat = () => {
@@ -143,19 +140,19 @@ export default {
       isOpen.value = false;
     };
     
-    const selectConversation = (conversation) => {
-      store.dispatch('chat/setCurrentConversation', conversation);
+    const selectConversation = async (conversation) => {
+      await chatStore.setCurrentConversationAndFetch(conversation);
     };
     
     const sendMessage = async (message, file = null) => {
       if (!currentConversation.value) return;
       
       try {
-        await store.dispatch('chat/sendMessage', {
-          peerID: currentConversation.value.peerID,
+        await chatStore.sendMessage(
+          currentConversation.value.peerID,
           message,
           file
-        });
+        );
       } catch (error) {
         console.error('发送消息失败:', error);
       }
@@ -186,7 +183,7 @@ export default {
     
     // 生命周期
     onMounted(async () => {
-      await store.dispatch('chat/fetchConversations');
+      await chatStore.fetchConversations();
       
       // 开发模式下启用debug
       if (import.meta.env.DEV) {

@@ -45,7 +45,7 @@ export default class extends Model {
 
     let verifiedModsProvider = `${location.origin}/info/api/moderator/verified`;
     if (import.meta.env.VITE_APP) {
-      verifiedModsProvider = `https://${process.env.TESTNET === 'true' ? 'console.' : ''}mobazha.info/api/moderator/verified`;
+      verifiedModsProvider = `https://${import.meta.env.VITE_TESTNET === 'true' ? 'console.' : ''}mobazha.info/api/moderator/verified`;
     }
 
     return {

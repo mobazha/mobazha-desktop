@@ -151,7 +151,7 @@
 
 <script>
 import { ref, computed, nextTick, watch, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { useChatStore } from '@/stores/chat';
 import { 
   ElButton, 
   ElIcon, 
@@ -196,7 +196,7 @@ export default {
   },
   emits: ['send-message'],
   setup(props, { emit }) {
-    const store = useStore();
+    const chatStore = useChatStore();
     const messageText = ref('');
     const showEmojiPicker = ref(false);
     const messagesList = ref(null);
@@ -204,7 +204,7 @@ export default {
     const imageUploading = ref(false);
     const imageUploads = ref([]);
     
-    const loading = computed(() => store.getters['chat/loading']);
+    const loading = computed(() => chatStore.loading);
     
     // 常用emoji
     const commonEmojis = [
@@ -455,20 +455,16 @@ export default {
     }, { deep: true });
     
     // 监听会话变化，自动拉取最新消息
-    watch(
-      () => props.conversation && props.conversation.peerID,
-      (newPeerID, oldPeerID) => {
-        if (newPeerID && newPeerID !== oldPeerID) {
-          store.dispatch('chat/fetchMessages', newPeerID);
+    watch(() => props.conversation, (newConversation, oldConversation) => {
+      if (newConversation && newConversation.peerID !== oldConversation?.peerID) {
+        chatStore.fetchMessages(newConversation.peerID);
         }
-      },
-      { immediate: true }
-    );
+    });
     
     // 组件挂载时
     onMounted(() => {
-      if (props.conversation?.peerID) {
-        store.dispatch('chat/fetchMessages', props.conversation.peerID);
+      if (props.conversation && props.conversation.peerID) {
+        chatStore.fetchMessages(props.conversation.peerID);
       }
     });
     

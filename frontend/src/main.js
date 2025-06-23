@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-import { createStore } from 'vuex';
 
 import ElementPlus from 'element-plus';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
@@ -26,11 +25,10 @@ import App from './App.vue';
 import baseVw from './mixins/baseVw';
 import Router from './router/index';
 import components from './components/global';
-import store from './store';
+import pinia from './stores';
 
 import * as templateHelpers from '../backbone/utils/templateHelpers';
 
-import cart from './store/cart.module';
 import VueScrollTo from 'vue-scrollto';
 
 import { Buffer } from 'buffer';
@@ -68,7 +66,8 @@ function mountVueApp(container) {
     }
   );
 
-  const appInstance = vueApp.use(Router).use(store).use(VueBackbone).use(ChatPlugin).mount(container);
+  const appInstance = vueApp.use(Router).use(pinia).use(VueBackbone).use(ChatPlugin).mount(container);
+  
   Router.beforeEach((to, from) => {
     appInstance.showLoadingModal = true;
   });

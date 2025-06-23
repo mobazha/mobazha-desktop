@@ -78,9 +78,8 @@ class IpcHttpCustom {
           case 'localServer':
             return undefined;
           default:
-            break;
+            return undefined;
         }
-        break;
       }
       case 'controller.system.getPlatform':
         return undefined;
@@ -99,7 +98,7 @@ class IpcHttpCustom {
       case 'controller.system.getlanguageFileContent':
         return JSON.parse(this.synchronousRequest("/backbone/languages/"+args));
       default:
-        break;
+        return undefined;
     }
   }
 

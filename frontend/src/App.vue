@@ -48,8 +48,10 @@ import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
 import { useAppKit, useAppKitNetwork, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import { SolanaTransactionService } from '@/services/solanaTransaction';
 import { events } from '../backbone/utils/order';
-import { mapActions, mapGetters } from 'vuex';
+import { useWalletStore } from '@/stores/wallet';
 import { EthTransactionService } from '@/services/ethTransaction';
+import { useChatStore } from '@/stores/chat';
+import { getSocket } from '../backbone/utils/serverConnect';
 
 // Initialize AppKit
 createAppKit({
@@ -109,6 +111,10 @@ export default {
     const appKitEvents = useAppKitEvents();
     const { disconnect } = useDisconnect();
     
+    // 使用 Pinia store
+    const walletStore = useWalletStore();
+    const chatStore = useChatStore();
+    
     return {
       connection,
       appKit,
@@ -116,28 +122,67 @@ export default {
       accountData,
       appKitState,
       appKitEvents,
-      disconnect
+      disconnect,
+      walletStore,
+      chatStore
     };
   },
   computed: {
-    ...mapGetters('wallet', [
-      'isWalletConnected',
-      'walletAddress'
-    ]),
+    isWalletConnected() {
+      return this.walletStore.isWalletConnected;
+    },
+    walletAddress() {
+      return this.walletStore.walletAddress;
+    }
   },
   created() {
     this.$nextTick(() => {
       this.initAppKit();
       this.initialized = true;
       this.setupOrderEvents();
+      
+      // 延迟初始化聊天模块，确保WebSocket连接已建立
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.initChat();
+        }, 1000);
+      });
     });
   },
   methods: {
-    ...mapActions('wallet', [
-      'updateWalletState',
-      'checkWalletConnection'
-    ]),
-    
+    // 初始化聊天模块
+    initChat() {
+      try {
+        // 获取WebSocket连接
+        const socket = getSocket();
+        if (socket) {
+          // 初始化聊天store的WebSocket连接
+          this.chatStore.initSocket(socket);
+          
+          // 获取聊天会话列表
+          this.chatStore.fetchConversations();
+        }
+      } catch (error) {
+        console.error('Failed to initialize chat:', error);
+      }
+    },
+
+    updateWalletStatus() {
+      const { connection } = useAppKitConnection();
+      const { walletProvider } = useAppKitProvider('solana');
+      
+      this.walletStore.updateWalletState({
+        isConnected: this.accountData.isConnected,
+        address: this.accountData.address,
+        connection,
+        walletProvider
+      });
+    },
+
+    checkWalletConnection() {
+      return this.walletStore.checkWalletConnection();
+    },
+
     initAppKit() {
       try {
         // 初始化交易服务
@@ -155,18 +200,6 @@ export default {
 
     switchNetwork(network) {
       this.networkData.value.switchNetwork(network);
-    },
-
-    updateWalletStatus() {
-      const { connection } = useAppKitConnection();
-      const { walletProvider } = useAppKitProvider('solana');
-      
-      this.updateWalletState({
-        isConnected: this.accountData.isConnected,
-        address: this.accountData.address,
-        connection,
-        walletProvider
-      });
     },
 
     initTransactionService() {

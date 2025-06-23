@@ -7,7 +7,6 @@ export const useWalletStore = defineStore('wallet', () => {
   const address = ref('')
   const connection = ref(null)
   const walletProvider = ref(null)
-  const networkType = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
@@ -16,37 +15,20 @@ export const useWalletStore = defineStore('wallet', () => {
   const walletAddress = computed(() => address.value)
   const walletConnection = computed(() => connection.value)
   const walletProviderName = computed(() => walletProvider.value)
-  const currentNetworkType = computed(() => networkType.value)
 
   // 方法
   const updateWalletState = (payload) => {
-    const { 
-      isConnected: connected, 
-      address: addr, 
-      connection: conn, 
-      walletProvider: provider,
-      networkType: netType
-    } = payload
+    const { isConnected: connected, address: addr, connection: conn, walletProvider: provider } = payload
     
     isConnected.value = connected
     address.value = addr || ''
     connection.value = conn || null
     walletProvider.value = provider || null
-    networkType.value = netType || null
     error.value = null
   }
 
-  const checkWalletConnection = async (requiredNetworkType = null) => {
-    if (!isConnected.value) {
-      return false
-    }
-    
-    // 如果指定了需要的网络类型，检查当前网络类型是否匹配
-    if (requiredNetworkType && networkType.value !== requiredNetworkType) {
-      return false
-    }
-    
-    return true
+  const checkWalletConnection = async () => {
+    return isConnected.value
   }
 
   const connectWallet = async (provider) => {
@@ -62,8 +44,7 @@ export const useWalletStore = defineStore('wallet', () => {
         isConnected: true,
         address: '0x1234567890abcdef...',
         connection: { provider: provider },
-        walletProvider: provider,
-        networkType: 'Ethereum'
+        walletProvider: provider
       }
       
       updateWalletState(mockResult)
@@ -81,8 +62,7 @@ export const useWalletStore = defineStore('wallet', () => {
       isConnected: false,
       address: '',
       connection: null,
-      walletProvider: null,
-      networkType: null
+      walletProvider: null
     })
   }
 
@@ -166,7 +146,6 @@ export const useWalletStore = defineStore('wallet', () => {
     address,
     connection,
     walletProvider,
-    networkType,
     loading,
     error,
     
@@ -175,7 +154,6 @@ export const useWalletStore = defineStore('wallet', () => {
     walletAddress,
     walletConnection,
     walletProviderName,
-    currentNetworkType,
     
     // 方法
     updateWalletState,
@@ -191,6 +169,6 @@ export const useWalletStore = defineStore('wallet', () => {
   persist: {
     key: 'wallet',
     storage: localStorage,
-    paths: ['isConnected', 'address', 'walletProvider', 'networkType']
+    paths: ['isConnected', 'address', 'walletProvider']
   }
 }) 

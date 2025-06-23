@@ -2,6 +2,10 @@ import { defineConfig } from 'vite';
 import plugins from './src/plugins';
 import path from 'path';
 import fs from 'fs';
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   return {
@@ -44,6 +48,9 @@ export default defineConfig(({ command, mode }) => {
           },
           javascriptEnabled: true,
         },
+        scss: {
+          additionalData: `@import "@/styles/variables.scss";`
+        }
       },
     },
     build: {
@@ -64,10 +71,24 @@ export default defineConfig(({ command, mode }) => {
     },
     // for web
     define: {
-      global: 'globalThis'
+      global: 'globalThis',
+      'process.env': {
+        TESTNET: JSON.stringify(process.env.TESTNET || 'false'),
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+      },
     },
     plugins: [
       ...plugins,
+      // Element Plus 自动导入
+      AutoImport({
+        resolvers: [ElementPlusResolver()],
+        imports: ['vue', 'vue-router', 'pinia'],
+        dts: true,
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()],
+        dts: true,
+      }),
       {
         name: 'handle-backbone-templates',
         enforce: 'pre',
@@ -98,7 +119,7 @@ export default defineConfig(({ command, mode }) => {
       }
     },
     optimizeDeps: {
-      include: ['buffer'],
+      include: ['buffer', 'element-plus', 'process'],
     },
   };
 });

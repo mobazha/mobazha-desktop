@@ -60,6 +60,8 @@
     "multihashes": "^4.0.3",
     "node-polyglot": "2.4.2",
     "object-sizeof": "1.6.3",
+    "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^3.2.0",
     "process": "^0.11.10",
     "qr-encode": "0.3.0",
     "selectize": "^0.12.6",
@@ -80,9 +82,8 @@
     "vue": "^3.3.4",
     "vue-clipboard3": "2.0.0",
     "vue-i18n": "9.2.0-beta.32",
-    "vue-router": "^4.0.14",
+    "vue-router": "^4.2.5",
     "vue3-text-clamp": "0.1.2",
-    "vuex": "^4.1.0",
     "workerize": "0.1.8",
     "yargs": "^17.6.2"
   },
@@ -119,10 +120,10 @@
     "tim-profanity-filter-plugin": "^0.9.0",
     "tim-upload-plugin": "^1.0.6",
     "unplugin-auto-import": "^0.16.6",
+    "unplugin-vue-components": "^0.25.2",
     "vite": "^4.4.4",
     "vite-plugin-vue-setup-extend": "^0.4.0",
     "vue-clipboard3": "2.0.0",
-    "vue-i18n": "9.2.0-beta.32",
-    "vuex": "4.0.2"
+    "vue-i18n": "9.2.0-beta.32"
   }
 }

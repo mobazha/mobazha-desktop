@@ -18,6 +18,7 @@
 import app from '../../../backbone/app';
 import { followedByYou, followUnfollow } from '../../../backbone/utils/follow';
 import { recordEvent } from '../../../backbone/utils/metrics';
+import { useChatStore } from '@/stores/chat';
 
 export default {
   props: {
@@ -54,6 +55,12 @@ export default {
       };
     },
   },
+  setup() {
+    const chatStore = useChatStore();
+    return {
+      chatStore
+    };
+  },
   methods: {
     loadData(options = {}) {
       if (!options.targetID) throw new Error('You must provide a targetID');
@@ -83,23 +90,22 @@ export default {
 
     onClickMessage() {
       // 使用新的Vue聊天系统
-      if (window.vueApp && window.vueApp.$store) {
+      if (window.vueApp && window.vueApp.$chat) {
         // 先打开聊天窗口
-        if (window.vueApp.$chat) {
-          window.vueApp.$chat.open();
-        }
-        
-        // 然后设置当前会话
-        const conversation = {
-          peerID: this.options.targetID,
-          profile: null // 稍后会通过API获取
-        };
-        
-        window.vueApp.$store.dispatch('chat/setCurrentConversation', conversation);
-        
-        // 获取用户资料
-        window.vueApp.$store.dispatch('chat/fetchConversations');
+        window.vueApp.$chat.open();
       }
+      
+      // 然后设置当前会话
+      const conversation = {
+        peerID: this.options.targetID,
+        profile: null // 稍后会通过API获取
+      };
+      
+      // 使用setCurrentConversationAndFetch来正确标记为已读
+      this.chatStore.setCurrentConversationAndFetch(conversation);
+      
+      // 获取用户资料
+      this.chatStore.fetchConversations();
       
       recordEvent('Social_OpenChat');
     },

@@ -142,6 +142,7 @@ import Purchase from './modals/purchase/Purchase.vue';
 import Listing from '../../backbone/models/listing/Listing';
 import OrderListings from '../../backbone/collections/OrderListings';
 import { bigNumber } from '../../backbone/utils/templateHelpers';
+import { useCartStore } from '@/stores/cart';
 
 export default {
   components: {
@@ -213,6 +214,12 @@ export default {
     cartNum() {
       return this.tableData.reduce((cur, next) => cur + next.items.length, 0);
     },
+  },
+  setup() {
+    const cartStore = useCartStore();
+    return {
+      cartStore
+    };
   },
   methods: {
     onClose() {
@@ -325,7 +332,7 @@ export default {
 
     clearCart() {
       api.clearShoppingCarts({}, () => {
-        this.$store.commit('cart/updateCart', {}, { module: 'cart' });
+        this.cartStore.updateCart({});
         this.loadData();
       });
     },
@@ -347,7 +354,7 @@ export default {
 
     //提交当前选中的商店商品
     pay(index) {
-      this.$store.commit('cart/updateCart', this.tableData[0], { module: 'cart' });
+      this.cartStore.updateCart(this.tableData[0]);
 
       const item = this.tableData[index];
       const vendor = {

@@ -23,7 +23,7 @@ export default class extends BaseModel {
   defaults() {
     return {
       serverIp: 'localhost',
-      port: process.env.TESTNET === 'true' ? 4002 : 5102,
+      port: import.meta.env.VITE_TESTNET === 'true' ? 4002 : 5102,
       webVersion: false,
       gateway: false,
       SSL: false,

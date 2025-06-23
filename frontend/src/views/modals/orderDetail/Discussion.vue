@@ -44,7 +44,7 @@
       <!-- 消息列表 -->
       <div ref="messagesWindow" class="messages-window" @scroll="onScroll">
         <div v-if="loadingMessages" class="loading-container">
-          <el-loading-spinner />
+          <el-icon class="is-loading"><Loading /></el-icon>
           <p>加载消息中...</p>
         </div>
         
@@ -116,6 +116,7 @@
             resize="none"
             @keydown.enter.exact.prevent="onKeyDownMessageInput"
             @input="onInputMessage"
+            @blur="onInputBlur"
             class="message-textarea"
           />
           <div v-if="footerClass === 'preventModChat'" class="mod-chat-warning">
@@ -198,8 +199,12 @@ import { getSocket } from '../../../../backbone/utils/serverConnect';
 import { checkValidParticipantObject } from '../../../utils/utils';
 import { truncateImageFilename } from '../../../../backbone/utils/index';
 import { ElMessage } from 'element-plus';
+import { Loading } from '@element-plus/icons-vue';
 
 export default {
+  components: {
+    Loading
+  },
   props: {
     options: {
       type: Object,
@@ -224,6 +229,7 @@ export default {
       fetching: false,
       fetchedAllMessages: false,
       ignoreScroll: false,
+      
       buyer: {
         isTyping: false,
       },
@@ -256,6 +262,8 @@ export default {
       lastTypingSentAt: null,
       typingTimeout: null,
       showTypingTimeout: null,
+      // 简化的打字指示器控制
+      typingIndicatorTimer: null,
     };
   },
   created() {
@@ -359,6 +367,9 @@ export default {
       if (this.showTypingTimeout) {
         clearTimeout(this.showTypingTimeout);
       }
+      if (this.typingIndicatorTimer) {
+        clearTimeout(this.typingIndicatorTimer);
+      }
     },
 
     async fetchMessages(offsetID, limit = this.messagesPerPage) {
@@ -381,7 +392,10 @@ export default {
             this.messages.unshift(...newMessages);
           } else {
             this.messages = newMessages;
+            // 反转数组，确保旧消息在前，新消息在后
+            this.messages.reverse();
           }
+          
           if (newMessages.length < limit) {
             this.fetchedAllMessages = true;
           }
@@ -412,6 +426,21 @@ export default {
       }
       this.sending = true;
       this.lastTypingSentAt = null;
+      
+      // 清理打字指示器状态
+      if (this.typingIndicatorTimer) {
+        clearTimeout(this.typingIndicatorTimer);
+        this.typingIndicatorTimer = null;
+      }
+      
+      // 只有当输入框有内容时才发送打字指示
+      if (this.inputMessage.trim()) {
+        // 延迟2秒发送打字指示，避免频繁触发
+        this.typingIndicatorTimer = setTimeout(() => {
+          this.sendTypingIndicator();
+        }, 2000);
+      }
+      
       try {
         const response = await chatService.sendGroupMessage(
           this.sendToIds,
@@ -449,20 +478,29 @@ export default {
       }
     },
 
-    async sendTypingIndicator() {
-      if (!this.lastTypingSentAt || Date.now() - this.lastTypingSentAt >= 1000) {
-        try {
-          await chatService.sendGroupTyping(this.sendToIds, this.model.id);
-          this.lastTypingSentAt = Date.now();
-        } catch (error) {
-          console.error('发送打字指示失败:', error);
-        }
+    onInputMessage() {
+      this.sendDisabled = !this.inputMessage.trim();
+      
+      // 清除之前的定时器
+      if (this.typingIndicatorTimer) {
+        clearTimeout(this.typingIndicatorTimer);
+      }
+      
+      // 只有当输入框有内容时才发送打字指示
+      if (this.inputMessage.trim()) {
+        // 延迟2秒发送打字指示，避免频繁触发
+        this.typingIndicatorTimer = setTimeout(() => {
+          this.sendTypingIndicator();
+        }, 2000);
       }
     },
 
-    onInputMessage() {
-      this.sendDisabled = !this.inputMessage.trim();
-      this.sendTypingIndicator();
+    onInputBlur() {
+      // 清理打字指示器定时器
+      if (this.typingIndicatorTimer) {
+        clearTimeout(this.typingIndicatorTimer);
+        this.typingIndicatorTimer = null;
+      }
     },
 
     onKeyDownMessageInput(e) {
@@ -779,6 +817,20 @@ export default {
 
     onClickRetryLoadMessage() {
       this.fetchMessages();
+    },
+
+    async sendTypingIndicator() {
+      // 如果距离上次发送不到3秒，则不发送
+      if (this.lastTypingSentAt && Date.now() - this.lastTypingSentAt < 3000) {
+        return;
+      }
+
+      try {
+        await chatService.sendGroupTyping(this.sendToIds, this.model.id);
+        this.lastTypingSentAt = Date.now();
+      } catch (error) {
+        console.error('发送打字指示失败:', error);
+      }
     },
   },
 };
