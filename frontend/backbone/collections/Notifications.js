@@ -11,19 +11,11 @@ export default class extends BaseCollection {
   }
 
   parse(response) {
-    return response.notifications.map((notif) => {
-      const innerNotif = notif.notification;
-
-      return {
-        id: innerNotif.notificationID,
-        notification: _.omit(innerNotif, 'notificationID'),
-        ...notif,
-      };
-    });
+    return response.notifications || [];
   }
 
   comparator(message) {
-    return message.get('timestamp');
+    return -new Date(message.get('timestamp')).getTime();
   }
 }
 
