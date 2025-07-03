@@ -1,15 +1,36 @@
 <template>
-  <section class="notifications clrBr border clrP clrSh1">
-    <h1>{{ ob.polyT('notifications.title') }}</h1>
-    <div class="flex tabs">
-      <template v-for="tab in ['all', 'orders', 'followers']">
-        <a :class="`js-tab clrBr clrT2 ${tab === activeTab ? 'active' : ''}`" @click="onClickTab(tab)">{{ ob.polyT(`notifications.tab${capitalize(tab)}`) }}</a>
-      </template>
+  <div class="notifications-container">
+    <!-- 标题 -->
+    <div class="notifications-header">
+      <h1>{{ ob.polyT('notifications.title') }}</h1>
     </div>
-    <div v-infinite-scroll="onScroll" ref="tabContainer" class="js-tabNotifContainer tabContainer scrollBox clrBr">
-      <NotificationsList :key="activeTab" ref="notifLists" :options="{ filter, scrollContainer }" @notifNavigate="$emit('notifNavigate', { list })" />
+
+    <!-- 标签页 -->
+    <div class="notifications-tabs">
+      <el-tabs v-model="activeTab" @tab-click="onClickTab">
+        <el-tab-pane 
+          v-for="tab in tabs" 
+          :key="tab.key"
+          :label="ob.polyT(`notifications.tab${capitalize(tab.key)}`)" 
+          :name="tab.key"
+        />
+      </el-tabs>
     </div>
-  </section>
+
+    <!-- 通知列表容器 -->
+    <div 
+      v-infinite-scroll="onScroll" 
+      ref="tabContainer" 
+      class="notifications-list-container"
+    >
+      <NotificationsList 
+        :key="activeTab" 
+        ref="notifLists" 
+        :options="{ filter, scrollContainer }" 
+        @notifNavigate="$emit('notifNavigate', { list })" 
+      />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -25,6 +46,7 @@ export default {
   components: {
     NotificationsList,
   },
+  
   props: {
     options: {
       type: Object,
@@ -32,17 +54,25 @@ export default {
     },
     bb: Function,
   },
+  
   data() {
     return {
       activeTab: 'all',
-
       list: 'all',
+      tabs: [
+        { key: 'all', name: 'all' },
+        { key: 'orders', name: 'orders' },
+        { key: 'followers', name: 'followers' }
+      ]
     };
   },
+  
   created() {
-    this.initEventChain();
+    // 移除 initEventChain 调用，因为不再使用 Backbone
   },
+  
   mounted() {},
+  
   computed: {
     filter() {
       switch (this.activeTab) {
@@ -63,13 +93,18 @@ export default {
     },
 
     scrollContainer() {
-      return $('.js-tabNotifContainer');
+      return $('.notifications-list-container');
     },
   },
+  
   methods: {
     onScroll() {
-      this.$refs.notifLists.onScroll();
+      // 直接调用 NotificationsList 的 onScroll 方法
+      if (this.$refs.notifLists && this.$refs.notifLists.onScroll) {
+        this.$refs.notifLists.onScroll();
+      }
     },
+    
     capitalize,
 
     loadData() {
@@ -77,11 +112,11 @@ export default {
     },
 
     onClickTab(tab) {
-      recordEvent('Notifications_Tab', { tab });
+      recordEvent('Notifications_Tab', { tab: tab.name });
       // Timeout needed so event can bubble to a page nav handler before the view is re-rendered
       // and the target element is ripped out of the dom.
       setTimeout(() => {
-        this.activeTab = tab;
+        this.activeTab = tab.name;
       });
     },
 
@@ -94,17 +129,8 @@ export default {
      *   the xhr of the call to the server
      */
     markNotifsAsRead() {
-      // Going to optimistically mark all as read and switch back if the call fails.
-      const notifs = [];
-
-      if (this.$refs.notifLists) {
-        this.$refs.notifLists.collection.forEach((notif) => {
-          notif.set('read', true);
-          notifs.push(notif);
-        });
-      }
-
-      return myPost(app.getServerUrl('ob/marknotificationsasread')).fail(() => notifs.forEach((notif) => notif.set('read', false)));
+      // 通知列表会自动更新状态
+      return myPost(app.getServerUrl('ob/marknotificationsasread'));
     },
 
     /**
@@ -115,9 +141,122 @@ export default {
      */
     reset() {
       this.activeTab = 'all';
-      this.scrollContainer.scrollTop = 0;
+      if (this.scrollContainer) {
+        this.scrollContainer.scrollTop = 0;
+      }
     },
   },
 };
 </script>
-<style lang="scss" scoped></style>
+
+<style lang="scss" scoped>
+.notifications-container {
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  .notifications-header {
+    padding: 20px 24px 0;
+    
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+    }
+  }
+  
+  .notifications-tabs {
+    padding: 0 24px;
+    
+    :deep(.el-tabs__header) {
+      margin: 0;
+      border-bottom: 1px solid var(--el-border-color-light);
+    }
+    
+    :deep(.el-tabs__nav-wrap) {
+      &::after {
+        display: none;
+      }
+    }
+    
+    :deep(.el-tabs__item) {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--el-text-color-regular);
+      
+      &.is-active {
+        color: var(--el-color-primary);
+        font-weight: 600;
+      }
+      
+      &:hover {
+        color: var(--el-color-primary);
+      }
+    }
+    
+    :deep(.el-tabs__active-bar) {
+      background-color: var(--el-color-primary);
+    }
+  }
+  
+  .notifications-list-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 16px 24px 24px;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: var(--el-fill-color-lighter);
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--el-border-color);
+      border-radius: 3px;
+      
+      &:hover {
+        background: var(--el-border-color-darker);
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .notifications-container {
+    .notifications-header {
+      padding: 16px 16px 0;
+      
+      h1 {
+        font-size: 18px;
+      }
+    }
+    
+    .notifications-tabs {
+      padding: 0 16px;
+      
+      :deep(.el-tabs__item) {
+        font-size: 13px;
+        padding: 0 12px;
+      }
+    }
+    
+    .notifications-list-container {
+      padding: 12px 16px 16px;
+      max-height: 350px;
+    }
+  }
+}
+
+// 深色主题适配
+@media (prefers-color-scheme: dark) {
+  .notifications-container {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+</style>
