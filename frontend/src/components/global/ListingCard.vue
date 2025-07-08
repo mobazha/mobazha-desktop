@@ -531,7 +531,7 @@ export default {
         coinType: this.model.get('currency') && this.model.get('currency').code,
         shipsFreeToMe: casdoor.isLoggedIn() ? this.model.shipsFreeToMe : false,
         viewType: this.viewType,
-        displayCurrency: app.settings.get('localCurrency'),
+        displayCurrency: app.settings ? app.settings.get('localCurrency') : 'USD',
         isBlocked,
         isUnblocking,
         abbrNum,

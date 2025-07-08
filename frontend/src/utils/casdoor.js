@@ -1,24 +1,46 @@
 import Sdk from "casdoor-js-sdk";
 
-const sdkConfig = import.meta.env.DEV
-  ? {
+let sdkConfig;
+if (import.meta.env.DEV) {
+  sdkConfig = {
     serverUrl: "http://localhost:7001",
     clientId: "22649a5edc7cabcb4398",
     organizationName: "built-in",
     appName: "app-built-in",
     redirectPath: "/callback",
-  }
-  : {
+  };
+} else if (import.meta.env.VITE_PROD_TEST) {
+  // 生产测试环境配置
+  sdkConfig = {
+    serverUrl: "https://test-login.mobazha.org",
+    clientId: "22649a5edc7cabcb4398",
+    organizationName: "built-in",
+    appName: "app-built-in",
+    redirectPath: "/callback",
+  };
+} else {
+  // 正式生产环境配置
+  sdkConfig = {
     serverUrl: "https://login.mobazha.org",
     clientId: "44b16199e0b7b1d64b25",
     organizationName: "mobazha",
     appName: "app_mobazha",
     redirectPath: "/callback",
   };
+}
   
 export const CasdoorSdk = new Sdk(sdkConfig);
 
-export const hosting_server = import.meta.env.DEV ? 'http://localhost:8088' : 'https://store.mobazha.org';
+let hosting_server;
+if (import.meta.env.DEV) {
+  hosting_server = 'http://localhost:8088';
+} else if (import.meta.env.VITE_PROD_TEST) {
+  hosting_server = 'https://test-store.mobazha.org';  // 生产测试环境
+} else {
+  hosting_server = 'https://store.mobazha.org';       // 正式生产环境
+}
+
+export { hosting_server };
 
 export const isLoggedIn = () => {
   const token = localStorage.getItem("token");

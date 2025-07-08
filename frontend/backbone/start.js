@@ -776,12 +776,28 @@ if (location.pathname === '/callback') {
       if (!import.meta.env.VITE_APP) {
         if (!casdoor.isLoggedIn()) {
           const devMode = import.meta.env.DEV;
+          let serverIp, SSL, port;
+          
+          if (devMode) {
+            serverIp = 'localhost';
+            SSL = false;
+            port = 8080;
+          } else if (import.meta.env.VITE_PROD_TEST) {
+            serverIp = 'test-store.mobazha.org';
+            SSL = true;
+            port = 443;
+          } else {
+            serverIp = 'store.mobazha.org';
+            SSL = true;
+            port = 443;
+          }
+          
           const serverConfig = new ServerConfig({
             name: 'GatewayServer',
             id: 'gateway',
-            serverIp: devMode ? 'localhost' : 'store.mobazha.org',
-            SSL: !devMode,
-            port: devMode ? 8080 : 443,
+            serverIp: serverIp,
+            SSL: SSL,
+            port: port,
             webVersion: true,
             gateway: true,
             authenticate: false,
@@ -795,12 +811,28 @@ if (location.pathname === '/callback') {
           // Use API to get the socket port.
           myGet('/api/serverInfo').done((serverInfo) => {
             const devMode = import.meta.env.DEV;
+            let serverIp, SSL, port;
+            
+            if (devMode) {
+              serverIp = 'localhost';
+              SSL = false;
+              port = 8080;
+            } else if (import.meta.env.VITE_PROD_TEST) {
+              serverIp = 'test-store.mobazha.org';
+              SSL = true;
+              port = 443;
+            } else {
+              serverIp = 'store.mobazha.org';
+              SSL = true;
+              port = 443;
+            }
+            
             const serverConfig = new ServerConfig({
               name: 'HostingServer',
               id: 'backend',
-              serverIp: devMode ? 'localhost' : 'store.mobazha.org',
-              SSL: !devMode,
-              port: devMode ? 8080 : 443,
+              serverIp: serverIp,
+              SSL: SSL,
+              port: port,
               webVersion: true,
               gateway: false,
               authenticate: false,
