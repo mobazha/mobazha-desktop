@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import plugins from './src/plugins';
 import path from 'path';
 import fs from 'fs';
@@ -9,19 +9,18 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
   return {
     server: {
       host: true,
       port: 8088,
       proxy: {
         '/api': {
-          target: env.VITE_PROD_TEST ? 'https://test-store.mobazha.org' : 'http://localhost:8080',
+          target: 'http://localhost:8080',
           changeOrigin: true,
           secure: false,
         },
         '/v1': {
-          target: env.VITE_PROD_TEST ? 'https://test-store.mobazha.org' : 'http://localhost:8080',
+          target: 'http://127.0.0.1:8080',
           changeOrigin: true,
           secure: false,
         },

@@ -73,7 +73,6 @@ import app from '../../../backbone/app.js';
 import AccountList from './AccountList.vue';
 import EditAccount from './EditAccount.vue';
 import ApplyNewAccount from './ApplyNewAccount.vue';
-import { STRIPE_CONFIG } from '../../config/stripe'
 import { ElMessage } from 'element-plus';
 
 export default {
