@@ -1,207 +1,175 @@
 <template>
-  <!-- <div v-if="showFullNav" -->
   <div
-    :class="`pageNav ${!navigable ? 'notNavigable' : ''} ${torIndicatorOn ? 'torIndicatorOn' : ''} ${windowStyle === 'mac' ? 'macStyleWindowControls' : 'winStyleWindowControls'}`"
+    :class="`pageNav ${!navigable ? 'notNavigable' : ''} ${torIndicatorOn ? 'torIndicatorOn' : ''}`"
     @click="onDocClick">
     <header>
-      <nav class="bar clrBr clrP navBar">
-        <div class="flexVCent">
-          <div class="windowControlsHolder" v-show="showFullNav">
-            <div class="windowControls">
-              <a class="winControl navClose" @click="navCloseClick">
-                <i class="ion-ios-close-empty"></i>
-              </a>
-              <a class="winControl navMin" @click="navMinClick">
-                <i class="ion-ios-minus-empty"></i>
-              </a>
-              <a class="winControl navMax" @click="navMaxClick">
-                <i class="ion-ios-plus-empty"></i>
-              </a>
-            </div>
-          </div>
-          <div>
-            <div class="flexVCent iconPad">
-              <a v-if="!showFullNav" class="iconBtn  toolTipNoWrap" @click="navHomeClick" :data-tip="ob.polyT('pageNav.toolTip.home')">
-                <i class="ion-home"></i>
-              </a>
-              <a class="iconBtn  toolTipNoWrap" @click="navBackClick" :data-tip="ob.polyT('pageNav.toolTip.back')">
-                <i class="ion-chevron-left"></i>
-              </a>
-              <a class="iconBtn  toolTipNoWrap" @click="navFwdClick" :data-tip="ob.polyT('pageNav.toolTip.forward')">
-                <i class="ion-chevron-right"></i>
-              </a>
-              <a class="iconBtn  toolTipNoWrap" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
-                <i class="ion-refresh"></i>
-              </a>
-              <a v-if="!showFullNav" class="navBtn toolTipNoWrap " @click="onClickShoppingCartBtn"
-                :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart0">
-                <i class="iconBtn ion-android-cart"></i>
-                <div
-                  :class="`discTn notifUnreadBadge js-cartItemsCountBadge clrE1 clrTOnEmph clrBr2 clrSh2 ${cartItemsCount > 99 ? 'ellipsisShown' : ''}`"
-                  v-show="serverConnected && cartItemsCount">
-                  {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
-                </div>
-              </a>
-              <a v-if="!showFullNav" class="iconBtn toolTipNoWrap" @click="navLoginClick" :data-tip="ob.polyT('pageNav.toolTip.login')">
-                <i class="ion-log-in"></i>
-              </a>
-            </div>
-          </div>
-          <div class="rowDivV clrBrBk"></div>
-          <div class="pageNavCenter" v-show="showFullNav">
-            <div class="flexVCent gutterHSm">
-              <div class="searchWrapper">
-                <input type="text" class="js-addressBar flexExpand addressBar clrSh2 clrBr4"
-                  ref="addressBar"
-                  @keyup.enter="onKeyupAddressBar"
-                  v-model.trim="addressBarText"
-                  @focusin="onFocusInAddressBar"
-                  :placeholder="ob.polyT('addressBarPlaceholder')" />
-                <div class="js-addressBarIndicatorsContainer">
-                  <AddressBarIndicators ref="addressBarIndicators" />
-                </div>
-              </div>
-              <template v-if="ob.testnet">
-                <div id="testnetFlag" class="btn barBtn normalBtn clrP clrBr">
-                  <span class="toolTip" :data-tip="ob.polyT('testnetTooltip')">{{ ob.polyT('testnet') }}</span>
-                </div>
-              </template>
-            </div>
-          </div>
-          <div class="rowDivV clrBrBk"></div>
-          <div v-show="showFullNav">
-            <div class="flexVCent box margLSm posR">
-              <a href="#search" class="toolTipNoWrap js-discover" :data-tip="ob.polyT('pageNav.toolTip.discover')" id="Nav_Discover">
-                <img class="discoverBtn navBtn" src="~@/../imgs/obVectorIconSmall2.png" />
-              </a>
-              <template v-if="showDiscoverCallout">
-                <div class="discoverCallout js-discoverCallout arrowBoxTop confirmBox clrP clrSh1 clrBr">
-                  <div class="tx3 txB rowSm">{{ ob.polyT('pageNav.discoverCalloutTitle') }}</div>
-                  <p>{{ ob.polyT('pageNav.discoverCalloutBody') }}</p>
-                </div>
-              </template>
-              <a class="navBtn toolTipNoWrap" @click="navPaymentMethodsClick" :data-tip="ob.polyT('pageNav.toolTip.paymentMethods')"
-                id="Nav_PaymentMethods">
-                <i class="iconBtn ion-card"></i>
-              </a>
-              <!-- <a class="navBtn toolTipNoWrap" @click="navWalletClick" :data-tip="ob.polyT('pageNav.toolTip.wallet')"
-                id="Nav_Wallet">
-                <div class="iconBtn navWalletBtn">
-                  <WalletIcon />
-                </div>
-              </a> -->
-              <a class="navBtn toolTipNoWrap" @click.stop="onClickNavNotifBtn"
-                :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
-                <i class="iconBtn ion-android-notifications"></i>
-                <div
-                  :class="`discTn notifUnreadBadge js-notifUnreadBadge clrE1 clrTOnEmph clrBr2 clrSh2 ${unreadNotifCount > 99 ? 'ellipsisShown' : ''}`"
-                  v-show="serverConnected && unreadNotifCount">
-                  {{ unreadNotifCount > 99 ? '…' : unreadNotifCount }}
-                </div>
-              </a>
-              <a class="navBtn toolTipNoWrap " @click="onClickShoppingCartBtn"
-                :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart">
-                <i class="iconBtn ion-android-cart"></i>
-                <div
-                  :class="`discTn notifUnreadBadge js-cartItemsCountBadge clrE1 clrTOnEmph clrBr2 clrSh2 ${cartItemsCount > 99 ? 'ellipsisShown' : ''}`"
-                  v-show="serverConnected && cartItemsCount">
-                  {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
-                </div>
-              </a>
-              <div :class="`js-notifContainer notifContainer foldDown ${notifContainerOpened ? 'open' : ''}`" @click.stop="onClickNotifContainer">
-                <Notifications v-if="serverConnected && profileReady && notifContainerOpened" ref="notifications" @notifNavigate="closeNotifications"/>
-              </div>
-              <a id="AvatarBtn" class="discSm clrBr2 clrSh1 navListBtn toolTipNoWrap" @click.stop="navListBtnClick"
-                :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)" :data-tip="ob.polyT('pageNav.toolTip.nav')"></a>
-              <nav :class="`navListWrapper foldDown js-navList ${navListOpened ? 'open' : ''}`" @click.stop="onNavListClick">
-                <div class="navList clrBr listBox clrP clrSh1">
-                  <div class="listGroup clrP clrBr">
-                    <a class="listItem js-navListItem" @click="onNavListItemClick" :href="`#${ob.peerID}/home`">
-                      <span class="txB tx4 noOverflow">{{ ob.name }}</span>
-                    </a>
-                  </div>
-                  <div v-if="isApp" class="listGroup clrP clrBr">
-                    <a class="listItem connectedServerListItem"
-                      @mouseenter="onMouseEnterConnectedServerListItem"
-                      @mouseleave="onMouseLeaveConnectedServerListItem">
-                      <span :class="`noOverflow js-connectedServerName ${serverConnected ? 'txB' : ''}`">{{ serverConnected ? ob.connectedServer.name : ob.polyT('pageNav.notConnectedMenuItem') }}</span>
-                      <span><i class="ion-arrow-right-b floR"></i></span>
-                    </a>
-                  </div>
-                  <div v-if="!isApp" class="listGroup clrP clrBr">
-                    <a class="listItem js-navListItem" @click="onClickWalletConnect">
-                      <span>{{ connectWalletMenuDisplay }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                  </div>
-                  <div class="listGroup clrP clrBr">
-                    <a class="listItem js-navListItem" @click="onNavListItemClick" :href="`#${ob.peerID}`">
-                      <span>{{ ob.polyT('pageNav.myPage') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <a class="listItem js-navListItem TODO" @click="onNavListItemClick"><!--TODO add route for Page Customization-->
-                      <span>{{ ob.polyT('pageNav.customizePage') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <a class="listItem js-navListItem" @click="navCreateListingClick">
-                      <span>{{ ob.polyT('pageNav.createListing') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <!-- <a class="listItem js-navListItem"
-                      @mouseenter="onMouseEnterToolsItem"
-                      @mouseleave="onMouseLeaveToolsItem">
-                      <span>{{ ob.polyT('pageNav.tools') }}</span>
-                      <span><i class="ion-arrow-right-b floR"></i></span>
-                    </a> -->
-                  </div>
-                  <div class="listGroup clrP clrBr">
-                    <a href="#transactions/sales" class="listItem js-navListItem" @click="onNavListItemClick">
-                      <span>{{ ob.polyT('pageNav.sales') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <a href="#transactions/purchases" class="listItem js-navListItem" @click="onNavListItemClick">
-                      <span>{{ ob.polyT('pageNav.purchases') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <a href="#transactions/cases" class="listItem js-navListItem" @click="onNavListItemClick">
-                      <span>{{ ob.polyT('pageNav.cases') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                  </div>
-                  <div class="listGroup clrP clrBr">
-                    <a class="listItem js-navListItem" @click="navSettingsClick">
-                      <span>{{ ob.polyT('pageNav.settings') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                    <a class="listItem js-navListItem" @click="navHelpClick">
-                      <span>{{ ob.polyT('pageNav.help') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                  </div>
-                  <div v-if="!isApp" class="listGroup clrP clrBr">
-                    <a class="listItem js-navListItem" @click="navLogoutClick">
-                      <span>{{ ob.polyT('pageNav.logout') }}</span><span class="clrT2 TODO">Cltrl + ?</span>
-                    </a>
-                  </div>
-                  <!-- <div class="listGroup clrP clrBr">
-                <a class="listItem js-navAboutModal" @click="navAboutClick">
-                  <span>{{ ob.polyT( 'about.linkText' ) }}</span>
-                </a>
-              </div> -->
-                </div>
-              </nav>
-              <nav :class="`connManagementContainer foldDown clrSh1 js-connManagementContainer ${connManagementContainerOpened ? 'open' : ''}`"
-                @mouseenter="onMouseEnterConnManagementContainer"
-                @mouseleave="onMouseLeaveConnManagementContainer">
-                <PageNavServersMenu
-                :bb="function() {
-                    return {
-                      collection: app.serverConfigs,
-                    };
-                  }" />
-              </nav>
-              <nav :class="`connManagementContainer foldDown clrSh1 ${toolsContainerOpened ? 'open' : ''}`"
-                @mouseenter="onMouseEnterToolsContainer"
-                @mouseleave="onMouseLeaveToolsContainer">
-                <PageNavToolsMenu @onWooImporterClick="onWooImporterClick" />
-              </nav>
-            </div>
-          </div>
+      <nav class="browser-toolbar">
+        <!-- 左侧导航按钮组 -->
+        <div class="nav-buttons-left">
+          <a v-if="!showFullNav" class="nav-btn" @click="navHomeClick" :data-tip="ob.polyT('pageNav.toolTip.home')">
+            <i class="ion-home"></i>
+          </a>
+          <a v-if="isDesktopApp" class="nav-btn" @click="navBackClick" :data-tip="ob.polyT('pageNav.toolTip.back')">
+            <i class="ion-chevron-left"></i>
+          </a>
+          <a v-if="isDesktopApp" class="nav-btn" @click="navFwdClick" :data-tip="ob.polyT('pageNav.toolTip.forward')">
+            <i class="ion-chevron-right"></i>
+          </a>
+          <a v-if="isDesktopApp" class="nav-btn" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
+            <i class="ion-refresh"></i>
+          </a>
         </div>
+
+        <!-- 中间地址栏区域 -->
+        <div class="address-bar-container" v-show="showFullNav">
+          <div class="address-bar-wrapper">
+            <input type="text" class="address-bar"
+              ref="addressBar"
+              @keyup.enter="onKeyupAddressBar"
+              v-model.trim="addressBarText"
+              @focusin="onFocusInAddressBar"
+              :placeholder="ob.polyT('addressBarPlaceholder')" />
+            <div class="address-bar-indicators">
+              <AddressBarIndicators ref="addressBarIndicators" />
+            </div>
+          </div>
+          <template v-if="ob.testnet">
+            <div class="testnet-badge">
+              <span class="toolTip" :data-tip="ob.polyT('testnetTooltip')">{{ ob.polyT('testnet') }}</span>
+            </div>
+          </template>
+        </div>
+
+        <!-- 右侧功能按钮组 -->
+        <div class="nav-buttons-right">
+          <a href="#search" class="nav-btn" :data-tip="ob.polyT('pageNav.toolTip.discover')" id="Nav_Discover">
+            <img class="discover-icon" src="~@/../imgs/obVectorIconSmall2.png" />
+          </a>
+          <template v-if="showDiscoverCallout">
+            <div class="discover-callout">
+              <div class="callout-title">{{ ob.polyT('pageNav.discoverCalloutTitle') }}</div>
+              <p>{{ ob.polyT('pageNav.discoverCalloutBody') }}</p>
+            </div>
+          </template>
+          
+          <a class="nav-btn" @click="navPaymentMethodsClick" :data-tip="ob.polyT('pageNav.toolTip.paymentMethods')" id="Nav_PaymentMethods">
+            <i class="ion-card"></i>
+          </a>
+          
+          <a class="nav-btn" @click.stop="onClickNavNotifBtn" :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
+            <i class="ion-android-notifications"></i>
+            <div class="notification-badge" v-show="serverConnected && unreadNotifCount">
+              {{ unreadNotifCount > 99 ? '…' : unreadNotifCount }}
+            </div>
+          </a>
+          
+          <a class="nav-btn" @click="onClickShoppingCartBtn" :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart">
+            <i class="ion-android-cart"></i>
+            <div class="cart-badge" v-show="serverConnected && cartItemsCount">
+              {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
+            </div>
+          </a>
+          
+          <a v-if="!showFullNav" class="nav-btn" @click="onClickShoppingCartBtn" :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart0">
+            <i class="ion-android-cart"></i>
+            <div class="cart-badge" v-show="serverConnected && cartItemsCount">
+              {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
+            </div>
+          </a>
+          
+          <a v-if="!showFullNav" class="nav-btn" @click="navLoginClick" :data-tip="ob.polyT('pageNav.toolTip.login')">
+            <i class="ion-log-in"></i>
+          </a>
+          
+          <!-- 用户菜单 -->
+          <a id="user-menu-btn" class="user-menu-btn" @click.stop="navListBtnClick"
+            :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)" :data-tip="ob.polyT('pageNav.toolTip.nav')"></a>
+        </div>
+
+        <!-- 通知下拉菜单 -->
+        <div :class="`notification-dropdown ${notifContainerOpened ? 'open' : ''}`" @click.stop="onClickNotifContainer">
+          <Notifications v-if="serverConnected && profileReady && notifContainerOpened" ref="notifications" @notifNavigate="closeNotifications"/>
+        </div>
+
+        <!-- 用户菜单下拉 -->
+        <nav :class="`user-menu-dropdown ${navListOpened ? 'open' : ''}`" @click.stop="onNavListClick">
+          <div class="user-menu-content">
+            <div class="user-info">
+              <a class="user-profile-link" @click="onNavListItemClick" :href="`#${ob.peerID}/home`">
+                <span class="user-name">{{ ob.name }}</span>
+              </a>
+            </div>
+            <div v-if="isApp" class="menu-section">
+              <a class="menu-item server-item"
+                @mouseenter="onMouseEnterConnectedServerListItem"
+                @mouseleave="onMouseLeaveConnectedServerListItem">
+                <span :class="`server-name ${serverConnected ? 'connected' : ''}`">{{ serverConnected ? ob.connectedServer.name : ob.polyT('pageNav.notConnectedMenuItem') }}</span>
+                <span><i class="ion-arrow-right-b"></i></span>
+              </a>
+            </div>
+            <div v-if="!isApp" class="menu-section">
+              <a class="menu-item" @click="onClickWalletConnect">
+                <span>{{ connectWalletMenuDisplay }}</span>
+              </a>
+            </div>
+            <div class="menu-section">
+              <a class="menu-item" @click="onNavListItemClick" :href="`#${ob.peerID}`">
+                <span>{{ ob.polyT('pageNav.myPage') }}</span>
+              </a>
+              <a class="menu-item" @click="navCreateListingClick">
+                <span>{{ ob.polyT('pageNav.createListing') }}</span>
+              </a>
+            </div>
+            <div class="menu-section">
+              <a href="#transactions/sales" class="menu-item" @click="onNavListItemClick">
+                <span>{{ ob.polyT('pageNav.sales') }}</span>
+              </a>
+              <a href="#transactions/purchases" class="menu-item" @click="onNavListItemClick">
+                <span>{{ ob.polyT('pageNav.purchases') }}</span>
+              </a>
+              <a href="#transactions/cases" class="menu-item" @click="onNavListItemClick">
+                <span>{{ ob.polyT('pageNav.cases') }}</span>
+              </a>
+            </div>
+            <div class="menu-section">
+              <a class="menu-item" @click="navSettingsClick">
+                <span>{{ ob.polyT('pageNav.settings') }}</span>
+              </a>
+              <a class="menu-item" @click="navHelpClick">
+                <span>{{ ob.polyT('pageNav.help') }}</span>
+              </a>
+            </div>
+            <div v-if="!isApp" class="menu-section">
+              <a class="menu-item" @click="navLogoutClick">
+                <span>{{ ob.polyT('pageNav.logout') }}</span>
+              </a>
+            </div>
+          </div>
+        </nav>
+
+        <!-- 服务器管理容器 -->
+        <nav :class="`server-menu-dropdown ${connManagementContainerOpened ? 'open' : ''}`"
+          @mouseenter="onMouseEnterConnManagementContainer"
+          @mouseleave="onMouseLeaveConnManagementContainer">
+          <PageNavServersMenu
+          :bb="function() {
+              return {
+                collection: app.serverConfigs,
+              };
+            }" />
+        </nav>
+
+        <!-- 工具菜单容器 -->
+        <nav :class="`tools-menu-dropdown ${toolsContainerOpened ? 'open' : ''}`"
+          @mouseenter="onMouseEnterToolsContainer"
+          @mouseleave="onMouseLeaveToolsContainer">
+          <PageNavToolsMenu @onWooImporterClick="onWooImporterClick" />
+        </nav>
       </nav>
     </header>
-    <div :class="`navOverlay modal js-navOverlay ${navOverlayOpened ? 'open' :'' }`"></div>
+    
+    <div :class="`nav-overlay ${navOverlayOpened ? 'open' :'' }`" @click="onDocClick"></div>
+    
     <Teleport v-if="navigable" to="#js-vueModal">
       <Settings v-show="showSettings" @close="closeSettings" />
       <WooImporter v-show="showWooImporter" @close="closeWooImporter" />
@@ -358,6 +326,10 @@ export default {
         return false;
       }
       return true;
+    },
+
+    isDesktopApp() {
+      return import.meta.env.VITE_APP;
     }
   },
   methods: {
@@ -792,4 +764,363 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.pageNav {
+  position: relative;
+  
+  .browser-toolbar {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 8px;
+    background: #ffffff;
+    gap: 8px;
+    
+    .nav-buttons-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.05);
+          text-decoration: none;
+        }
+        
+        &:active {
+          background: rgba(0, 0, 0, 0.1);
+        }
+        
+        i {
+          font-size: 20px !important;
+          color: #666;
+        }
+      }
+    }
+    
+    .address-bar-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 16px;
+      
+      .address-bar-wrapper {
+        flex: 1;
+        position: relative;
+        
+        .address-bar {
+          width: 100%;
+          height: 36px;
+          padding: 0 16px;
+          border: 1px solid #e0e0e0;
+          border-radius: 18px;
+          background: #f8f9fa;
+          font-size: 14px;
+          color: #333;
+          transition: all 0.2s ease;
+          
+          &:focus {
+            outline: none;
+            border-color: #007bff;
+            background: #ffffff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+          }
+          
+          &::placeholder {
+            color: #999;
+          }
+        }
+        
+        .address-bar-indicators {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+      
+      .testnet-badge {
+        padding: 4px 8px;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #856404;
+        font-weight: 500;
+      }
+    }
+    
+    .nav-buttons-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.05);
+          text-decoration: none;
+        }
+        
+        &:active {
+          background: rgba(0, 0, 0, 0.1);
+        }
+        
+        i {
+          font-size: 20px !important;
+          color: #666;
+        }
+        
+        .discover-icon {
+          width: 20px;
+          height: 20px;
+        }
+        
+        .notification-badge,
+        .cart-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          min-width: 18px;
+          height: 18px;
+          background: #ff4757;
+          color: white;
+          border-radius: 9px;
+          font-size: 11px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          box-sizing: border-box;
+        }
+      }
+      
+      .user-menu-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 2px solid #e0e0e0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          border-color: #007bff;
+          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+        }
+      }
+    }
+    
+    .discover-callout {
+      position: absolute;
+      top: 50px;
+      right: 200px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      min-width: 200px;
+      
+      .callout-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      
+      p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+    }
+    
+    .notification-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 100px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      width: 420px;
+      max-height: 400px;
+      overflow-y: auto;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+      
+      &.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+    
+    .user-menu-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      min-width: 280px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+      
+      &.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      
+      .user-menu-content {
+        padding: 8px 0;
+        
+        .user-info {
+          padding: 12px 16px;
+          border-bottom: 1px solid #f0f0f0;
+          
+          .user-profile-link {
+            display: block;
+            text-decoration: none;
+            
+            .user-name {
+              font-weight: 600;
+              color: #333;
+              font-size: 16px;
+            }
+          }
+        }
+        
+        .menu-section {
+          border-bottom: 1px solid #f0f0f0;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            color: #333;
+            text-decoration: none;
+            transition: background 0.2s ease;
+            font-size: 14px;
+            
+            &:hover {
+              background: #f8f9fa;
+              text-decoration: none;
+            }
+            
+            &.server-item {
+              position: relative;
+              
+              .server-name {
+                &.connected {
+                  font-weight: 600;
+                  color: #28a745;
+                }
+              }
+            }
+            
+            i {
+              color: #999;
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+    
+    .server-menu-dropdown,
+    .tools-menu-dropdown {
+      position: absolute;
+      top: 48px;
+      right: 280px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      min-width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+      
+      &.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  .nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    
+    &.open {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+  
+  &.notNavigable {
+    .nav-btn,
+    .address-bar,
+    .user-menu-btn {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+}
+</style>

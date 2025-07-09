@@ -1,19 +1,33 @@
 <template>
-  <div class="app-container">
-    <div class="app-header">
-      <section id="pageNavContainer">
+  <div :class="['app-container', { 'desktop-app': isDesktopApp, 'web-app': !isDesktopApp }]">
+    <!-- 浏览器风格的标题栏 - 只在桌面应用时显示 -->
+    <div v-if="isDesktopApp" class="browser-titlebar">
+      <div class="window-controls">
+        <div class="window-control close" @click="handleWindowClose"></div>
+        <div class="window-control minimize" @click="handleWindowMinimize"></div>
+        <div class="window-control maximize" @click="handleWindowMaximize"></div>
+      </div>
+      <div class="titlebar-title">Mobazha</div>
+    </div>
+
+    <!-- 浏览器风格的导航栏 -->
+    <div class="browser-navbar">
+      <section class="nav-container">
         <PageNav ref="pageNav" />
       </section>
-      <div class="reown-wallet-section">
+      <div class="wallet-section">
         <appkit-button />
       </div>
     </div>
-    <section id="contentFrame" class="clrBr">
+
+    <!-- 主要内容区域 -->
+    <section id="contentFrame" class="content-frame">
       <div id="pageContainer">
         <router-view v-if="initialized" :key="$route.params[$route.meta.watchParam]" />
       </div>
     </section>
-    <section id="statusBar"></section>
+    
+    <section id="statusBar" class="status-bar"></section>
     
     <!-- Vue聊天组件 -->
     <ChatContainer />
@@ -133,6 +147,9 @@ export default {
     },
     walletAddress() {
       return this.walletStore.walletAddress;
+    },
+    isDesktopApp() {
+      return import.meta.env.VITE_APP === 'true';
     }
   },
   created() {
@@ -150,6 +167,33 @@ export default {
     });
   },
   methods: {
+    // 窗口控制按钮事件
+    handleWindowClose() {
+      if (process.platform !== 'darwin') {
+        // 在非macOS系统上关闭窗口
+        if (window.electronAPI) {
+          window.electronAPI.closeWindow();
+        }
+      } else {
+        // 在macOS系统上隐藏窗口
+        if (window.electronAPI) {
+          window.electronAPI.hideWindow();
+        }
+      }
+    },
+
+    handleWindowMinimize() {
+      if (window.electronAPI) {
+        window.electronAPI.minimizeWindow();
+      }
+    },
+
+    handleWindowMaximize() {
+      if (window.electronAPI) {
+        window.electronAPI.maximizeWindow();
+      }
+    },
+
     // 初始化聊天模块
     initChat() {
       try {
@@ -370,26 +414,175 @@ export default {
 </script>
 <style lang="less">
 .app-container {
-  .app-header {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  
+  // 浏览器风格的标题栏
+  .browser-titlebar {
+    height: 32px;
+    background: #f5f5f5;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    // height: 64px; // 固定导航栏高度
-    padding: 0 20px;
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    #pageNavContainer {
-      flex: 1;
+    padding: 0 16px;
+    border-bottom: 1px solid #e0e0e0;
+    -webkit-app-region: drag;
+    
+    .window-controls {
+      display: flex;
+      gap: 8px;
+      margin-right: 16px;
+      -webkit-app-region: no-drag;
+      
+      .window-control {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        cursor: pointer;
+        
+        &.close {
+          background: #ff5f56;
+          border: 1px solid #e0443e;
+          
+          &:hover {
+            background: #ff3b30;
+          }
+        }
+        
+        &.minimize {
+          background: #ffbd2e;
+          border: 1px solid #dea123;
+          
+          &:hover {
+            background: #ffaa00;
+          }
+        }
+        
+        &.maximize {
+          background: #27ca3f;
+          border: 1px solid #1aad29;
+          
+          &:hover {
+            background: #00ca4e;
+          }
+        }
+      }
     }
-
-    .reown-wallet-section {
-      margin-left: 20px;
-      padding: 8px;
-      background: transparent; // 移除背景色
-      border-radius: 8px;
+    
+    .titlebar-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      -webkit-app-region: no-drag;
+    }
+  }
+  
+  // 浏览器风格的导航栏
+  .browser-navbar {
+    height: 48px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .nav-container {
+      flex: 1;
+      margin-right: 16px;
+    }
+    
+    .wallet-section {
       display: flex;
       align-items: center;
+      padding: 4px 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      
+      &:hover {
+        background: #e9ecef;
+      }
+    }
+  }
+  
+  // 主要内容区域
+  .content-frame {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    
+    #pageContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      background: #fafafa;
+    }
+  }
+  
+  // 状态栏
+  .status-bar {
+    height: 22px;
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  // 响应式调整
+  @media (max-width: 768px) {
+    .browser-titlebar {
+      .window-controls {
+        gap: 6px;
+        
+        .window-control {
+          width: 10px;
+          height: 10px;
+        }
+      }
+      
+      .titlebar-title {
+        font-size: 13px;
+      }
+    }
+    
+    .browser-navbar {
+      padding: 0 8px;
+      
+      .nav-container {
+        margin-right: 8px;
+      }
+      
+      .wallet-section {
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+    }
+    
+    .content-frame {
+      #pageContainer {
+        padding: 0;
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .browser-titlebar {
+      height: 28px;
+      padding: 0 12px;
+      
+      .titlebar-title {
+        font-size: 12px;
+      }
+    }
+    
+    .browser-navbar {
+      height: 44px;
+      padding: 0 4px;
     }
   }
 }

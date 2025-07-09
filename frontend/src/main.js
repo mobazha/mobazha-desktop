@@ -16,6 +16,9 @@ import '/node_modules/selectize/dist/css/selectize.css';
 import '/styles/lib/select2.css';
 import "/styles/main.scss";
 
+// 导入浏览器风格布局样式
+import './assets/scss/browser-layout.scss';
+
 import VueBackbone from './plugins/vue-backbone/vue-backbone';
 import ChatPlugin from './plugins/chat';
 

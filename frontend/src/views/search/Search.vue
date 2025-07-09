@@ -1,13 +1,6 @@
 <template>
   <div class="search">
-    <nav id="pageTabBar" ref="pageTabBar" :class="`noTabs barLg clrP clrBr ${ob.fetching ? 'noTips' : ''}`" :style="{
-      position: 'fixed',
-      // top: hasLogin ? '50px' : '0',
-      top: '50px',
-      left: '0',
-      right: '0',
-      zIndex: '1000'
-    }">
+    <nav id="pageTabBar" ref="pageTabBar" :class="`noTabs barLg clrP clrBr ${ob.fetching ? 'noTips' : ''}`">
       <div class="pageTabs searchProviders flexRow gutterH">
         <div class="thumb discoverLogo flexNoShrink"></div>
         <div class="providersHeader flexNoShrink">
@@ -226,17 +219,6 @@ export default {
   },
 
   mounted() {
-    if (this.$refs.pageTabBar) {
-      const height = this.$refs.pageTabBar.offsetHeight;
-      document.documentElement.style.setProperty('--header-height', `${height}px`);
-      
-      // 获取 PageNav 高度
-      const pageNav = document.querySelector('.pageNav');
-      if (pageNav) {
-        const navHeight = pageNav.offsetHeight;
-        document.documentElement.style.setProperty('--nav-height', `${navHeight}px`);
-      }
-    }
   },
 
   methods: {
@@ -408,10 +390,14 @@ export default {
 .search {
   position: relative;
   min-height: 710px;
-  
   .pageContent {
-    margin-top: calc(var(--header-height) + (var(--nav-height, 34px)));
-    transition: margin-top 0.3s;
+    // 使用相对定位后，不需要margin-top补偿
+    position: relative;
+  }
+
+  #pageTabBar {
+    position: relative;
+    z-index: 1;
   }
 }
 </style>

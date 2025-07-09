@@ -160,18 +160,18 @@ svg {
   #contentFrame {
     position: relative;
     overflow-y: scroll;
-    height: calc(100% - #{$bar});
+    flex: 1;
     box-sizing: border-box;
     z-index: 0;
 
     #pageContainer {
-      padding-top: $barLg;
+      padding: 0;
 
       #pageTabBar {
-        position: fixed;
-        top: $bar;
+        position: relative; // 改为相对定位，避免遮挡问题
+        top: 0;
         left: 0;
-        right: $scrollbar;
+        right: 0;
         z-index: 1;
         width: 100%;
         height: $barLg;
@@ -179,6 +179,15 @@ svg {
         overflow: hidden;
         border-bottom-width: 1px;
         border-bottom-style: solid;
+        background: inherit; // 继承父元素背景
+        
+        // 移除所有条件定位，因为现在是相对定位
+        // 桌面应用和Web应用使用相同的布局
+        
+        // 移动端调整
+        @media (max-width: 480px) {
+          // 保持相对定位，不需要特殊处理
+        }
 
         &.noTabs {
           // there are no tabs, so overflow doesn't need to be hidden

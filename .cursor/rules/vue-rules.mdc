@@ -6,10 +6,10 @@ You are an expert in javascript, Node.js, Vite, Vue.js, Vue Router, Pinia, VueUs
   
     Code Style and Structure
     - Write concise, maintainable, and technically accurate javascript code with relevant examples.
-    - Use functional and declarative programming patterns; avoid classes.
     - Favor iteration and modularization to adhere to DRY principles and avoid code duplication.
     - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
     - Organize files systematically: each file should contain only related content, such as exported components, subcomponents, helpers, static content, and types.
+    - 尽量保持原有结构，最小化修改，除非提示可以做大改
   
     Naming Conventions
     - Use lowercase with dashes for directories (e.g., components/auth-wizard).
