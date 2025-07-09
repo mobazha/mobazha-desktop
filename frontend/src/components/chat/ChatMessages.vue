@@ -506,23 +506,26 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "sass:color";
+@use '@/assets/scss/variables' as *;
+
 .chat-messages-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
   position: relative;
 }
 
 .debug-info {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
-  border-bottom: 2px solid #409eff;
-  color: #1e40af;
+  background: color.adjust($emphasis1, $lightness: +35%, $saturation: -20%) !important;
+  border-bottom: 2px solid $emphasis1;
+  color: color.adjust($emphasis1, $lightness: -25%);
   padding: 12px 16px;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+  box-shadow: 0 2px 8px color.adjust($emphasis1, $alpha: -0.9);
 }
 
 .messages-list {
@@ -543,12 +546,12 @@ export default {
 }
 
 .messages-list::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
+  background: color.adjust($text3, $alpha: -0.7);
   border-radius: 3px;
 }
 
 .messages-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+  background: color.adjust($text3, $alpha: -0.5);
 }
 
 .loading-messages {
@@ -559,7 +562,7 @@ export default {
 }
 
 .loading-spinner {
-  color: #64748b;
+  color: $text3;
   font-size: 16px;
   font-weight: 600;
   display: flex;
@@ -592,28 +595,29 @@ export default {
   padding: 16px 20px;
   border-radius: 20px;
   position: relative;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba($text, 0.08);
   transition: all 0.3s ease;
 }
 
 .message-content:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba($text, 0.12);
 }
 
 .outgoing .message-content {
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
-  color: white;
+  background: $emphasisGradient;
+  color: $textOnEmph;
   border-bottom-right-radius: 8px;
-  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 16px rgba($emphasis1, 0.3);
 }
 
 .incoming .message-content {
-  background: white;
-  color: #1e293b;
-  border: 1px solid rgba(228, 231, 237, 0.8);
+  background: $overlayP;
+  backdrop-filter: blur(8px);
+  color: $text;
+  border: 1px solid transparentize($border, 0.6);
   border-bottom-left-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba($text, 0.08);
 }
 
 .message-text {
@@ -715,7 +719,7 @@ export default {
 .file-icon {
   font-size: 28px;
   margin-right: 12px;
-  color: #64748b;
+  color: $text3;
 }
 
 .file-details {
@@ -725,13 +729,13 @@ export default {
 .file-name {
   font-weight: 600;
   margin-bottom: 4px;
-  color: #1e293b;
+  color: $text;
   font-size: 14px;
 }
 
 .file-size {
   font-size: 12px;
-  color: #64748b;
+  color: $text3;
   font-weight: 500;
 }
 
@@ -741,6 +745,7 @@ export default {
   text-align: right;
   margin-top: 4px;
   font-weight: 500;
+  color: $text4;
 }
 
 .message-status {
@@ -776,7 +781,8 @@ export default {
 
 .message-input-area {
   border-top: 1px solid rgba(228, 231, 237, 0.6);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
   padding: 20px;
   position: relative;
 }
@@ -834,10 +840,12 @@ export default {
 }
 
 .toolbar-btn:hover {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
   color: #409eff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .toolbar-btn:disabled {
@@ -866,7 +874,8 @@ export default {
   font-size: 14px;
   line-height: 1.6;
   transition: all 0.3s ease;
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -895,7 +904,7 @@ export default {
 
 .send-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
 }
 
 .send-btn:active:not(:disabled) {
@@ -919,8 +928,9 @@ export default {
   bottom: 100%;
   left: 20px;
   right: 20px;
-  background: white;
-  border: 1px solid rgba(228, 231, 237, 0.8);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(220, 225, 230, 0.4);
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -1001,6 +1011,15 @@ export default {
   
   .message-input-area {
     padding: 16px;
+  }
+  
+  .input-toolbar {
+    gap: 8px;
+  }
+  
+  .toolbar-btn {
+    padding: 6px 10px;
+    font-size: 14px;
   }
   
   .input-container {

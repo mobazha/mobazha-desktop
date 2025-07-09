@@ -110,134 +110,198 @@
   };
   </script>
   
-  <style lang="less" scoped>
-  .message-item {
-    margin-bottom: 16px;
+  <style lang="scss" scoped>
+@use "sass:color";
+@use '@/assets/scss/variables' as *;
+
+.message-item {
+  margin-bottom: 16px;
+  animation: fadeInUp 0.3s ease-out;
+  
+  .message-content {
+    max-width: 70%;
+    position: relative;
     
-    .message-content {
-      max-width: 70%;
-      position: relative;
+    .message-bubble {
+      border-radius: 18px;
+      padding: 12px 16px;
+      word-wrap: break-word;
+      line-height: 1.4;
+      box-shadow: 0 2px 12px rgba($text, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       
-      .message-bubble {
-        border-radius: 18px;
-        padding: 12px 16px;
-        word-wrap: break-word;
-        line-height: 1.4;
-        
-        .message-text {
-          :deep(img) {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-          }
-          
-          :deep(a) {
-            color: inherit;
-            text-decoration: underline;
-            
-            &:hover {
-              opacity: 0.8;
-            }
-          }
-        }
-        
-        .message-image {
-          margin-top: 8px;
-          
-          .image-content {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-          }
-        }
-        
-        .message-file {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 8px;
-          border: 1px solid #e4e7ed;
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba($text, 0.12);
+      }
+      
+      .message-text {
+        :deep(img) {
+          max-width: 100%;
+          height: auto;
           border-radius: 8px;
-          margin-top: 8px;
+        }
+        
+        :deep(a) {
+          color: inherit;
+          text-decoration: underline;
           
-          .file-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            margin-right: 12px;
-            
-            .file-icon {
-              font-size: 24px;
-              color: #909399;
-              margin-right: 8px;
-            }
-            
-            .file-details {
-              .file-name {
-                font-weight: 500;
-                margin-bottom: 2px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-              }
-              
-              .file-size {
-                font-size: 12px;
-                color: #c0c4cc;
-              }
-            }
+          &:hover {
+            opacity: 0.8;
           }
         }
       }
       
-      .message-meta {
+      .message-image {
+        margin-top: 8px;
+        
+        .image-content {
+          max-width: 200px;
+          max-height: 200px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          
+          &:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+          }
+        }
+      }
+      
+      .message-file {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 4px;
-        padding: 0 4px;
+        padding: 8px;
+        border: 1px solid color.adjust($border, $alpha: -0.6);
+        border-radius: 8px;
+        margin-top: 8px;
+        background: $overlayP;
+        backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
         
-        .message-time {
-          font-size: 12px;
-          color: #c0c4cc;
+        &:hover {
+          background: color.adjust($overlayP, $alpha: +0.1);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba($text, 0.1);
         }
         
-        .message-status {
-          .read-icon {
-            color: #67c23a;
-            font-size: 12px;
+        .file-info {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          margin-right: 12px;
+          
+          .file-icon {
+            font-size: 24px;
+            color: $text3;
+            margin-right: 8px;
           }
           
-          .unread-icon {
-            color: #c0c4cc;
-            font-size: 12px;
+          .file-details {
+            .file-name {
+              font-weight: 500;
+              margin-bottom: 2px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              color: $text;
+            }
+            
+            .file-size {
+              font-size: 12px;
+              color: $text3;
+            }
           }
         }
       }
     }
     
-    &.outgoing {
+    .message-meta {
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding: 0 4px;
       
-      .message-content {
-        .message-bubble {
-          background-color: #409eff;
-          color: white;
-        }
+      .message-time {
+        font-size: 11px;
+        color: $text4;
+        opacity: 0.7;
+        font-weight: 500;
       }
-    }
-    
-    &.incoming {
-      display: flex;
-      justify-content: flex-start;
       
-      .message-content {
-        .message-bubble {
-          background-color: #f4f4f5;
-          color: #303133;
+      .message-status {
+        .read-icon {
+          color: color.adjust($alert, $hue: +120deg);
+          font-size: 12px;
+        }
+        
+        .unread-icon {
+          color: $text4;
+          font-size: 12px;
         }
       }
     }
   }
-  </style>
+  
+  &.outgoing {
+    display: flex;
+    justify-content: flex-end;
+    
+    .message-content {
+      .message-bubble {
+        background: $emphasisGradient;
+        color: $textOnEmph;
+        border-bottom-right-radius: 8px;
+        box-shadow: 0 4px 16px rgba($emphasis1, 0.3);
+      }
+    }
+  }
+  
+  &.incoming {
+    display: flex;
+    justify-content: flex-start;
+    
+    .message-content {
+      .message-bubble {
+        background: $overlayP;
+        backdrop-filter: blur(8px);
+        color: $text;
+        border: 1px solid color.adjust($border, $alpha: -0.6);
+        border-bottom-left-radius: 8px;
+      }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .message-item {
+    .message-content {
+      max-width: 85%;
+      
+      .message-bubble {
+        padding: 10px 14px;
+      }
+      
+      .message-image .image-content {
+        max-width: 150px;
+        max-height: 150px;
+      }
+    }
+  }
+}
+</style>

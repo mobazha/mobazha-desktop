@@ -213,7 +213,10 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "sass:color";
+@use '@/assets/scss/variables' as *;
+
 .chat-container {
   position: fixed;
   right: 32px;
@@ -224,9 +227,9 @@ export default {
 .chat-container .chat-icon-container {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 20px rgba($emphasis1, 0.3);
   border-radius: 50%;
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: $emphasisGradient;
   width: 60px;
   height: 60px;
   display: flex;
@@ -288,15 +291,15 @@ export default {
   bottom: 80px;
   width: 900px;
   height: 650px;
-  background: #ffffff;
+  background: $overlayP;
+  backdrop-filter: blur(8px);
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(228, 231, 237, 0.8);
+  box-shadow: 0 20px 60px rgba($text, 0.15);
+  border: 1px solid color.adjust($border, $alpha: -0.6);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 1001;
-  backdrop-filter: blur(10px);
   animation: slideInUp 0.3s ease-out;
 }
 
@@ -315,8 +318,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(228, 231, 237, 0.6);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid color.adjust($border, $alpha: -0.4);
+  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
   position: relative;
 }
 
@@ -334,7 +337,7 @@ export default {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: $text;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -347,7 +350,7 @@ export default {
 
 .chat-container .chat-main-container .chat-header .close-btn {
   padding: 8px;
-  color: #64748b;
+  color: $text3;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -366,8 +369,8 @@ export default {
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar {
   width: 320px;
-  border-right: 1px solid rgba(228, 231, 237, 0.6);
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-right: 1px solid color.adjust($border, $alpha: -0.4);
+  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%);
   position: relative;
 }
 
@@ -414,15 +417,18 @@ export default {
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item:hover {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
   border-color: rgba(64, 158, 255, 0.2);
-  transform: translateX(4px);
+  transform: translateX(4px) translateY(-1px);
+  box-shadow: 0 4px 16px rgba(100, 115, 135, 0.15);
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.active {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
   border-color: #409eff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.active::before {
@@ -438,7 +444,8 @@ export default {
 }
 
 .chat-container .chat-main-container .chat-body .conversations-sidebar .conversations-list .conversation-item.unread {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: rgba(254, 243, 199, 0.8);
+  backdrop-filter: blur(8px);
   border-color: rgba(245, 108, 108, 0.2);
 }
 
@@ -522,7 +529,8 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
 }
 
 .chat-container .chat-main-container .chat-body .chat-messages-area .messages-container {
@@ -535,7 +543,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%);
 }
 
 .chat-container .chat-main-container .chat-body .chat-messages-area .no-conversation-selected .el-empty .el-empty__description {
