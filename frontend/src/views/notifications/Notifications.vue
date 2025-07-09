@@ -151,28 +151,34 @@ export default {
 
 <style lang="scss" scoped>
 .notifications-container {
-  background: var(--el-bg-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  // 符合设计规范的半透明+毛玻璃效果
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 225, 230, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
   overflow: hidden;
   
   .notifications-header {
-    padding: 20px 24px 0;
+    padding: 16px 20px 8px; // 减少上下间距
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border-bottom: 1px solid rgba(220, 225, 230, 0.3);
     
     h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px; // 略微减小字体
       font-weight: 600;
-      color: var(--el-text-color-primary);
+      color: #2d3748;
     }
   }
   
   .notifications-tabs {
-    padding: 0 24px;
+    padding: 0 20px;
+    background: rgba(255, 255, 255, 0.5);
     
     :deep(.el-tabs__header) {
       margin: 0;
-      border-bottom: 1px solid var(--el-border-color-light);
+      border-bottom: 1px solid rgba(220, 225, 230, 0.4);
     }
     
     :deep(.el-tabs__nav-wrap) {
@@ -182,58 +188,45 @@ export default {
     }
     
     :deep(.el-tabs__item) {
-      font-size: 14px;
+      padding: 8px 16px; // 减少标签页内边距
+      font-size: 13px; // 略微减小字体
       font-weight: 500;
-      color: var(--el-text-color-regular);
+      color: #556080;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       
       &.is-active {
-        color: var(--el-color-primary);
+        color: #667eea;
         font-weight: 600;
       }
       
       &:hover {
-        color: var(--el-color-primary);
+        color: #667eea;
+        transform: translateY(-1px);
       }
     }
     
     :deep(.el-tabs__active-bar) {
-      background-color: var(--el-color-primary);
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      height: 3px;
     }
   }
   
   .notifications-list-container {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 16px 24px 24px;
-    
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: var(--el-fill-color-lighter);
-      border-radius: 3px;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: var(--el-border-color);
-      border-radius: 3px;
-      
-      &:hover {
-        background: var(--el-border-color-darker);
-      }
-    }
+    // 移除固定高度和滚动，让内容自适应
+    padding: 12px 20px 16px; // 减少内边距
   }
 }
 
-// 响应式设计
+// 响应式设计 - 移动端优化
 @media (max-width: 768px) {
   .notifications-container {
+    border-radius: 8px;
+    
     .notifications-header {
-      padding: 16px 16px 0;
+      padding: 12px 16px 6px;
       
       h1 {
-        font-size: 18px;
+        font-size: 16px;
       }
     }
     
@@ -241,14 +234,14 @@ export default {
       padding: 0 16px;
       
       :deep(.el-tabs__item) {
-        font-size: 13px;
-        padding: 0 12px;
+        padding: 6px 12px;
+        font-size: 12px;
       }
     }
     
     .notifications-list-container {
-      padding: 12px 16px 16px;
-      max-height: 350px;
+      padding: 8px 16px 12px;
+      // 移除 max-height，让 NotificationsList 组件处理
     }
   }
 }
@@ -256,7 +249,35 @@ export default {
 // 深色主题适配
 @media (prefers-color-scheme: dark) {
   .notifications-container {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(45, 55, 72, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    
+    .notifications-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+      
+      h1 {
+        color: #f7fafc;
+      }
+    }
+    
+    .notifications-tabs {
+      background: rgba(45, 55, 72, 0.5);
+      
+      :deep(.el-tabs__header) {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      :deep(.el-tabs__item) {
+        color: #a0aec0;
+        
+        &.is-active,
+        &:hover {
+          color: #667eea;
+        }
+      }
+    }
   }
 }
 </style>

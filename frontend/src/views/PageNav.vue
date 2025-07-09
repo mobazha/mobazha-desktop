@@ -56,12 +56,27 @@
             <i class="ion-card"></i>
           </a>
           
-          <a class="nav-btn" @click.stop="onClickNavNotifBtn" :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
-            <i class="ion-android-notifications"></i>
-            <div class="notification-badge" v-show="serverConnected && unreadNotifCount">
-              {{ unreadNotifCount > 99 ? '…' : unreadNotifCount }}
-            </div>
-          </a>
+          <el-popover 
+            placement="bottom-end" 
+            :width="420" 
+            trigger="click"
+            popper-class="notification-popover"
+            :show-arrow="false"
+            v-model:visible="notifContainerOpened">
+            <template #reference>
+              <a class="nav-btn" :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
+                <i class="ion-android-notifications"></i>
+                <div class="notification-badge" v-show="serverConnected && unreadNotifCount">
+                  {{ unreadNotifCount > 99 ? '…' : unreadNotifCount }}
+                </div>
+              </a>
+            </template>
+            <template #default>
+              <div class="notification-popover-content">
+                <Notifications v-if="serverConnected && profileReady" ref="notifications" @notifNavigate="closeNotifications"/>
+              </div>
+            </template>
+          </el-popover>
           
           <a class="nav-btn" @click="onClickShoppingCartBtn" :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart">
             <i class="ion-android-cart"></i>
@@ -157,10 +172,7 @@
           </el-dropdown>
         </div>
 
-        <!-- 通知下拉菜单 -->
-        <div :class="`notification-dropdown ${notifContainerOpened ? 'open' : ''}`" @click.stop="onClickNotifContainer">
-          <Notifications v-if="serverConnected && profileReady && notifContainerOpened" ref="notifications" @notifNavigate="closeNotifications"/>
-        </div>
+
 
         <!-- 服务器管理容器 -->
         <nav :class="`server-menu-dropdown ${connManagementContainerOpened ? 'open' : ''}`"
@@ -294,6 +306,12 @@ export default {
     $route(to) {
       if (to.name === 'Search') {
         this.onRouteSearch();
+      }
+    },
+    notifContainerOpened(newVal) {
+      if (!newVal) {
+        // 当通知面板关闭时，执行清理逻辑
+        this.handleNotificationClose();
       }
     }
   },
@@ -631,35 +649,14 @@ export default {
 
     onClickNavNotifBtn () {
       this.connManagementContainerOpened = false;
-      this.toggleNotifications();
-    },
-
-    toggleNotifications () {
-      if (this.notifContainerOpened) {
-        this.closeNotifications();
-        this.navOverlayOpened = false;
-      } else {
-        this.navOverlayOpened = true;
-        recordEvent('NavClick', { target: 'notificationsOpen' });
-
-        this.notifContainerOpened = true;
-      }
-    },
-
-    onClickNotifContainer () {
+      recordEvent('NavClick', { target: 'notificationsOpen' });
     },
 
     closeNotifications (options) {
-      const opts = {
-        closeOverlay: true,
-        closeNavList: true,
-        ...options,
-      };
-
-      if (!this.notifContainerOpened) return;
       this.notifContainerOpened = false;
-      if (opts.closeOverlay) this.navOverlayOpened = false;
+    },
 
+    handleNotificationClose() {
       if (this.$refs.notifications) {
         const count = this.unreadNotifCount;
         if (this.unreadNotifCount) {
@@ -689,7 +686,6 @@ export default {
     },
 
     onDocClick () {
-      this.closeNotifications();
       this.closeNavMenu();
     },
 
@@ -1083,30 +1079,7 @@ export default {
       }
     }
     
-    .notification-dropdown {
-      position: absolute;
-      top: 48px;
-      right: 100px;
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid rgba(220, 225, 230, 0.6);
-      border-radius: 12px;
-      box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
-      backdrop-filter: blur(16px);
-      z-index: 1000;
-      width: 420px;
-      max-height: 400px;
-      overflow-y: auto;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      
-      &.open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-      }
-    }
+
     
     .server-menu-dropdown,
     .tools-menu-dropdown {
@@ -1244,6 +1217,82 @@ export default {
         border-top: 1px solid rgba(220, 225, 230, 0.3);
         margin-top: 4px;
         padding-top: 16px;
+      }
+    }
+  }
+}
+
+// Element Plus 通知Popover自定义样式
+.notification-popover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 225, 230, 0.6) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15) !important;
+  padding: 0 !important;
+  max-height: 520px; // 设置最大高度边界
+  // 移除 overflow: hidden，让内部组件处理滚动
+  transform-origin: top right; // 从右上角展开
+  animation: popoverFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .el-popover__content {
+    padding: 0 !important;
+    border-radius: 12px;
+    // 移除 overflow: hidden，让内容自然滚动
+    
+    .notification-popover-content {
+      max-height: 520px;
+      // 移除 overflow: hidden，让 NotificationsList 处理滚动
+      
+      // 添加淡入动画
+      animation: contentSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+    }
+  }
+}
+
+// 添加动画效果
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes contentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 深色主题适配
+@media (prefers-color-scheme: dark) {
+  .notification-popover {
+    background: rgba(45, 55, 72, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+// 移动端优化
+@media (max-width: 768px) {
+  .notification-popover {
+    max-height: 450px;
+    border-radius: 8px !important;
+    
+    .el-popover__content {
+      border-radius: 8px;
+      
+      .notification-popover-content {
+        max-height: 450px;
       }
     }
   }
