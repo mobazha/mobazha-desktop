@@ -81,71 +81,86 @@
             <i class="ion-log-in"></i>
           </a>
           
-          <!-- 用户菜单 -->
-          <a id="user-menu-btn" class="user-menu-btn" @click.stop="navListBtnClick"
-            :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)" :data-tip="ob.polyT('pageNav.toolTip.nav')"></a>
+          <!-- Element Plus 用户菜单 -->
+          <el-dropdown 
+            trigger="click" 
+            placement="bottom-end"
+            popper-class="user-menu-popper"
+            @command="handleCommand">
+            <div 
+              id="user-menu-btn" 
+              class="user-menu-btn"
+              :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)" 
+              :data-tip="ob.polyT('pageNav.toolTip.nav')">
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu class="user-dropdown-menu">
+                <!-- 用户信息头部 -->
+                <div class="user-info-header">
+                  <div class="user-name">{{ ob.name }}</div>
+                  <div class="user-id">{{ ob.peerID ? ob.peerID.slice(0, 8) + '...' : '' }}</div>
+                </div>
+                
+                <el-dropdown-item divided command="profile">
+                  <i class="ion-person"></i>
+                  {{ ob.polyT('pageNav.myPage') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item command="create-listing">
+                  <i class="ion-plus"></i>
+                  {{ ob.polyT('pageNav.createListing') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item divided command="sales">
+                  <i class="ion-bag"></i>
+                  {{ ob.polyT('pageNav.sales') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item command="purchases">
+                  <i class="ion-card"></i>
+                  {{ ob.polyT('pageNav.purchases') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item command="cases">
+                  <i class="ion-briefcase"></i>
+                  {{ ob.polyT('pageNav.cases') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item v-if="!isApp" divided command="wallet">
+                  <i class="ion-social-bitcoin"></i>
+                  {{ connectWalletMenuDisplay }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item v-if="isApp" divided command="server">
+                  <i class="ion-network"></i>
+                  <span :class="`server-name ${serverConnected ? 'connected' : ''}`">
+                    {{ serverConnected ? ob.connectedServer.name : ob.polyT('pageNav.notConnectedMenuItem') }}
+                  </span>
+                </el-dropdown-item>
+                
+                <el-dropdown-item divided command="settings">
+                  <i class="ion-gear-a"></i>
+                  {{ ob.polyT('pageNav.settings') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item command="help">
+                  <i class="ion-help"></i>
+                  {{ ob.polyT('pageNav.help') }}
+                </el-dropdown-item>
+                
+                <el-dropdown-item v-if="!isApp" divided command="logout">
+                  <i class="ion-log-out"></i>
+                  {{ ob.polyT('pageNav.logout') }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
 
         <!-- 通知下拉菜单 -->
         <div :class="`notification-dropdown ${notifContainerOpened ? 'open' : ''}`" @click.stop="onClickNotifContainer">
           <Notifications v-if="serverConnected && profileReady && notifContainerOpened" ref="notifications" @notifNavigate="closeNotifications"/>
         </div>
-
-        <!-- 用户菜单下拉 -->
-        <nav :class="`user-menu-dropdown ${navListOpened ? 'open' : ''}`" @click.stop="onNavListClick">
-          <div class="user-menu-content">
-            <div class="user-info">
-              <a class="user-profile-link" @click="onNavListItemClick" :href="`#${ob.peerID}/home`">
-                <span class="user-name">{{ ob.name }}</span>
-              </a>
-            </div>
-            <div v-if="isApp" class="menu-section">
-              <a class="menu-item server-item"
-                @mouseenter="onMouseEnterConnectedServerListItem"
-                @mouseleave="onMouseLeaveConnectedServerListItem">
-                <span :class="`server-name ${serverConnected ? 'connected' : ''}`">{{ serverConnected ? ob.connectedServer.name : ob.polyT('pageNav.notConnectedMenuItem') }}</span>
-                <span><i class="ion-arrow-right-b"></i></span>
-              </a>
-            </div>
-            <div v-if="!isApp" class="menu-section">
-              <a class="menu-item" @click="onClickWalletConnect">
-                <span>{{ connectWalletMenuDisplay }}</span>
-              </a>
-            </div>
-            <div class="menu-section">
-              <a class="menu-item" @click="onNavListItemClick" :href="`#${ob.peerID}`">
-                <span>{{ ob.polyT('pageNav.myPage') }}</span>
-              </a>
-              <a class="menu-item" @click="navCreateListingClick">
-                <span>{{ ob.polyT('pageNav.createListing') }}</span>
-              </a>
-            </div>
-            <div class="menu-section">
-              <a href="#transactions/sales" class="menu-item" @click="onNavListItemClick">
-                <span>{{ ob.polyT('pageNav.sales') }}</span>
-              </a>
-              <a href="#transactions/purchases" class="menu-item" @click="onNavListItemClick">
-                <span>{{ ob.polyT('pageNav.purchases') }}</span>
-              </a>
-              <a href="#transactions/cases" class="menu-item" @click="onNavListItemClick">
-                <span>{{ ob.polyT('pageNav.cases') }}</span>
-              </a>
-            </div>
-            <div class="menu-section">
-              <a class="menu-item" @click="navSettingsClick">
-                <span>{{ ob.polyT('pageNav.settings') }}</span>
-              </a>
-              <a class="menu-item" @click="navHelpClick">
-                <span>{{ ob.polyT('pageNav.help') }}</span>
-              </a>
-            </div>
-            <div v-if="!isApp" class="menu-section">
-              <a class="menu-item" @click="navLogoutClick">
-                <span>{{ ob.polyT('pageNav.logout') }}</span>
-              </a>
-            </div>
-          </div>
-        </nav>
 
         <!-- 服务器管理容器 -->
         <nav :class="`server-menu-dropdown ${connManagementContainerOpened ? 'open' : ''}`"
@@ -246,7 +261,6 @@ export default {
       profileReady: false,
 
       avatarHashes: '',
-      navListOpened: false,
       navOverlayOpened: false,
       connManagementContainerOpened: false,
       toolsContainerOpened: false,
@@ -313,8 +327,6 @@ export default {
 
     connectWalletMenuDisplay() {
       if (!this.onboard) return;
-
-      let access = this.navListOpened;
 
       return this.onboard.connectingWallet
         ? this.ob.polyT('pageNav.walletConnecting')
@@ -566,37 +578,58 @@ export default {
       });
     },
 
-    navListBtnClick (e) {
-      this.closeNotifications({
-        closeOverlay: false,
-        closeNavList: false,
-      });
-      this.toggleNavMenu();
-    },
-
-    toggleNavMenu () {
-      const isOpen = this.navListOpened;
-      this.navListOpened = !isOpen;
-      this.navOverlayOpened = !isOpen;
-
-      if (!isOpen) {
-        this.connManagementContainerOpened = false;
-        recordEvent('NavClick', { target: 'navMenuOpen' });
+    // 处理Element Plus下拉菜单命令
+    handleCommand(command) {
+      console.log('Menu command:', command);
+      
+      switch (command) {
+        case 'profile':
+          this.onNavListItemClick();
+          app.router.navigate(`${this.ob.peerID}/home`, { trigger: true });
+          break;
+        case 'create-listing':
+          this.navCreateListingClick();
+          break;
+        case 'sales':
+          this.onNavListItemClick();
+          app.router.navigate('transactions/sales', { trigger: true });
+          break;
+        case 'purchases':
+          this.onNavListItemClick();
+          app.router.navigate('transactions/purchases', { trigger: true });
+          break;
+        case 'cases':
+          this.onNavListItemClick();
+          app.router.navigate('transactions/cases', { trigger: true });
+          break;
+        case 'wallet':
+          this.onClickWalletConnect();
+          break;
+        case 'server':
+          // 处理服务器连接
+          this.onMouseEnterConnectedServerListItem();
+          break;
+        case 'settings':
+          this.navSettingsClick();
+          break;
+        case 'help':
+          this.navHelpClick();
+          break;
+        case 'logout':
+          this.navLogoutClick();
+          break;
+        default:
+          console.log('Unknown command:', command);
       }
     },
 
     closeNavMenu () {
-      this.navListOpened = false;
       this.navOverlayOpened = false;
 
       this.connManagementContainerOpened = false;
     },
 
-    onNavListClick (e) {
-    },
-
     onClickNavNotifBtn () {
-      this.navListOpened = false;
       this.connManagementContainerOpened = false;
       this.toggleNotifications();
     },
@@ -624,7 +657,6 @@ export default {
       };
 
       if (!this.notifContainerOpened) return;
-      if (opts.closeNavList) this.navListOpened = false;
       this.notifContainerOpened = false;
       if (opts.closeOverlay) this.navOverlayOpened = false;
 
@@ -773,8 +805,10 @@ export default {
     align-items: center;
     height: 48px;
     padding: 0 8px;
-    background: #ffffff;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
     gap: 8px;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(220, 225, 230, 0.4);
     
     .nav-buttons-left {
       display: flex;
@@ -787,24 +821,45 @@ export default {
         justify-content: center;
         width: 32px;
         height: 32px;
-        border-radius: 6px;
+        border-radius: 8px;
         background: transparent;
         border: none;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 8px;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
         
         &:hover {
-          background: rgba(0, 0, 0, 0.05);
-          text-decoration: none;
+          transform: translateY(-1px);
+          
+          &::before {
+            opacity: 1;
+          }
+          
+          i {
+            color: #667eea;
+          }
         }
         
         &:active {
-          background: rgba(0, 0, 0, 0.1);
+          transform: translateY(0);
         }
         
         i {
           font-size: 20px !important;
-          color: #666;
+          color: #556080;
+          transition: color 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
       }
     }
@@ -824,22 +879,24 @@ export default {
           width: 100%;
           height: 36px;
           padding: 0 16px;
-          border: 1px solid #e0e0e0;
+          border: 1px solid rgba(220, 225, 230, 0.6);
           border-radius: 18px;
-          background: #f8f9fa;
+          background: rgba(255, 255, 255, 0.8);
           font-size: 14px;
           color: #333;
-          transition: all 0.2s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(8px);
           
           &:focus {
             outline: none;
-            border-color: #007bff;
-            background: #ffffff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
           }
           
           &::placeholder {
-            color: #999;
+            color: #8892a6;
           }
         }
         
@@ -855,13 +912,14 @@ export default {
       }
       
       .testnet-badge {
-        padding: 4px 8px;
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 4px;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        border: 1px solid rgba(253, 203, 110, 0.4);
+        border-radius: 6px;
         font-size: 12px;
-        color: #856404;
-        font-weight: 500;
+        color: #8b6914;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(253, 203, 110, 0.2);
       }
     }
     
@@ -876,25 +934,45 @@ export default {
         justify-content: center;
         width: 32px;
         height: 32px;
-        border-radius: 6px;
+        border-radius: 8px;
         background: transparent;
         border: none;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         
+        &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 8px;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
         &:hover {
-          background: rgba(0, 0, 0, 0.05);
-          text-decoration: none;
+          transform: translateY(-1px);
+          
+          &::before {
+            opacity: 1;
+          }
+          
+          i {
+            color: #667eea;
+          }
         }
         
         &:active {
-          background: rgba(0, 0, 0, 0.1);
+          transform: translateY(0);
         }
         
         i {
           font-size: 20px !important;
-          color: #666;
+          color: #556080;
+          transition: color 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
         
         .discover-icon {
@@ -909,16 +987,18 @@ export default {
           right: -2px;
           min-width: 18px;
           height: 18px;
-          background: #ff4757;
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
           color: white;
-          border-radius: 9px;
+          border-radius: 10px;
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 0 4px;
           box-sizing: border-box;
+          box-shadow: 0 2px 4px rgba(238, 90, 82, 0.3);
+          border: 2px solid white;
         }
       }
       
@@ -928,13 +1008,50 @@ export default {
         border-radius: 50%;
         background-size: cover;
         background-position: center;
-        border: 2px solid #e0e0e0;
+        border: 2px solid rgba(102, 126, 234, 0.3);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        z-index: 1002; // 确保头像在最顶层
+        
+        &::before {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: -1;
+        }
+        
+        // 添加头像清晰度遮罩
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
         
         &:hover {
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          
+          &::before {
+            opacity: 1;
+          }
+          
+          &::after {
+            opacity: 1;
+          }
+        }
+        
+        &:active {
+          transform: translateY(0);
         }
       }
     }
@@ -943,25 +1060,26 @@ export default {
       position: absolute;
       top: 50px;
       right: 200px;
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(220, 225, 230, 0.6);
+      border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 32px rgba(100, 115, 135, 0.15);
+      backdrop-filter: blur(16px);
       z-index: 1000;
       min-width: 200px;
       
       .callout-title {
         font-weight: 600;
         margin-bottom: 8px;
-        color: #333;
+        color: #2d3748;
       }
       
       p {
         margin: 0;
-        color: #666;
+        color: #556080;
         font-size: 14px;
-        line-height: 1.4;
+        line-height: 1.5;
       }
     }
     
@@ -969,10 +1087,11 @@ export default {
       position: absolute;
       top: 48px;
       right: 100px;
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(220, 225, 230, 0.6);
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
+      backdrop-filter: blur(16px);
       z-index: 1000;
       width: 420px;
       max-height: 400px;
@@ -980,94 +1099,12 @@ export default {
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       
       &.open {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
-      }
-    }
-    
-    .user-menu-dropdown {
-      position: absolute;
-      top: 48px;
-      right: 0;
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      min-width: 280px;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.2s ease;
-      
-      &.open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-      }
-      
-      .user-menu-content {
-        padding: 8px 0;
-        
-        .user-info {
-          padding: 12px 16px;
-          border-bottom: 1px solid #f0f0f0;
-          
-          .user-profile-link {
-            display: block;
-            text-decoration: none;
-            
-            .user-name {
-              font-weight: 600;
-              color: #333;
-              font-size: 16px;
-            }
-          }
-        }
-        
-        .menu-section {
-          border-bottom: 1px solid #f0f0f0;
-          
-          &:last-child {
-            border-bottom: none;
-          }
-          
-          .menu-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            color: #333;
-            text-decoration: none;
-            transition: background 0.2s ease;
-            font-size: 14px;
-            
-            &:hover {
-              background: #f8f9fa;
-              text-decoration: none;
-            }
-            
-            &.server-item {
-              position: relative;
-              
-              .server-name {
-                &.connected {
-                  font-weight: 600;
-                  color: #28a745;
-                }
-              }
-            }
-            
-            i {
-              color: #999;
-              font-size: 16px;
-            }
-          }
-        }
       }
     }
     
@@ -1076,16 +1113,17 @@ export default {
       position: absolute;
       top: 48px;
       right: 280px;
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(220, 225, 230, 0.6);
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
+      backdrop-filter: blur(16px);
       z-index: 999;
       min-width: 200px;
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       
       &.open {
         opacity: 1;
@@ -1101,15 +1139,18 @@ export default {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.1);
-    z-index: 998;
+    background: rgba(45, 55, 72, 0.15);
+    backdrop-filter: blur(2px);
+    z-index: 999; // 提高overlay的层级，但仍低于菜单
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    pointer-events: none; // 隐藏时不接收点击
     
     &.open {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto; // 显示时接收点击
     }
   }
   
@@ -1120,6 +1161,90 @@ export default {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
+    }
+  }
+}
+</style>
+
+<!-- Element Plus 下拉菜单自定义样式 -->
+<style lang="scss">
+// Element Plus Dropdown 自定义样式
+.user-menu-popper {
+  .el-dropdown-menu {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(220, 225, 230, 0.6);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
+    padding: 8px 0;
+    min-width: 280px;
+    
+    .user-info-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(220, 225, 230, 0.4);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      border-radius: 12px 12px 0 0;
+      margin: -8px -0px 8px -0px;
+      
+      .user-name {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 16px;
+        margin-bottom: 4px;
+      }
+      
+      .user-id {
+        font-size: 12px;
+        color: #8892a6;
+        font-family: monospace;
+      }
+    }
+    
+    .el-dropdown-menu__item {
+      padding: 12px 20px;
+      color: #556080;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      i {
+        font-size: 16px;
+        width: 16px;
+        color: #8892a6;
+        transition: color 0.3s ease;
+      }
+      
+      .server-name {
+        &.connected {
+          color: #10b981;
+          font-weight: 600;
+        }
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+        color: #667eea;
+        transform: translateX(4px);
+        
+        i {
+          color: #667eea;
+        }
+      }
+      
+      &:focus {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+        color: #667eea;
+      }
+      
+      // 分割线样式
+      &.is-divided {
+        border-top: 1px solid rgba(220, 225, 230, 0.3);
+        margin-top: 4px;
+        padding-top: 16px;
+      }
     }
   }
 }

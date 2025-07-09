@@ -43,7 +43,7 @@
           </div>
           <div class="posR">
             <template v-if="ob.ownPage">
-              <div class="btnStrip floR clrSh2">
+              <div class="btnStrip modern-btn-strip floR clrSh2">
                 <a class="btn clrP clrBr" @click="clickCustomize">{{ ob.polyT('userPage.customize') }}</a>
                 <a class="btn clrP clrBr" @click="clickCreateListing">{{ ob.polyT('userPage.createListing') }}</a>
                 <!--

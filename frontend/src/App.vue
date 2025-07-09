@@ -477,15 +477,16 @@ export default {
     }
   }
   
-  // 浏览器风格的导航栏
+  // Web3风格的导航栏
   .browser-navbar {
     height: 48px;
-    background: #ffffff;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
     display: flex;
     align-items: center;
     padding: 0 16px;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(220, 225, 230, 0.6);
+    box-shadow: 0 2px 8px rgba(100, 115, 135, 0.08);
+    backdrop-filter: blur(8px);
     
     .nav-container {
       flex: 1;
@@ -495,13 +496,17 @@ export default {
     .wallet-section {
       display: flex;
       align-items: center;
-      padding: 4px 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
+      padding: 6px 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      color: white;
+      font-weight: 500;
+      transition: all 0.2s ease;
       
       &:hover {
-        background: #e9ecef;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
       }
     }
   }
@@ -512,12 +517,40 @@ export default {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.3) 50%, transparent 100%);
+      z-index: 1;
+    }
     
     #pageContainer {
       flex: 1;
       overflow-y: auto;
       padding: 0;
-      background: #fafafa;
+      background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%);
+      position: relative;
+      
+      // 添加微妙的网格背景增强科技感
+      &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+          radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.02) 0%, transparent 50%),
+          radial-gradient(circle at 75% 75%, rgba(118, 75, 162, 0.02) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+      }
     }
   }
   
