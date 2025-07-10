@@ -1,23 +1,24 @@
 @use "sass:math";
+@use "sass:color";
 
 .userPage {
   height: 100%;
   position: relative;
-  background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%); // 统一为柔和的白色到淡灰色渐变
+  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%); // 统一为柔和的白色到淡灰色渐变
 
-  // 添加微妙的动画背景
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.015) 0%, transparent 50%),
-      radial-gradient(circle at 70% 80%, rgba(118, 75, 162, 0.015) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
+      // 添加微妙的动画背景
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 20%, color.adjust($emphasis1, $alpha: -0.985) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, color.adjust($emphasis1, $lightness: -10%, $alpha: -0.985) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
   .header {
     background-position: center;
@@ -34,7 +35,7 @@
     overflow: hidden;
 
     // 添加背景色，以防图片无法完全填满容器时有良好的视觉效果
-    background-color: rgba(248, 250, 252, 0.95);
+    background-color: color.adjust($primary, $alpha: -0.05);
 
     // 添加现代化的遮罩渐变
     &::after {
@@ -42,8 +43,8 @@
       position: absolute;
       inset: 0;
       background: linear-gradient(135deg,
-          rgba(102, 126, 234, 0.1) 0%,
-          rgba(118, 75, 162, 0.05) 50%,
+          color.adjust($emphasis1, $alpha: -0.9) 0%,
+          color.adjust($emphasis1, $lightness: -10%, $alpha: -0.95) 50%,
           transparent 100%);
       z-index: 1;
     }
@@ -77,9 +78,9 @@
 
     // 统一所有contentBox的背景
     .contentBox {
-      background: rgba(255, 255, 255, 0.8) !important;
+      background: $overlayP !important;
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(220, 225, 230, 0.4);
+      border: 1px solid color.adjust($border, $alpha: -0.6);
     }
 
     // 统一tabContent背景
@@ -97,9 +98,9 @@
     .userPageSearchBar .searchInput,
     .storeFilters .contentBox,
     .userPageStore .contentBox {
-      background: rgba(255, 255, 255, 0.8) !important;
+      background: $overlayP !important;
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(220, 225, 230, 0.4);
+      border: 1px solid color.adjust($border, $alpha: -0.6);
     }
 
     // 特殊处理一些可能需要完全透明的元素
@@ -116,7 +117,7 @@
     position: relative;
 
     .tabTitle {
-      color: #fff;
+      color: $textOnEmph;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       font-weight: 700;
     }
@@ -126,9 +127,9 @@
       top: -10px;
       left: -160px;
       width: 400px;
-      background: rgba(255, 255, 255, 0.95);
+      background: color.adjust($overlayP, $alpha: -0.05);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(220, 225, 230, 0.6);
+      border: 1px solid color.adjust($border, $alpha: -0.4);
       border-radius: 16px;
       box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
 
@@ -153,9 +154,9 @@
       }
 
       .btn {
-        background: rgba(255, 255, 255, 0.9);
+        background: color.adjust($overlayP, $alpha: -0.1);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid color.adjust($textOnEmph, $alpha: -0.7);
         border-radius: 10px !important; // 强制覆盖btnStrip的border-radius: 0
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-weight: 600;
@@ -164,9 +165,9 @@
 
         &:hover {
           transform: translateY(-2px);
-          background: rgba(255, 255, 255, 0.95);
+          background: color.adjust($overlayP, $alpha: -0.05);
           box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
-          border-color: rgba(102, 126, 234, 0.3);
+          border-color: color.adjust($emphasis1, $alpha: -0.7);
         }
 
         &:active {
@@ -175,7 +176,7 @@
 
         // 移除btnStrip的边框合并效果
         &:not(:last-child):not(:hover) {
-          border-right-color: rgba(255, 255, 255, 0.3);
+          border-right-color: color.adjust($textOnEmph, $alpha: -0.7);
         }
       }
     }
@@ -284,9 +285,9 @@
 
       // 优化搜索输入框背景
       .searchInput {
-        background: rgba(255, 255, 255, 0.9) !important;
+        background: color.adjust($overlayP, $alpha: -0.1) !important;
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(220, 225, 230, 0.4);
+        border: 1px solid color.adjust($border, $alpha: -0.6);
       }
     }
 
@@ -296,9 +297,9 @@
 
       .contentBox {
         font-size: $tx5b;
-        background: rgba(255, 255, 255, 0.8) !important;
+        background: $overlayP !important;
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(220, 225, 230, 0.4);
+        border: 1px solid color.adjust($border, $alpha: -0.6);
 
         input[type="radio"]+label {
           font-size: $tx5b;
@@ -420,9 +421,9 @@
 #pageTabBar {
   position: relative;
   z-index: 5; // 确保tab导航在header之上
-  background: rgba(255, 255, 255, 0.95); // 添加半透明背景
+  background: color.adjust($overlayP, $alpha: -0.05); // 添加半透明背景
   backdrop-filter: blur(8px); // 添加毛玻璃效果
-  border-bottom: 1px solid rgba(220, 225, 230, 0.4); // 添加底部边框
+  border-bottom: 1px solid color.adjust($border, $alpha: -0.6); // 添加底部边框
 }
 
 // 修复MiniProfile在tab导航中的层级

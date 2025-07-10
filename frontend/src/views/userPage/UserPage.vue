@@ -614,6 +614,37 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+@use "sass:color";
+@use '@/assets/scss/variables' as *;
+
+.userPage {
+  
+  // 页面标签栏
+  #pageTabBar {
+    background: $overlayP;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid color.adjust($border, $alpha: -0.6);
+    box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
+    
+    .pageTabs {
+      .tab {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        &:hover {
+          transform: translateY(-1px);
+          color: $emphasis1;
+        }
+        
+        &.active {
+          color: $emphasis1;
+          font-weight: 600;
+          border-bottom: 2px solid $emphasis1;
+        }
+      }
+    }
+  }
+  
+  // 背景图片样式
 .bkgImg {
   position: absolute;
   top: 0;
@@ -621,5 +652,49 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  }
+}
+
+// 确保所有内容框使用统一的现代化样式
+:deep(.contentBox) {
+  background: $overlayP !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid color.adjust($border, $alpha: -0.6);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(100, 115, 135, 0.15);
+  }
+}
+
+// 优化表单元素和按钮的现代化样式
+:deep(.btn) {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 优化输入框样式
+:deep(.searchInput) {
+  background: color.adjust($overlayP, $alpha: -0.1) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid color.adjust($border, $alpha: -0.6);
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:focus {
+    border-color: $emphasis1;
+    box-shadow: 0 0 0 3px color.adjust($emphasis1, $alpha: -0.9);
+    transform: translateY(-1px);
+  }
 }
 </style>
