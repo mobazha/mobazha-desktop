@@ -1,27 +1,32 @@
 <template>
   <div
-    :class="`pageNav ${!navigable ? 'notNavigable' : ''} ${torIndicatorOn ? 'torIndicatorOn' : ''}`"
+    :class="`pageNav ${!navigable ? 'notNavigable' : ''} ${torIndicatorOn ? 'torIndicatorOn' : ''} ${isDesktopApp ? 'desktop-app' : ''}`"
     @click="onDocClick">
     <header>
       <nav class="browser-toolbar">
         <!-- 左侧导航按钮组 -->
         <div class="nav-buttons-left">
-          <a v-if="!showFullNav" class="nav-btn" @click="navHomeClick" :data-tip="ob.polyT('pageNav.toolTip.home')">
-            <i class="ion-home"></i>
-          </a>
-          <a v-if="isDesktopApp" class="nav-btn" @click="navBackClick" :data-tip="ob.polyT('pageNav.toolTip.back')">
+          <!-- 桌面端：传统的左侧导航按钮 -->
+          <template v-if="isDesktopApp">
+            <a class="nav-btn" @click="navBackClick" :data-tip="ob.polyT('pageNav.toolTip.back')">
             <i class="ion-chevron-left"></i>
           </a>
-          <a v-if="isDesktopApp" class="nav-btn" @click="navFwdClick" :data-tip="ob.polyT('pageNav.toolTip.forward')">
+            <a class="nav-btn" @click="navFwdClick" :data-tip="ob.polyT('pageNav.toolTip.forward')">
             <i class="ion-chevron-right"></i>
           </a>
-          <a v-if="isDesktopApp" class="nav-btn" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
+            <a class="nav-btn" @click="navReload" :data-tip="ob.polyT('pageNav.toolTip.refresh')" id="Nav_Refresh">
             <i class="ion-refresh"></i>
+            </a>
+          </template>
+          
+          <!-- 非桌面端：只保留Home按钮 -->
+          <a v-if="!isDesktopApp" class="nav-btn home-btn" @click="navHomeClick" :data-tip="ob.polyT('pageNav.toolTip.home')">
+            <i class="ion-home"></i>
           </a>
         </div>
 
         <!-- 中间地址栏区域 -->
-        <div class="address-bar-container" v-show="showFullNav">
+        <div class="address-bar-container" v-if="isDesktopApp">
           <div class="address-bar-wrapper">
             <input type="text" class="address-bar"
               ref="addressBar"
@@ -42,9 +47,17 @@
 
         <!-- 右侧功能按钮组 -->
         <div class="nav-buttons-right">
-          <a href="#search" class="nav-btn" :data-tip="ob.polyT('pageNav.toolTip.discover')" id="Nav_Discover">
-            <img class="discover-icon" src="~@/../imgs/obVectorIconSmall2.png" />
-          </a>
+          <!-- 搜索/发现按钮 -->
+          <el-tooltip 
+            :content="ob.polyT('pageNav.toolTip.discover')" 
+            placement="bottom" 
+            :show-arrow="false"
+            popper-class="nav-tooltip">
+            <a class="nav-btn" @click="navDiscoverClick" id="Nav_Discover">
+              <img class="discover-icon" src="~@/../imgs/obVectorIconSmall2.png" />
+            </a>
+          </el-tooltip>
+          
           <template v-if="showDiscoverCallout">
             <div class="discover-callout">
               <div class="callout-title">{{ ob.polyT('pageNav.discoverCalloutTitle') }}</div>
@@ -52,10 +65,18 @@
             </div>
           </template>
           
-          <a class="nav-btn" @click="navPaymentMethodsClick" :data-tip="ob.polyT('pageNav.toolTip.paymentMethods')" id="Nav_PaymentMethods">
-            <i class="ion-card"></i>
-          </a>
+          <!-- 支付方式按钮 -->
+          <el-tooltip 
+            :content="ob.polyT('pageNav.toolTip.paymentMethods')" 
+            placement="bottom" 
+            :show-arrow="false"
+            popper-class="nav-tooltip">
+            <a class="nav-btn" @click="navPaymentMethodsClick" id="Nav_PaymentMethods">
+              <i class="ion-card"></i>
+            </a>
+          </el-tooltip>
           
+          <!-- 通知按钮 -->
           <el-popover 
             placement="bottom-end" 
             :width="420" 
@@ -64,7 +85,8 @@
             :show-arrow="false"
             v-model:visible="notifContainerOpened">
             <template #reference>
-              <a class="nav-btn" :data-tip="ob.polyT('pageNav.toolTip.notifications')" id="Nav_Notifications">
+              <a class="nav-btn" id="Nav_Notifications" 
+                 :title="ob.polyT('pageNav.toolTip.notifications')">
                 <i class="ion-android-notifications"></i>
                 <div class="notification-badge" v-show="serverConnected && unreadNotifCount">
                   {{ unreadNotifCount > 99 ? '…' : unreadNotifCount }}
@@ -78,23 +100,31 @@
             </template>
           </el-popover>
           
-          <a class="nav-btn" @click="onClickShoppingCartBtn" :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart">
-            <i class="ion-android-cart"></i>
-            <div class="cart-badge" v-show="serverConnected && cartItemsCount">
-              {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
-            </div>
-          </a>
+          <!-- 购物车按钮 -->
+          <el-tooltip 
+            :content="ob.polyT('pageNav.toolTip.shoppingCart')" 
+            placement="bottom" 
+            :show-arrow="false"
+            popper-class="nav-tooltip">
+            <a class="nav-btn" @click="onClickShoppingCartBtn" id="Nav_ShoppingCart">
+              <i class="ion-android-cart"></i>
+              <div class="cart-badge" v-show="serverConnected && cartItemsCount">
+                {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
+              </div>
+            </a>
+          </el-tooltip>
           
-          <a v-if="!showFullNav" class="nav-btn" @click="onClickShoppingCartBtn" :data-tip="ob.polyT('pageNav.toolTip.shoppingCart')" id="Nav_ShoppingCart0">
-            <i class="ion-android-cart"></i>
-            <div class="cart-badge" v-show="serverConnected && cartItemsCount">
-              {{ cartItemsCount > 99 ? '…' : cartItemsCount }}
-            </div>
-          </a>
-          
-          <a v-if="!showFullNav" class="nav-btn" @click="navLoginClick" :data-tip="ob.polyT('pageNav.toolTip.login')">
-            <i class="ion-log-in"></i>
-          </a>
+          <!-- 非桌面端登录按钮 -->
+          <el-tooltip 
+            v-if="!isDesktopApp && !ob.peerID"
+            :content="ob.polyT('pageNav.toolTip.login')" 
+            placement="bottom" 
+            :show-arrow="false"
+            popper-class="nav-tooltip">
+            <a class="nav-btn login-btn" @click="navLoginClick">
+              <i class="ion-log-in"></i>
+            </a>
+          </el-tooltip>
           
           <!-- Element Plus 用户菜单 -->
           <el-dropdown 
@@ -105,8 +135,8 @@
             <div 
               id="user-menu-btn" 
               class="user-menu-btn"
-              :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)" 
-              :data-tip="ob.polyT('pageNav.toolTip.nav')">
+              :style="ob.getAvatarBgImage(avatarHashes || ob.avatarHashes)"
+              :title="ob.polyT('pageNav.toolTip.nav')">
             </div>
             <template #dropdown>
               <el-dropdown-menu class="user-dropdown-menu">
@@ -349,13 +379,6 @@ export default {
       return this.onboard.connectingWallet
         ? this.ob.polyT('pageNav.walletConnecting')
         : this.onboard.connectedWallet ? this.ob.polyT('pageNav.disconnectWallet') : this.ob.polyT('pageNav.connectWallet');
-    },
-
-    showFullNav() {
-      if (!import.meta.env.VITE_APP && !casdoor.isLoggedIn()) {
-        return false;
-      }
-      return true;
     },
 
     isDesktopApp() {
@@ -727,6 +750,12 @@ export default {
       if (this.$refs.addressBarIndicators) this.$refs.addressBarIndicators.updateVisibility(text);
     },
 
+    navDiscoverClick () {
+      recordEvent('NavClick', { target: 'discover' });
+      // 导航到搜索页面
+      this.$router.push('/search');
+    },
+
     navSettingsClick () {
       setTimeout(() => {
         this.closeNavMenu();
@@ -789,16 +818,22 @@ export default {
       recordEvent('NavClick', { target: 'paymentMethodsOpen' });
       this.$router.push('/receiving-accounts');
     },
+
+    navDiscoverClick() {
+      recordEvent('NavClick', { target: 'discoverOpen' });
+      this.$router.push('/search');
+    }
   }
 }
 </script>
+
 <style lang="scss" scoped>
+// 简化的现代化导航栏样式
 .pageNav {
-  position: relative;
-  
   .browser-toolbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     height: 48px;
     padding: 0 8px;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
@@ -810,6 +845,7 @@ export default {
       display: flex;
       align-items: center;
       gap: 4px;
+      order: 1;
       
       .nav-btn {
         display: flex;
@@ -818,44 +854,41 @@ export default {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        background: transparent;
-        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(220, 225, 230, 0.3);
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        
-        &::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 8px;
-          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
         
         &:hover {
-          transform: translateY(-1px);
-          
-          &::before {
-            opacity: 1;
-          }
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(102, 126, 234, 0.3);
           
           i {
             color: #667eea;
           }
         }
         
-        &:active {
-          transform: translateY(0);
-        }
-        
         i {
-          font-size: 20px !important;
+          font-size: 20px;
           color: #556080;
           transition: color 0.3s ease;
-          position: relative;
-          z-index: 1;
+        }
+        
+        &.home-btn {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
+          border-color: rgba(102, 126, 234, 0.3);
+          
+          i {
+            color: #667eea;
+          }
+          
+          &:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.18), rgba(118, 75, 162, 0.18));
+            border-color: rgba(102, 126, 234, 0.4);
+          }
         }
       }
     }
@@ -866,6 +899,7 @@ export default {
       align-items: center;
       gap: 12px;
       margin: 0 16px;
+      order: 2;
       
       .address-bar-wrapper {
         flex: 1;
@@ -878,10 +912,10 @@ export default {
           border: 1px solid rgba(220, 225, 230, 0.6);
           border-radius: 18px;
           background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(8px);
           font-size: 14px;
           color: #333;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          backdrop-filter: blur(8px);
           
           &:focus {
             outline: none;
@@ -895,16 +929,6 @@ export default {
             color: #8892a6;
           }
         }
-        
-        .address-bar-indicators {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
       }
       
       .testnet-badge {
@@ -916,6 +940,7 @@ export default {
         color: #8b6914;
         font-weight: 600;
         box-shadow: 0 2px 4px rgba(253, 203, 110, 0.2);
+        backdrop-filter: blur(8px);
       }
     }
     
@@ -923,6 +948,7 @@ export default {
       display: flex;
       align-items: center;
       gap: 4px;
+      order: 3;
       
       .nav-btn {
         display: flex;
@@ -931,44 +957,28 @@ export default {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        background: transparent;
-        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(220, 225, 230, 0.3);
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         
-        &::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 8px;
-          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
         &:hover {
-          transform: translateY(-1px);
-          
-          &::before {
-            opacity: 1;
-          }
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(102, 126, 234, 0.3);
           
           i {
             color: #667eea;
           }
         }
         
-        &:active {
-          transform: translateY(0);
-        }
-        
         i {
-          font-size: 20px !important;
+          font-size: 20px;
           color: #556080;
           transition: color 0.3s ease;
-          position: relative;
-          z-index: 1;
         }
         
         .discover-icon {
@@ -995,6 +1005,22 @@ export default {
           box-sizing: border-box;
           box-shadow: 0 2px 4px rgba(238, 90, 82, 0.3);
           border: 2px solid white;
+          backdrop-filter: blur(8px);
+        }
+        
+        &.login-btn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-color: rgba(102, 126, 234, 0.4);
+          
+          i {
+            color: white;
+          }
+          
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8 0%, #6b5b95 100%);
+          }
         }
       }
       
@@ -1004,11 +1030,11 @@ export default {
         border-radius: 50%;
         background-size: cover;
         background-position: center;
-        border: 2px solid rgba(102, 126, 234, 0.3);
+        border: 2px solid rgba(220, 225, 230, 0.4);
+        backdrop-filter: blur(8px);
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-        z-index: 1002; // 确保头像在最顶层
         
         &::before {
           content: '';
@@ -1021,27 +1047,12 @@ export default {
           z-index: -1;
         }
         
-        // 添加头像清晰度遮罩
-        &::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-        
         &:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+          border-color: rgba(102, 126, 234, 0.4);
           
           &::before {
-            opacity: 1;
-          }
-          
-          &::after {
             opacity: 1;
           }
         }
@@ -1079,8 +1090,6 @@ export default {
       }
     }
     
-
-    
     .server-menu-dropdown,
     .tools-menu-dropdown {
       position: absolute;
@@ -1114,16 +1123,16 @@ export default {
     bottom: 0;
     background: rgba(45, 55, 72, 0.15);
     backdrop-filter: blur(2px);
-    z-index: 999; // 提高overlay的层级，但仍低于菜单
+    z-index: 999;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    pointer-events: none; // 隐藏时不接收点击
+    pointer-events: none;
     
     &.open {
       opacity: 1;
       visibility: visible;
-      pointer-events: auto; // 显示时接收点击
+      pointer-events: auto;
     }
   }
   
@@ -1136,164 +1145,167 @@ export default {
       pointer-events: none;
     }
   }
+  
+  // 非桌面端特殊样式
+  &:not(.desktop-app) {
+    .browser-toolbar {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
+      border-bottom: 1px solid rgba(220, 225, 230, 0.6);
+      backdrop-filter: blur(16px);
+      
+      .nav-buttons-left {
+        .nav-btn.home-btn {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+          border-color: rgba(102, 126, 234, 0.4);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+          
+          i {
+            color: #667eea;
+          }
+          
+          &:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+          }
+        }
+      }
+      
+      .nav-buttons-right {
+        .nav-btn.login-btn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-color: rgba(102, 126, 234, 0.4);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+          
+          i {
+            color: white;
+          }
+          
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8 0%, #6b5b95 100%);
+          }
+        }
+      }
+      
+      .discover-callout {
+        right: 80px;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(220, 225, 230, 0.4);
+        box-shadow: 0 12px 32px rgba(100, 115, 135, 0.2);
+      }
+    }
+  }
+  
+  // 响应式样式
+  @media (max-width: 1024px) {
+    .browser-toolbar {
+      padding: 0 12px;
+      height: 56px;
+      
+      .nav-buttons-left,
+      .nav-buttons-right {
+        gap: 8px;
+        
+        .nav-btn {
+          width: 40px;
+          height: 40px;
+          
+          i {
+            font-size: 22px;
+          }
+        }
+      }
+      
+      .user-menu-btn {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .browser-toolbar {
+      padding: 0 8px;
+      height: 52px;
+      
+      .nav-buttons-left,
+      .nav-buttons-right {
+        gap: 4px;
+        
+        .nav-btn {
+          width: 36px;
+          height: 36px;
+          
+          i {
+            font-size: 20px;
+          }
+          
+          .notification-badge,
+          .cart-badge {
+            min-width: 16px;
+            height: 16px;
+            font-size: 10px;
+          }
+        }
+      }
+      
+      .user-menu-btn {
+        width: 36px;
+        height: 36px;
+      }
+    }
+  }
 }
 </style>
 
-<!-- Element Plus 下拉菜单自定义样式 -->
-<style lang="scss">
-// Element Plus Dropdown 自定义样式
-.user-menu-popper {
-  .el-dropdown-menu {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(220, 225, 230, 0.6);
-    border-radius: 12px;
-    box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
-    padding: 8px 0;
-    min-width: 280px;
-    
-    .user-info-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(220, 225, 230, 0.4);
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-      border-radius: 12px 12px 0 0;
-      margin: -8px -0px 8px -0px;
-      
-      .user-name {
-        font-weight: 600;
-        color: #2d3748;
-        font-size: 16px;
-        margin-bottom: 4px;
-      }
-      
-      .user-id {
-        font-size: 12px;
-        color: #8892a6;
-        font-family: monospace;
-      }
-    }
-    
-    .el-dropdown-menu__item {
-      padding: 12px 20px;
-      color: #556080;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      
-      i {
-        font-size: 16px;
-        width: 16px;
-        color: #8892a6;
-        transition: color 0.3s ease;
-      }
-      
-      .server-name {
-        &.connected {
-          color: #10b981;
-          font-weight: 600;
-        }
-      }
-      
-      &:hover {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-        color: #667eea;
-        transform: translateX(4px);
-        
-        i {
-          color: #667eea;
-        }
-      }
-      
-      &:focus {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-        color: #667eea;
-      }
-      
-      // 分割线样式
-      &.is-divided {
-        border-top: 1px solid rgba(220, 225, 230, 0.3);
-        margin-top: 4px;
-        padding-top: 16px;
-      }
-    }
-  }
-}
-
-// Element Plus 通知Popover自定义样式
-.notification-popover {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(220, 225, 230, 0.6) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15) !important;
-  padding: 0 !important;
-  max-height: 520px; // 设置最大高度边界
-  // 移除 overflow: hidden，让内部组件处理滚动
-  transform-origin: top right; // 从右上角展开
-  animation: popoverFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+<!-- 添加全局样式来确保tooltip正确显示 -->
+<style>
+/* Element Plus tooltip 样式优化 */
+.nav-tooltip {
+  z-index: 9999 !important;
   
-  .el-popover__content {
-    padding: 0 !important;
-    border-radius: 12px;
-    // 移除 overflow: hidden，让内容自然滚动
+  .el-tooltip__popper {
+    background: rgba(45, 55, 72, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    max-width: 200px;
+    word-wrap: break-word;
     
-    .notification-popover-content {
-      max-height: 520px;
-      // 移除 overflow: hidden，让 NotificationsList 处理滚动
-      
-      // 添加淡入动画
-      animation: contentSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+    &[data-popper-placement^="bottom"] {
+      margin-top: 8px;
+    }
+    
+    &[data-popper-placement^="top"] {
+      margin-bottom: 8px;
+    }
+    
+    &[data-popper-placement^="left"] {
+      margin-right: 8px;
+    }
+    
+    &[data-popper-placement^="right"] {
+      margin-left: 8px;
     }
   }
 }
 
-// 添加动画效果
-@keyframes popoverFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
 
-@keyframes contentSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// 深色主题适配
-@media (prefers-color-scheme: dark) {
-  .notification-popover {
-    background: rgba(45, 55, 72, 0.95) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-  }
-}
-
-// 移动端优化
+/* 响应式tooltip调整 */
 @media (max-width: 768px) {
-  .notification-popover {
-    max-height: 450px;
-    border-radius: 8px !important;
-    
-    .el-popover__content {
-      border-radius: 8px;
-      
-      .notification-popover-content {
-        max-height: 450px;
-      }
+  .nav-tooltip {
+    .el-tooltip__popper {
+      font-size: 11px;
+      padding: 6px 10px;
+      max-width: 150px;
     }
   }
 }

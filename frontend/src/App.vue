@@ -16,7 +16,9 @@
         <PageNav ref="pageNav" />
       </section>
       <div class="wallet-section">
-        <appkit-button />
+        <div class="wallet-button-wrapper">
+          <appkit-button />
+        </div>
       </div>
     </div>
 
@@ -496,17 +498,32 @@ export default {
     .wallet-section {
       display: flex;
       align-items: center;
-      padding: 6px 14px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 10px;
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      color: white;
-      font-weight: 500;
-      transition: all 0.2s ease;
       
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      .wallet-button-wrapper {
+        // 简化钱包按钮样式
+        :deep(w3m-button),
+        :deep(appkit-button) {
+          --w3m-accent: #667eea;
+          --w3m-border-radius-master: 8px;
+          
+          button {
+            height: 32px;
+            padding: 0 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(220, 225, 230, 0.4);
+            border-radius: 8px;
+            color: #556080;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            
+            &:hover {
+              background: rgba(255, 255, 255, 0.95);
+              border-color: rgba(102, 126, 234, 0.3);
+              color: #667eea;
+            }
+          }
+        }
       }
     }
   }

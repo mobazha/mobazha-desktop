@@ -22,6 +22,9 @@ import './assets/scss/browser-layout.scss';
 import VueBackbone from './plugins/vue-backbone/vue-backbone';
 import ChatPlugin from './plugins/chat';
 
+// 添加i18n导入
+import i18n from './i18n';
+
 import app from '../backbone/app';
 
 import App from './App.vue';
@@ -69,7 +72,8 @@ function mountVueApp(container) {
     }
   );
 
-  const appInstance = vueApp.use(Router).use(pinia).use(VueBackbone).use(ChatPlugin).mount(container);
+  // 使用i18n插件
+  const appInstance = vueApp.use(Router).use(pinia).use(i18n).use(VueBackbone).use(ChatPlugin).mount(container);
   
   Router.beforeEach((to, from) => {
     appInstance.showLoadingModal = true;
