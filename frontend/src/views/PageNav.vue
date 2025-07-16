@@ -116,7 +116,7 @@
           
           <!-- 非桌面端登录按钮 -->
           <el-tooltip 
-            v-if="!isDesktopApp && !ob.peerID"
+            v-if="!isDesktopApp && !isLoggedIn()"
             :content="ob.polyT('pageNav.toolTip.login')" 
             placement="bottom" 
             :show-arrow="false"
@@ -126,8 +126,9 @@
             </a>
           </el-tooltip>
           
-          <!-- Element Plus 用户菜单 -->
+          <!-- Element Plus 用户菜单 - 仅在桌面端或已登录时显示 -->
           <el-dropdown 
+            v-if="isDesktopApp || isLoggedIn()"
             trigger="click" 
             placement="bottom-end"
             popper-class="user-menu-popper"
@@ -806,8 +807,13 @@ export default {
 
       this.showEditListing = true;
     },
+
     closeEditListingModal() {
       this.showEditListing = false;
+    },
+
+    isLoggedIn() {
+      return casdoor.isLoggedIn();
     },
 
     navLoginClick() {
@@ -828,6 +834,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
 // 简化的现代化导航栏样式
 .pageNav {
   .browser-toolbar {
@@ -1008,20 +1015,7 @@ export default {
           backdrop-filter: blur(8px);
         }
         
-        &.login-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-color: rgba(102, 126, 234, 0.4);
-          
-          i {
-            color: white;
-          }
-          
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #5a67d8 0%, #6b5b95 100%);
-          }
-        }
+
       }
       
       .user-menu-btn {
@@ -1171,24 +1165,7 @@ export default {
         }
       }
       
-      .nav-buttons-right {
-        .nav-btn.login-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-color: rgba(102, 126, 234, 0.4);
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-          
-          i {
-            color: white;
-          }
-          
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #5a67d8 0%, #6b5b95 100%);
-          }
-        }
-      }
-      
+
       .discover-callout {
         right: 80px;
         background: rgba(255, 255, 255, 0.98);
