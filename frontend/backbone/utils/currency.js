@@ -136,6 +136,10 @@ export function getCoinDivisibility(currency, options = {}) {
     return walletCurDef[currency].divisibility;
   }
 
+  if (currency.includes('USDT') || currency.includes('USDC')) {
+    return 6;
+  }
+
   const curMeta = getCurMeta(currency);
 
   if (curMeta.isFiat) {

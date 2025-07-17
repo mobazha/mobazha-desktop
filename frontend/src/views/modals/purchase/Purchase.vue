@@ -1392,7 +1392,7 @@ export default {
           
           // 使用最小精度单位
           convertedAmount = conversionResult.convertedAmountInSmallestUnit;
-          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${conversionResult.convertedAmountInSmallestUnit} 最小单位)`);
+          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${convertedAmount} 最小单位)`);
           console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
         }
 

@@ -106,8 +106,8 @@ const PRICE_FEEDS = {
 // 币种精度配置
 const CURRENCY_DIVISIBILITY = {
   USD: 100,    // USD 精度为 2 位小数
-  USDT: 100,   // USDT 精度为 2 位小数
-  USDC: 100,   // USDC 精度为 2 位小数
+  USDT: 10**6,   // USDT 精度为 6 位小数
+  USDC: 10**6,   // USDC 精度为 6 位小数
   BTC: 100000000,  // BTC 精度为 8 位小数
   ETH: 1000000000000000000,  // ETH 精度为 18 位小数
   SOL: 1000000000,  // SOL 精度为 9 位小数
@@ -236,7 +236,7 @@ async function convertCurrency(amount, fromCurrency, toCurrency) {
     let fromRate, toRate;
 
     // 处理源币种是USD的情况
-    if (actualFromCurrency === 'USD') {
+    if (actualFromCurrency === 'USD' || actualFromCurrency === 'USDT' || actualFromCurrency === 'USDC') {
       fromRate = 1; // USD对USD的汇率是1
     } else {
       // 获取源币种对USD的汇率
@@ -248,7 +248,7 @@ async function convertCurrency(amount, fromCurrency, toCurrency) {
     }
 
     // 处理目标币种是USD的情况
-    if (actualToCurrency === 'USD') {
+    if (actualToCurrency === 'USD' || actualToCurrency === 'USDT' || actualToCurrency === 'USDC') {
       toRate = 1; // USD对USD的汇率是1
     } else {
       // 获取目标币种对USD的汇率
