@@ -135,31 +135,27 @@ function confirmOrder(orderID, reject) {
               });
               resolve(result);
             } else if (response && response.instructions) {
+              let networkType;
               if (response.paymentChain === 'ETH') {
-                events.trigger('executeEthTransaction', {
-                  txData: response.instructions,
-                  orderID,
-                  reject,
-                  metadata: response
-                });
+                networkType = 'ethereum';
               } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-                events.trigger('executeSolanaTransaction', {
-                  instructions: response.instructions,
-                  orderID,
-                  reject,
-                  metadata: response
-                });
+                networkType = 'solana';
               } else {
                 reject(new Error('暂不支持该链支付: ' + response.paymentChain));
                 return;
               }
 
+              events.trigger('executeCryptoTransaction', {
+                networkType,
+                orderID,
+                transactionData: response.instructions,
+                metadata: { ...response, reject }
+              });
+
               const handleTransactionComplete = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('ethTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('ethTransactionError', handleTransactionError);
-                  events.off('solanaTransactionError', handleTransactionError);
+                if (e.orderID === orderID && e.networkType === networkType) {
+                  events.off('cryptoTransactionComplete', handleTransactionComplete);
+                  events.off('cryptoTransactionError', handleTransactionError);
                   
                   // 交易成功后，调用后端确认接口
                   myPost(app.getServerUrl('order/confirm'), {
@@ -180,11 +176,9 @@ function confirmOrder(orderID, reject) {
               };
 
               const handleTransactionError = (e) => {
-                if (e.orderID === orderID) {
-                  events.off('ethTransactionComplete', handleTransactionComplete);
-                  events.off('solanaTransactionComplete', handleTransactionComplete);
-                  events.off('ethTransactionError', handleTransactionError);
-                  events.off('solanaTransactionError', handleTransactionError);
+                if (e.orderID === orderID && e.networkType === networkType) {
+                  events.off('cryptoTransactionComplete', handleTransactionComplete);
+                  events.off('cryptoTransactionError', handleTransactionError);
                   let errorMessage = e.error?.message || '交易失败';
                   if (errorMessage.includes('Error Number: 3012')) {
                     errorMessage = 'Insufficient balance or token not found';
@@ -199,10 +193,8 @@ function confirmOrder(orderID, reject) {
               };
 
               // 绑定事件监听器
-              events.on('ethTransactionComplete', handleTransactionComplete);
-              events.on('solanaTransactionComplete', handleTransactionComplete);
-              events.on('ethTransactionError', handleTransactionError);
-              events.on('solanaTransactionError', handleTransactionError);
+              events.on('cryptoTransactionComplete', handleTransactionComplete);
+              events.on('cryptoTransactionError', handleTransactionError);
             }
           } catch (error) {
             reject(error);
@@ -571,31 +563,29 @@ function completeCryptoOrder(orderID, data = {}) {
             });
             resolve(result);
           } else if (response && response.instructions) {
-            // 根据支付币种选择不同的处理方式
+            // 确定网络类型
+            let networkType;
             if (response.paymentChain === 'ETH') {
-              events.trigger('executeEthTransaction', {
-                txData: response.instructions,
-                orderID,
-                metadata: response
-              });
+              networkType = 'ethereum';
             } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-              events.trigger('executeSolanaTransaction', {
-                instructions: response.instructions,
-                orderID,
-                metadata: response
-              });
+              networkType = 'solana';
             } else {
               reject(new Error('暂不支持该链支付: ' + response.paymentChain));
               return;
             }
 
+            events.trigger('executeCryptoTransaction', {
+              networkType,
+              orderID,
+              transactionData: response.instructions,
+              metadata: response
+            });
+
             // 等待交易完成
             const handleTransactionComplete = (e) => {
-              if (e.orderID === orderID) {
-                events.off('ethTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('ethTransactionError', handleTransactionError);
-                events.off('solanaTransactionError', handleTransactionError);
+              if (e.orderID === orderID && e.networkType === networkType) {
+                events.off('cryptoTransactionComplete', handleTransactionComplete);
+                events.off('cryptoTransactionError', handleTransactionError);
                 
                 // 交易成功后，调用后端完成接口
                 myPost(app.getServerUrl('order/complete'), {
@@ -616,11 +606,9 @@ function completeCryptoOrder(orderID, data = {}) {
             };
 
             const handleTransactionError = (e) => {
-              if (e.orderID === orderID) {
-                events.off('ethTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('ethTransactionError', handleTransactionError);
-                events.off('solanaTransactionError', handleTransactionError);
+              if (e.orderID === orderID && e.networkType === networkType) {
+                events.off('cryptoTransactionComplete', handleTransactionComplete);
+                events.off('cryptoTransactionError', handleTransactionError);
                 let errorMessage = e.error?.message || '交易失败';
                 if (errorMessage.includes('Error Number: 3012')) {
                   errorMessage = 'Insufficient balance or token not found';
@@ -635,10 +623,8 @@ function completeCryptoOrder(orderID, data = {}) {
             };
 
             // 绑定事件监听器
-            events.on('ethTransactionComplete', handleTransactionComplete);
-            events.on('solanaTransactionComplete', handleTransactionComplete);
-            events.on('ethTransactionError', handleTransactionError);
-            events.on('solanaTransactionError', handleTransactionError);
+            events.on('cryptoTransactionComplete', handleTransactionComplete);
+            events.on('cryptoTransactionError', handleTransactionError);
           }
         } catch (error) {
           reject(error);
@@ -864,31 +850,29 @@ export function acceptPayout(orderID) {
             });
             resolve(result);
           } else if (response && response.instructions) {
-            // 根据支付币种选择不同的处理方式
+            // 确定网络类型
+            let networkType;
             if (response.paymentChain === 'ETH') {
-              events.trigger('executeEthTransaction', {
-                txData: response.instructions,
-                orderID,
-                metadata: response
-              });
+              networkType = 'ethereum';
             } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-              events.trigger('executeSolanaTransaction', {
-                instructions: response.instructions,
-                orderID,
-                metadata: response
-              });
+              networkType = 'solana';
             } else {
               reject(new Error('暂不支持该链支付: ' + response.paymentChain));
               return;
             }
 
+            events.trigger('executeCryptoTransaction', {
+              networkType,
+              orderID,
+              transactionData: response.instructions,
+              metadata: response
+            });
+
             // 等待交易完成
             const handleTransactionComplete = (e) => {
-              if (e.orderID === orderID) {
-                events.off('ethTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('ethTransactionError', handleTransactionError);
-                events.off('solanaTransactionError', handleTransactionError);
+              if (e.orderID === orderID && e.networkType === networkType) {
+                events.off('cryptoTransactionComplete', handleTransactionComplete);
+                events.off('cryptoTransactionError', handleTransactionError);
                 
                 // 交易成功后，调用dispute/release
                 myPost(app.getServerUrl('dispute/release'), {
@@ -908,11 +892,9 @@ export function acceptPayout(orderID) {
             };
 
             const handleTransactionError = (e) => {
-              if (e.orderID === orderID) {
-                events.off('ethTransactionComplete', handleTransactionComplete);
-                events.off('solanaTransactionComplete', handleTransactionComplete);
-                events.off('ethTransactionError', handleTransactionError);
-                events.off('solanaTransactionError', handleTransactionError);
+              if (e.orderID === orderID && e.networkType === networkType) {
+                events.off('cryptoTransactionComplete', handleTransactionComplete);
+                events.off('cryptoTransactionError', handleTransactionError);
                 let errorMessage = e.error?.message || '交易失败';
                 if (errorMessage.includes('Error Number: 3012')) {
                   errorMessage = 'Insufficient balance or token not found';
@@ -927,10 +909,8 @@ export function acceptPayout(orderID) {
             };
 
             // 绑定事件监听器
-            events.on('ethTransactionComplete', handleTransactionComplete);
-            events.on('solanaTransactionComplete', handleTransactionComplete);
-            events.on('ethTransactionError', handleTransactionError);
-            events.on('solanaTransactionError', handleTransactionError);
+            events.on('cryptoTransactionComplete', handleTransactionComplete);
+            events.on('cryptoTransactionError', handleTransactionError);
           }
         } catch (error) {
           reject(error);

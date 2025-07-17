@@ -627,7 +627,7 @@ export default {
       switch (command) {
         case 'profile':
           this.onNavListItemClick();
-          app.router.navigate(`${this.ob.peerID}/home`, { trigger: true });
+          app.router.navigate(`${this.ob.peerID}/store`, { trigger: true });
           break;
         case 'create-listing':
           this.navCreateListingClick();

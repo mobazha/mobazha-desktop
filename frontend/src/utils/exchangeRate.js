@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { getTokenById } from '../config/token.js';
 
 // Chainlink 数据源配置
 const CHAINLINK_ABI = [
@@ -211,14 +212,22 @@ async function getExchangeRate(symbol) {
 
 // 汇率转换辅助方法
 async function convertCurrency(amount, fromCurrency, toCurrency) {
+  // 先通过 getTokenById 获取对应的 token 信息
+  const fromToken = getTokenById(fromCurrency);
+  const toToken = getTokenById(toCurrency);
+  
+  // 如果找到 token，使用 token.token 作为实际的货币符号；否则使用原值
+  const actualFromCurrency = fromToken ? fromToken.token : fromCurrency;
+  const actualToCurrency = toToken ? toToken.token : toCurrency;
+
   try {
     // 如果源币种和目标币种相同，直接返回原金额
-    if (fromCurrency === toCurrency) {
+    if (actualFromCurrency === actualToCurrency) {
       return {
         originalAmount: amount,
         convertedAmount: amount,
-        fromCurrency,
-        toCurrency,
+        fromCurrency: actualFromCurrency,
+        toCurrency: actualToCurrency,
         rate: 1,
         success: true
       };
@@ -227,32 +236,32 @@ async function convertCurrency(amount, fromCurrency, toCurrency) {
     let fromRate, toRate;
 
     // 处理源币种是USD的情况
-    if (fromCurrency === 'USD') {
+    if (actualFromCurrency === 'USD') {
       fromRate = 1; // USD对USD的汇率是1
     } else {
       // 获取源币种对USD的汇率
-      const fromRateData = await getExchangeRate(fromCurrency);
+      const fromRateData = await getExchangeRate(actualFromCurrency);
       if (!fromRateData) {
-        throw new Error(`无法获取源币种汇率数据: ${fromCurrency}`);
+        throw new Error(`无法获取源币种汇率数据: ${actualFromCurrency}`);
       }
       fromRate = fromRateData.rate;
     }
 
     // 处理目标币种是USD的情况
-    if (toCurrency === 'USD') {
+    if (actualToCurrency === 'USD') {
       toRate = 1; // USD对USD的汇率是1
     } else {
       // 获取目标币种对USD的汇率
-      const toRateData = await getExchangeRate(toCurrency);
+      const toRateData = await getExchangeRate(actualToCurrency);
       if (!toRateData) {
-        throw new Error(`无法获取目标币种汇率数据: ${toCurrency}`);
+        throw new Error(`无法获取目标币种汇率数据: ${actualToCurrency}`);
       }
       toRate = toRateData.rate;
     }
 
     // 获取币种精度
-    const fromDivisibility = CURRENCY_DIVISIBILITY[fromCurrency] || 1;
-    const toDivisibility = CURRENCY_DIVISIBILITY[toCurrency] || 1;
+    const fromDivisibility = CURRENCY_DIVISIBILITY[actualFromCurrency] || 1;
+    const toDivisibility = CURRENCY_DIVISIBILITY[actualToCurrency] || 1;
 
     // 计算转换后的金额（考虑精度）
     // 输入金额已经是最小精度单位，需要先转换为标准单位
@@ -272,8 +281,8 @@ async function convertCurrency(amount, fromCurrency, toCurrency) {
       originalAmountInStandardUnit: amountInStandardUnit, // 标准单位金额
       convertedAmount,
       convertedAmountInSmallestUnit, // 以最小精度单位返回
-      fromCurrency,
-      toCurrency,
+      fromCurrency: actualFromCurrency,
+      toCurrency: actualToCurrency,
       fromRate,
       toRate,
       fromDivisibility,
@@ -283,12 +292,12 @@ async function convertCurrency(amount, fromCurrency, toCurrency) {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
-    console.error(`汇率转换失败 (${fromCurrency} -> ${toCurrency}):`, error.message);
+    console.error(`汇率转换失败 (${actualFromCurrency} -> ${actualToCurrency}):`, error.message);
     return {
       originalAmount: amount,
       convertedAmount: null,
-      fromCurrency,
-      toCurrency,
+      fromCurrency: actualFromCurrency,
+      toCurrency: actualToCurrency,
       success: false,
       error: error.message
     };

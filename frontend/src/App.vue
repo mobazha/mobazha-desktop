@@ -62,10 +62,9 @@ import { createAppKit } from '@reown/appkit/vue';
 import {ethersAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
 import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
 import { useAppKit, useAppKitNetwork, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
-import { SolanaTransactionService } from '@/services/solanaTransaction';
 import { events } from '../backbone/utils/order';
 import { useWalletStore } from '@/stores/wallet';
-import { EthTransactionService } from '@/services/ethTransaction';
+import { UnifiedTransactionService } from '@/services/unifiedTransactionService';
 import { useChatStore } from '@/stores/chat';
 import { getSocket } from '../backbone/utils/serverConnect';
 
@@ -114,12 +113,10 @@ export default {
       modalName: '',
       modalOptions: {},
       modalBBFunc: undefined,
-      transactionService: null,
-      ethTransactionService: null
+      unifiedTransactionService: new UnifiedTransactionService()
     };
   },
   setup() {
-    const { connection } = useAppKitConnection();
     const appKit = useAppKit();
     const networkData = useAppKitNetwork();
     const accountData = useAppKitAccount();
@@ -132,7 +129,6 @@ export default {
     const chatStore = useChatStore();
     
     return {
-      connection,
       appKit,
       networkData,
       accountData,
@@ -152,6 +148,20 @@ export default {
     },
     isDesktopApp() {
       return import.meta.env.VITE_APP === 'true';
+    },
+    // 计算当前网络类型
+    currentNetworkType() {
+      if (!this.networkData?.caipNetworkId) return null;
+      
+      const caipNetworkId = this.networkData.caipNetworkId;
+      if (caipNetworkId.startsWith('eip155:')) {
+        return 'ethereum';
+      } else if (caipNetworkId.startsWith('solana:')) {
+        return 'solana';
+      } else if (caipNetworkId.startsWith('bip122:')) {
+        return 'bitcoin';
+      }
+      return null;
     }
   },
   created() {
@@ -215,13 +225,23 @@ export default {
 
     updateWalletStatus() {
       const { connection } = useAppKitConnection();
-      const { walletProvider } = useAppKitProvider('solana');
+      
+      // 根据网络类型获取对应的provider
+      let walletProvider = null;
+      if (this.currentNetworkType === 'solana') {
+        const { walletProvider: solanaProvider } = useAppKitProvider('solana');
+        walletProvider = solanaProvider;
+      } else if (this.currentNetworkType === 'ethereum') {
+        const { walletProvider: ethProvider } = useAppKitProvider('eip155');
+        walletProvider = ethProvider;
+      }
       
       this.walletStore.updateWalletState({
         isConnected: this.accountData.isConnected,
         address: this.accountData.address,
         connection,
-        walletProvider
+        walletProvider,
+        networkType: this.currentNetworkType
       });
     },
 
@@ -231,12 +251,10 @@ export default {
 
     initAppKit() {
       try {
-        // 初始化交易服务
-        // this.initTransactionService();
-        this.initEthTransactionService();
+        // 初始化交易服务（根据网络类型）
+        this.initTransactionService();
         // 设置交易监听器
-        // this.setupTransactionListener();
-        this.setupEthTransactionListener();
+        this.setupTransactionListeners();
         // 初始化钱包状态
         this.updateWalletStatus();
       } catch (error) {
@@ -248,109 +266,99 @@ export default {
       this.networkData.value.switchNetwork(network);
     },
 
+    // 统一的交易服务初始化方法
     initTransactionService() {
-      const { walletProvider } = useAppKitProvider('solana');
-      if (this.connection && walletProvider && this.accountData.address) {
-        this.transactionService = new SolanaTransactionService(
-          this.connection,
+      if (!this.accountData.address || !this.currentNetworkType) {
+        console.log('无法初始化交易服务：钱包地址或网络类型未获取');
+        return;
+      }
+
+      try {
+        const { connection } = useAppKitConnection();
+
+        // 根据网络类型获取对应的provider
+        let walletProvider = null;
+        if (this.currentNetworkType === 'solana') {
+          const { walletProvider: solanaProvider } = useAppKitProvider('solana');
+          walletProvider = solanaProvider;
+        } else if (this.currentNetworkType === 'ethereum') {
+          const { walletProvider: ethProvider } = useAppKitProvider('eip155');
+          walletProvider = ethProvider;
+        }
+
+        // 使用统一交易服务初始化
+        console.log('currentNetworkType', this.currentNetworkType);
+        console.log('connection', connection);
+        console.log('walletProvider', walletProvider);
+        console.log('accountData.address', this.accountData.address);
+        const success = this.unifiedTransactionService.initialize(
+          this.currentNetworkType,
+          connection,
           walletProvider,
           this.accountData.address
         );
+
+        if (success) {
+          console.log(`✅ ${this.currentNetworkType}交易服务已通过统一服务初始化`);
+        } else {
+          console.warn('❌ 统一交易服务初始化失败');
+        }
+      } catch (error) {
+        console.error('初始化统一交易服务失败:', error);
       }
     },
 
-    initEthTransactionService() {
-      const { walletProvider } = useAppKitProvider('eip155');
-      if (walletProvider && this.accountData.address) {
-        this.ethTransactionService = new EthTransactionService(
-          walletProvider,
-          this.accountData.address
-        );
-      }
-    },
-
-    setupTransactionListener() {
-      events.on('executeSolanaTransaction', async (data) => {
-        if (!this.transactionService) {
-          console.error('Transaction service not initialized');
+    // 统一的交易监听器设置方法
+    setupTransactionListeners() {
+      // 统一的加密货币交易监听器
+      events.on('executeCryptoTransaction', async (data) => {
+        const { networkType, orderID, transactionData, metadata } = data;
+        
+        console.log(`📨 收到${networkType}交易执行请求, orderID: ${orderID}`);
+        console.log('当前统一服务状态:', this.unifiedTransactionService.getStatus());
+        
+        if (!this.unifiedTransactionService.isServiceReady(networkType)) {
+          const networkNames = {
+            'solana': 'Solana',
+            'ethereum': '以太坊'
+          };
+          
+          console.error(`${networkNames[networkType]} transaction service not initialized`);
           ElMessage({
-            message: 'Please connect your wallet first',
+            message: `请先连接${networkNames[networkType]}钱包`,
             type: 'warning',
             duration: 3000
           });
           
-          // 确保错误事件被正确触发
           setTimeout(() => {
-            events.trigger('solanaTransactionError', {
-              orderID: data.orderID,
-              error: new Error('Please connect your wallet first')
+            events.trigger('cryptoTransactionError', {
+              orderID,
+              networkType,
+              error: new Error(`请先连接${networkNames[networkType]}钱包`)
             });
           }, 0);
           return;
         }
 
         try {
-          const signature = await this.transactionService.executeTransaction(data.instructions);
+          const result = await this.unifiedTransactionService.executeTransaction(networkType, transactionData);
           
-          // 确保成功事件被正确触发
           setTimeout(() => {
-            console.log('交易完成:', signature);
-            events.trigger('solanaTransactionComplete', {
-              orderID: data.orderID,
-              result: signature,
-              metadata: data.metadata
+            console.log(`🎉 ${networkType}交易完成:`, result);
+            events.trigger('cryptoTransactionComplete', {
+              orderID,
+              networkType,
+              result,
+              metadata
             });
           }, 0);
         } catch (error) {
-          console.error('交易执行失败: ', error);
-          
-          // 确保错误事件被正确触发
-          setTimeout(() => {
-            events.trigger('solanaTransactionError', {
-              orderID: data.orderID,
-              error: error
-            });
-          }, 0);
-        }
-      });
-    },
-
-    setupEthTransactionListener() {
-      events.on('executeEthTransaction', async (data) => {
-        if (!this.ethTransactionService) {
-          console.error('ETH Transaction service not initialized');
-          ElMessage({
-            message: '请先连接钱包',
-            type: 'warning',
-            duration: 3000
-          });
+          console.error(`❌ ${networkType}交易执行失败:`, error);
           
           setTimeout(() => {
-            events.trigger('ethTransactionError', {
-              orderID: data.orderID,
-              error: new Error('请先连接钱包')
-            });
-          }, 0);
-          return;
-        }
-
-        try {
-          const hash = await this.ethTransactionService.executeTransaction(data.txData);
-          
-          setTimeout(() => {
-            console.log('交易完成:', hash);
-            events.trigger('ethTransactionComplete', {
-              orderID: data.orderID,
-              result: hash,
-              metadata: data.metadata
-            });
-          }, 0);
-        } catch (error) {
-          console.error('交易执行失败: ', error);
-          
-          setTimeout(() => {
-            events.trigger('ethTransactionError', {
-              orderID: data.orderID,
+            events.trigger('cryptoTransactionError', {
+              orderID,
+              networkType,
               error: error
             });
           }, 0);
@@ -386,29 +394,49 @@ export default {
         console.log('钱包连接状态变化:', newValue);
         if (newValue) {
           console.log('钱包已连接，地址：', this.accountData.address);
-          // this.initTransactionService();
-          this.initEthTransactionService();
+          console.log('当前网络类型:', this.currentNetworkType);
+          this.initTransactionService();
         } else {
-          this.transactionService = null;
+          // 断开连接时清空所有交易服务
+          this.unifiedTransactionService.cleanup();
           console.log('钱包已断开连接');
         }
         this.updateWalletStatus();
       },
       immediate: true
     },
+
     'accountData.address': {
       handler(newValue, oldValue) {
         if (newValue && newValue !== oldValue && this.accountData.isConnected) {
           console.log('钱包地址变化:', newValue);
-          // this.initTransactionService();
-          this.initEthTransactionService();
+          this.initTransactionService();
         }
         this.updateWalletStatus();
+      }
+    },
+    
+    // 监听网络变化
+    'networkData.caipNetworkId': {
+      handler(newValue, oldValue) {
+        if (newValue && newValue !== oldValue) {
+          console.log('网络发生变化:', oldValue, '->', newValue);
+          console.log('新的网络类型:', this.currentNetworkType);
+
+          this.unifiedTransactionService.cleanup();
+          
+          // 如果钱包已连接，重新初始化对应网络的交易服务
+          if (this.accountData.isConnected && this.accountData.address) {
+            this.initTransactionService();
+          }
+          
+          this.updateWalletStatus();
+        }
       }
     }
   },
   beforeDestroy() {
-    events.off('executeSolanaTransaction');
+    events.off('executeCryptoTransaction');
     events.off('checkWalletConnection');
     events.off('showWalletConnectMessage');
   }

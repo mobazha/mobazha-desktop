@@ -1321,163 +1321,61 @@ export default {
       }).format(amount)
     },
 
-    async processSolPayment() {
-      try {
-        // 检查钱包连接状态
-        const isConnected = await this.checkWalletConnection();
-        if (!isConnected) {
-          const confirmed = await ElMessageBox.confirm(
-            '请先连接钱包',
-            '提示',
-            {
-              confirmButtonText: '连接钱包',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
-          );
-          
-          if (confirmed) {
-            // 触发连接钱包事件
-            events.trigger('connectWallet');
-            return;
+    async checkWalletConnectionWithPrompt() {
+      const isConnected = await this.walletStore.checkWalletConnection();
+      if (!isConnected) {
+        const confirmed = await ElMessageBox.confirm(
+          '请先连接钱包',
+          '提示',
+          {
+            confirmButtonText: '连接钱包',
+            cancelButtonText: '取消',
+            type: 'warning'
           }
-          return;
-        }
-
-        // 获取仲裁人
-        const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
-
-        // 计算转换后的金额
-        let convertedAmount = this.paymentData.amount.amount;
+        );
         
-        // 如果定价币种和支付币种不同，需要进行汇率转换
-        if (this.paymentData.pricingCoin !== this.paymentCoin) {
-          const conversionResult = await convertCurrency(
-            this.paymentData.amount.amount,
-            this.paymentData.pricingCoin,
-            this.paymentCoin
-          );
-          
-          if (!conversionResult.success) {
-            ElMessage.error(`汇率转换失败: ${conversionResult.error}`);
-            return;
-          }
-          
-          // 使用最小精度单位
-          convertedAmount = conversionResult.convertedAmountInSmallestUnit;
-          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${conversionResult.convertedAmountInSmallestUnit} 最小单位)`);
-          console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
+        if (confirmed) {
+          events.trigger('connectWallet');
         }
+        return false;
+      }
+      return true;
+    },
 
-        // 调用后端接口获取SOL托管初始化指令
-        const requestData = {
-          orderID: this.orderID,
-          payerAddress: this.walletAddress, // 使用Vuex中的钱包地址
-          moderator: moderator ? moderator : null, // 如果有仲裁人则传入，否则为 null
-          coinType: this.paymentCoin,
-          amount: convertedAmount // 直接使用最小精度单位
-        };
+    /**
+     * 处理支付完成后的操作
+     */
+    async handlePaymentCompletion(paymentData, transactionResult) {
+      paymentData.transactionID = transactionResult;
+      paymentData.timestamp = new Date().toISOString();
 
-        const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
-        if (!response || !response.instructions) {
-          throw new Error('获取订单支付指令失败');
-        }
-        if (!response.paymentData) {
-          throw new Error('获取订单支付数据失败');
-        }
-
-        // 触发交易执行事件
-        events.trigger('executeSolanaTransaction', {
-          instructions: response.instructions,
-          orderID: this.orderID,
-          metadata: response.paymentData
-        });
-
-        // 等待交易完成
-        return new Promise((resolve, reject) => {
-          const handleTransactionComplete = (e) => {
-            if (e.orderID === this.orderID) {
-              events.off('solanaTransactionComplete', handleTransactionComplete);
-              events.off('solanaTransactionError', handleTransactionError);
-              
-              // 交易成功后，更新支付数据并通知后端
-              const paymentData = e.metadata;
-              paymentData.transactionID = e.result;
-              paymentData.timestamp = new Date().toISOString();
-
-              myPost(app.getServerUrl('order/payment'), {paymentData})
-                .then(() => {
-                  this.setState({ phase: 'complete' });
-                  resolve();
-                })
-                .catch(error => {
-                  ElMessage({
-                    message: error?.message || '发送支付信息失败',
-                    type: 'error',
-                    duration: 3000
-                  });
-                  reject(error);
-                });
-            }
-          };
-
-          const handleTransactionError = (e) => {
-            if (e.orderID === this.orderID) {
-              events.off('solanaTransactionComplete', handleTransactionComplete);
-              events.off('solanaTransactionError', handleTransactionError);
-              let errorMessage = e.error?.message || '交易失败';
-              if (errorMessage.includes('Error Number: 3012')) {
-                errorMessage = 'Insufficient balance or token not found';
-              }
-              ElMessage({
-                message: errorMessage,
-                type: 'error',
-                duration: 3000
-              });
-              reject(e.error);
-            }
-          };
-
-          // 绑定事件监听器
-          events.on('solanaTransactionComplete', handleTransactionComplete);
-          events.on('solanaTransactionError', handleTransactionError);
-        });
+      try {
+        await myPost(app.getServerUrl('order/payment'), { paymentData });
+        this.setState({ phase: 'complete' });
       } catch (error) {
-        console.error('支付处理失败:', error);
         ElMessage({
-          message: error.message || '支付处理失败',
+          message: error?.message || '发送支付信息失败',
           type: 'error',
           duration: 3000
         });
+        throw error;
       }
     },
 
-    async processEthPayment() {
+    /**
+     * 统一的加密货币支付处理方法
+     * @param {string} paymentType - 'solana' 或 'ethereum'
+     */
+    async processCryptoPayment(paymentType) {
       try {
-        // 检查钱包连接状态
-        const isConnected = await this.checkWalletConnection();
-        if (!isConnected) {
-          const confirmed = await ElMessageBox.confirm(
-            '请先连接钱包',
-            '提示',
-            {
-              confirmButtonText: '连接钱包',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }
-          );
-          
-          if (confirmed) {
-            events.trigger('connectWallet');
-            return;
-          }
-          return;
-        }
+        // 1. 检查钱包连接
+        const isWalletConnected = await this.checkWalletConnectionWithPrompt();
+        if (!isWalletConnected) return;
 
-        // 获取仲裁人
+        // 2. 获取仲裁人
         const moderator = (this.$refs.moderators && this.$refs.moderators.selectedIDs?.length > 0 && this.$refs.moderators.selectedIDs[0]) || null;
 
-        // 计算转换后的金额
+        // 3. 处理汇率转换
         let convertedAmount = this.paymentData.amount.amount;
         
         // 如果定价币种和支付币种不同，需要进行汇率转换
@@ -1489,8 +1387,7 @@ export default {
           );
           
           if (!conversionResult.success) {
-            ElMessage.error(`汇率转换失败: ${conversionResult.error}`);
-            return;
+            throw new Error(`汇率转换失败: ${conversionResult.error}`);
           }
           
           // 使用最小精度单位
@@ -1499,15 +1396,16 @@ export default {
           console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
         }
 
-        // 调用后端接口获取ETH托管初始化指令
+        // 4. 构建请求数据
         const requestData = {
           orderID: this.orderID,
           payerAddress: this.walletAddress,
           moderator: moderator ? moderator : null,
           coinType: this.paymentCoin,
-          amount: convertedAmount // 直接使用最小精度单位
+          amount: convertedAmount
         };
 
+        // 5. 获取支付指令
         const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
         if (!response || !response.instructions) {
           throw new Error('获取订单支付指令失败');
@@ -1516,66 +1414,82 @@ export default {
           throw new Error('获取订单支付数据失败');
         }
 
-        // 触发交易执行事件
-        events.trigger('executeEthTransaction', {
-          txData: response.instructions,
-          orderID: this.orderID,
-          metadata: response.paymentData
-        });
+        // 6. 执行交易 - 使用统一事件系统
+        return await this.executeTransaction(paymentType, response);
 
-        // 等待交易完成
-        return new Promise((resolve, reject) => {
-          const handleTransactionComplete = (e) => {
-            if (e.orderID === this.orderID) {
-              events.off('ethTransactionComplete', handleTransactionComplete);
-              events.off('ethTransactionError', handleTransactionError);
-              
-              // 交易成功后，更新支付数据并通知后端
-              const paymentData = e.metadata;
-              paymentData.transactionID = e.result;
-              paymentData.timestamp = new Date().toISOString();
-
-              myPost(app.getServerUrl('order/payment'), {paymentData})
-                .then(() => {
-                  this.setState({ phase: 'complete' });
-                  resolve();
-                })
-                .catch(error => {
-                  ElMessage({
-                    message: error?.message || '发送支付信息失败',
-                    type: 'error',
-                    duration: 3000
-                  });
-                  reject(error);
-                });
-            }
-          };
-
-          const handleTransactionError = (e) => {
-            if (e.orderID === this.orderID) {
-              events.off('ethTransactionComplete', handleTransactionComplete);
-              events.off('ethTransactionError', handleTransactionError);
-              ElMessage({
-                message: e.error?.message || '交易失败',
-                type: 'error',
-                duration: 3000
-              });
-              reject(e.error);
-            }
-          };
-
-          // 绑定事件监听器
-          events.on('ethTransactionComplete', handleTransactionComplete);
-          events.on('ethTransactionError', handleTransactionError);
-        });
       } catch (error) {
-        console.error('支付处理失败:', error);
+        console.error(`${paymentType}支付处理失败:`, error);
         ElMessage({
-          message: error.message || '支付处理失败',
+          message: error.message || `${paymentType}支付处理失败`,
           type: 'error',
           duration: 3000
         });
+        throw error;
       }
+    },
+
+    /**
+     * 执行交易 - 使用统一事件系统
+     */
+    async executeTransaction(paymentType, response) {
+      // 触发统一的加密货币交易事件
+      events.trigger('executeCryptoTransaction', {
+        networkType: paymentType,
+        orderID: this.orderID,
+        transactionData: response.instructions,
+        metadata: response.paymentData
+      });
+
+      // 等待交易完成
+      return new Promise((resolve, reject) => {
+        const handleTransactionComplete = (e) => {
+          if (e.orderID === this.orderID && e.networkType === paymentType) {
+            this.cleanupEventListeners(handleTransactionComplete, handleTransactionError);
+            
+            this.handlePaymentCompletion(e.metadata, e.result)
+              .then(resolve)
+              .catch(reject);
+          }
+        };
+
+        const handleTransactionError = (e) => {
+          if (e.orderID === this.orderID && e.networkType === paymentType) {
+            this.cleanupEventListeners(handleTransactionComplete, handleTransactionError);
+            
+            let errorMessage = e.error?.message || '交易失败';
+            if (paymentType === 'solana' && errorMessage.includes('Error Number: 3012')) {
+              errorMessage = 'Insufficient balance or token not found';
+            }
+            
+            ElMessage({
+              message: errorMessage,
+              type: 'error',
+              duration: 3000
+            });
+            reject(e.error);
+          }
+        };
+
+        // 绑定事件监听器
+        events.on('cryptoTransactionComplete', handleTransactionComplete);
+        events.on('cryptoTransactionError', handleTransactionError);
+      });
+    },
+
+    /**
+     * 清理事件监听器
+     */
+    cleanupEventListeners(completeHandler, errorHandler) {
+      events.off('cryptoTransactionComplete', completeHandler);
+      events.off('cryptoTransactionError', errorHandler);
+    },
+
+    async processSolPayment() {
+      return await this.processCryptoPayment('solana');
+    },
+
+    async processEthPayment() {
+      return await this.processCryptoPayment('ethereum');
     },
   },
 };

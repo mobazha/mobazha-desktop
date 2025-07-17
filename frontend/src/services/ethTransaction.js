@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 
 export class EthTransactionService {
-  constructor(walletProvider, address) {
+  constructor(connection, walletProvider, walletAddress) {
+    this.connection = connection;
     this.walletProvider = walletProvider;
-    this.address = address;
+    this.walletAddress = walletAddress;
   }
 
   async executeTransaction(txData) {
@@ -30,7 +31,7 @@ export class EthTransactionService {
 
       // 构建 eth_call 参数
       const callParams = {
-        from: this.address,
+        from: this.walletAddress,
         to: toAddress,
         data: txData.data,
         ...(valueHex ? { value: valueHex } : {})
@@ -52,7 +53,7 @@ export class EthTransactionService {
 
       // 构建基础交易对象，只包含必要参数
       const transaction = {
-        from: this.address,
+        from: this.walletAddress,
         to: toAddress,
         data: txData.data,
         ...(valueHex ? { value: valueHex } : {})
