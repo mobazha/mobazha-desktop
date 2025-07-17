@@ -456,7 +456,9 @@ export default {
     },
 
     navHomeClick () {
-      app.router.navigate(`/`, { trigger: true });
+      recordEvent('NavClick', { target: 'home' });
+      // 导航到SmartHome页面
+      this.$router.push('/smart-home');
     },
 
     navBackClick () {
