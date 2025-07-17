@@ -54,7 +54,7 @@
             :show-arrow="false"
             popper-class="nav-tooltip">
             <a class="nav-btn" @click="navDiscoverClick" id="Nav_Discover">
-              <img class="discover-icon" src="~@/../imgs/obVectorIconSmall2.png" />
+              <i class="ion-search"></i>
             </a>
           </el-tooltip>
           
@@ -990,10 +990,7 @@ export default {
           transition: color 0.3s ease;
         }
         
-        .discover-icon {
-          width: 20px;
-          height: 20px;
-        }
+
         
         .notification-badge,
         .cart-badge {

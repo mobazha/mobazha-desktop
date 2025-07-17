@@ -4,7 +4,7 @@
     <header class="smart-home-header">
       <div class="header-content">
         <h1 class="app-title">
-          <span class="title-icon">🤖</span>
+          <img src="~@/../imgs/obVectorIconSmall2.png" alt="Mobazha" class="title-icon" />
           {{ $t('smartHome.title') }}
         </h1>
         <div class="header-actions">
@@ -219,7 +219,9 @@ onMounted(() => {
         gap: 8px;
         
         .title-icon {
-          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          object-fit: contain;
         }
       }
       
@@ -401,7 +403,8 @@ onMounted(() => {
           font-size: 18px;
           
           .title-icon {
-            font-size: 18px;
+            width: 18px;
+            height: 18px;
           }
         }
         
