@@ -64,10 +64,14 @@ const constantRouterMap = [
     }}),
   },
   {
+    path: '/smart-home',
+    name: 'SmartHome',
+    component: () => import('@/views/smart-home/SmartHome.vue')
+  },
+  {
     path: '/search/:tab?',
     name: 'Search',
-    component: () => import('@/views/search/Search.vue'),
-    alias: '/'
+    component: () => import('@/views/search/Search.vue')
   },
   {
     path: '/connected-peers',

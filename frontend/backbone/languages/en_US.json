@@ -1,4 +1,37 @@
 {
+  "smartHome": {
+    "title": "Mobazha AI",
+    "subtitle": "Smart Shopping Assistant",
+    "newChat": "New Chat",
+    "welcome": {
+      "title": "What are you looking for?",
+      "subtitle": "Describe your needs, and I'll recommend the most suitable products and solutions for you",
+      "placeholder": "Tell me what you need, for example: \"I want to buy a cost-effective smartphone\"",
+      "continuePlaceholder": "Continue your question..."
+    },
+    "suggestions": {
+      "smartphone": "I want to buy a new smartphone",
+      "laptop": "Recommend a laptop",
+      "home": "What do I need to furnish my new home",
+      "fitness": "Fitness equipment recommendations"
+    },
+    "footer": {
+      "tagline": "Mobazha AI - Powered by advanced AI technology to provide personalized shopping recommendations"
+    },
+    "errors": {
+      "sendMessage": "Failed to send message"
+    },
+    "chatInput": {
+      "placeholder": "Type your message...",
+      "tips": "Press Enter to send, Shift+Enter to line break",
+      "characterCount": "Character count"
+    },
+    "messageList": {
+      "loading": "Loading...",
+      "empty": "No messages",
+      "retry": "Retry"
+    }
+  },
   "publish": {
     "failedRetryTitle": "There was an error retrying the publish.",
     "statusPublishing": "Publishing updates to network…",

@@ -1,4 +1,37 @@
 {
+  "smartHome": {
+    "title": "Mobazha AI",
+    "subtitle": "智能购物助手",
+    "newChat": "新对话",
+    "welcome": {
+      "title": "您想要什么？",
+      "subtitle": "描述您的需求，我来为您推荐最合适的产品和解决方案",
+      "placeholder": "告诉我您想要什么，比如：\"我想买一部性价比高的手机\"",
+      "continuePlaceholder": "继续您的问题..."
+    },
+    "suggestions": {
+      "smartphone": "我想买一部新手机",
+      "laptop": "推荐一台笔记本电脑",
+      "home": "布置新家需要什么",
+      "fitness": "健身装备推荐"
+    },
+    "footer": {
+      "tagline": "Mobazha AI基于先进的人工智能技术，为您提供个性化的购物建议"
+    },
+    "errors": {
+      "sendMessage": "发送消息失败"
+    },
+    "chatInput": {
+      "placeholder": "输入您的消息...",
+      "tips": "按 Enter 发送，Shift+Enter 换行",
+      "characterCount": "字符计数"
+    },
+    "messageList": {
+      "loading": "加载中...",
+      "empty": "暂无消息",
+      "retry": "重试"
+    }
+  },
   "publish": {
     "failedRetryTitle": "重新发布遇到问题。",
     "statusPublishing": "正在提交更改...",

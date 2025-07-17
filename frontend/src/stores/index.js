@@ -16,7 +16,6 @@ pinia.use(persist)
 export default pinia
 
 // 导出所有stores
-export * from './shop'
 export * from './cart'
 export * from './chat'
 export * from './products'

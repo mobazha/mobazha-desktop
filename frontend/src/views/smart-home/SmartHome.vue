@@ -4,7 +4,7 @@
     <header class="smart-home-header">
       <div class="header-content">
         <h1 class="app-title">
-          <img src="~@/../imgs/obVectorIconSmall2.png" alt="Mobazha" class="title-icon" />
+          <span class="title-icon">🤖</span>
           {{ $t('smartHome.title') }}
         </h1>
         <div class="header-actions">
@@ -193,7 +193,6 @@ onMounted(() => {
   background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%);
   display: flex;
   flex-direction: column;
-  position: relative;
   
   .smart-home-header {
     background: rgba(255, 255, 255, 0.8);
@@ -219,9 +218,7 @@ onMounted(() => {
         gap: 8px;
         
         .title-icon {
-          width: 20px;
-          height: 20px;
-          object-fit: contain;
+          font-size: 20px;
         }
       }
       
@@ -252,7 +249,6 @@ onMounted(() => {
     display: flex;
     justify-content: center;
     min-height: 0;
-    padding-bottom: 102px; /* 为footer和status-bar留出空间 (80px + 22px) */
     
     .chat-container {
       width: 100%;
@@ -373,11 +369,6 @@ onMounted(() => {
     border-top: 1px solid rgba(220, 225, 230, 0.4);
     padding: 12px 24px;
     text-align: center;
-    position: fixed;
-    bottom: 22px; /* 位于status-bar之上 */
-    left: 0;
-    right: 0;
-    z-index: 10;
     
     .footer-content {
       max-width: 800px;
@@ -403,8 +394,7 @@ onMounted(() => {
           font-size: 18px;
           
           .title-icon {
-            width: 18px;
-            height: 18px;
+            font-size: 18px;
           }
         }
         
@@ -416,7 +406,6 @@ onMounted(() => {
     
     .smart-home-main {
       padding: 24px 16px 16px;
-      padding-bottom: 92px; /* 移动端为footer和status-bar留出空间 (70px + 22px) */
       
       .chat-container {
         .welcome-section {
