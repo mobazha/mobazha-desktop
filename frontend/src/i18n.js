@@ -1,5 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import { getTranslationLangByCode } from '../backbone/data/languages'
+import app from '../backbone/app'
 
 // 自动导入所有语言包
 const modules = import.meta.glob('../backbone/languages/*.json', { eager: true })
@@ -22,9 +23,18 @@ function getValidLanguage(lang) {
   return 'en_US'
 }
 
-// 从 localStorage 或默认值获取初始语言
+// 从 app.localSettings 或 localStorage 或默认值获取初始语言
 const getInitialLanguage = () => {
   try {
+    // 优先从 app.localSettings 获取
+    if (typeof window !== 'undefined' && window.app && window.app.localSettings) {
+      const lang = window.app.localSettings.get('language')
+      if (lang) return getValidLanguage(lang)
+    } else if (app && app.localSettings) {
+      const lang = app.localSettings.get('language')
+      if (lang) return getValidLanguage(lang)
+    }
+    // 其次从 localStorage
     const savedLang = localStorage.getItem('language')
     return getValidLanguage(savedLang || 'en_US')
   } catch {
