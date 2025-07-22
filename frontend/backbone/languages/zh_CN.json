@@ -1670,7 +1670,11 @@
       "insufficientInventoryBody": "卖家没有足够的库存，只剩下%{remainingInventory}个商品。 |||| 卖家没有足够的库存，只剩下%{remainingInventory}个商品。",
       "reloadOutdatedHash": "加载最新版本",
       "outdatedHash": "您正在查看该商家信息的过期版本。 要购买商家信息，请%{reloadLink}并重新开始购买流程。"
-    }
+    },
+    "otherPaymentMethods": "其他支付方式",
+    "noTokens": "该链上暂无可用代币",
+    "collapse": "收起",
+    "more": "更多"
   },
   "moderators": {
     "moderatorsLoading": "加载仲裁人...",

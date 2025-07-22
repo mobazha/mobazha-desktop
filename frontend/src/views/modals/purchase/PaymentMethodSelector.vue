@@ -9,7 +9,7 @@
         @click="activeChain = chain.id"
       >
         <div class="chainIconWrapper" v-if="chain.id !== 'all' && chain.id !== 'privacy'">
-          <CryptoIcon :code="chain.iconCode || chain.id.toUpperCase()" />
+          <CryptoIcon :token="chain.iconCode || chain.id.toUpperCase()" />
         </div>
         <div class="chainIcon" v-else :class="chain.id.toLowerCase()">
           <i :class="chain.icon"></i>
@@ -32,7 +32,7 @@
             <i class="ion-checkmark-round"></i>
           </div>
           <div class="tokenIconWrapper">
-            <CryptoIcon :code="token.id" />
+            <CryptoIcon :token="token.token" :chain="token.chain" :isNative="token.isNative" />
           </div>
           <div class="tokenInfo">
             <span class="tokenName">{{ token.token }}</span>
@@ -49,18 +49,18 @@
           <div class="moreIcon">
             <i :class="showAllTokens ? 'ion-chevron-up' : 'ion-chevron-down'"></i>
           </div>
-          <span class="moreText">{{ showAllTokens ? '收起' : '更多' }}</span>
+          <span class="moreText">{{ showAllTokens ? $t('purchase.collapse') : $t('purchase.more') }}</span>
         </div>
       </div>
       
       <div v-if="filteredTokens.length === 0" class="noTokens">
-        该链上暂无可用代币
+        {{$t('purchase.noTokens')}}
       </div>
     </div>
     
     <!-- 其他支付方式 -->
     <div class="otherPaymentMethods">
-      <h3 class="sectionTitle">其他支付方式</h3>
+      <h3 class="sectionTitle">{{$t('purchase.otherPaymentMethods')}}</h3>
       <div class="fiatCards">
         <div 
           v-for="method in fiatMethods" 

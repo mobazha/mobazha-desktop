@@ -19,6 +19,18 @@ export default {
       type: String,
       default: '',
     },
+    token: {
+      type: String,
+      default: '',
+    },
+    chain: {
+      type: String,
+      default: '',
+    },
+    isNative: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -28,16 +40,27 @@ export default {
   mounted() {},
   computed: {
     coin1Icon() {
+      // 优先使用 token prop
+      if (this.token) {
+        return app.getImagePath(`/cryptoIcons/${this.token}-icon.png`);
+      }
+      // 使用 code prop 作为 fallback
       const coin = this.code ? this.code : 'default-coin';
       return app.getImagePath(`/cryptoIcons/${coin}-icon.png`);
     },
     coin2Icon() {
-      const coinData = getCurrencyByCode(this.code);
-      if (!coinData || !coinData.mainChain) {
+      if (this.isNative) {
         return '';
       }
-
-      return app.getImagePath(`/cryptoIcons/${coinData.mainChain}-icon.png`);
+      // 优先使用 chain prop
+      if (this.chain) {
+        return app.getImagePath(`/cryptoIcons/${this.chain}-icon.png`);
+      }
+      const coinData = getCurrencyByCode(this.code);
+      if (!coinData || !coinData.chain) {
+        return '';
+      }
+      return app.getImagePath(`/cryptoIcons/${coinData.chain}-icon.png`);
     },
   },
   methods: {},

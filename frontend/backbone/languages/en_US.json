@@ -68,7 +68,7 @@
   },
   "blockedWarning": {
     "heading": "You blocked this user",
-    "paragraph1": "This user is currently in your list of blocked users. You can’t view their page or listings while they’re blocked. Blocked users also cannot message you or place orders on your store.",
+    "paragraph1": "This user is currently in your list of blocked users. You can't view their page or listings while they're blocked. Blocked users also cannot message you or place orders on your store.",
     "paragraph2": "Would you like to unblock and view their page?",
     "btnCancel": "Cancel",
     "btnUnblock": "Yes, unblock"
@@ -1562,7 +1562,7 @@
     "moderatorTitle": "Moderator",
     "moderatorNote": "*The moderator service fee is only applied if a dispute is opened.",
     "chooseModerator": "Choose This Moderator",
-    "moderatorsDisclaimer": "Your payment will be held securely in escrow. If any issues arise, you’ll have the ability to open a dispute with your chosen moderator. *The moderator service fee only applies if a dispute is opened.",
+    "moderatorsDisclaimer": "Your payment will be held securely in escrow. If any issues arise, you'll have the ability to open a dispute with your chosen moderator. *The moderator service fee only applies if a dispute is opened.",
     "newAddress": "New Address",
     "serviceDetails": "%{price} — %{delivery}",
     "localPickup": "Local Pickup",
@@ -1636,7 +1636,7 @@
     "completeSection": {
       "paymentSent": "Payment Sent!",
       "purchases": "Purchases",
-      "progressMessage": "Thank you for your purchase! If you’d like to check the status of your order, view your %{link} page.",
+      "progressMessage": "Thank you for your purchase! If you'd like to check the status of your order, view your %{link} page.",
       "estimatedProcessing": "Estimated Processing Time: %{time}",
       "noData": "Not Specified ",
       "vendorMessage": "Message for Vendor (optional)",
@@ -1688,7 +1688,9 @@
       "invalidCoinDiv": "The listing does not have a valid coin divisibility.",
       "unableToConvertCryptoQuantity": "Unable to convert the crypto quantity to base units.",
       "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency."
-    }
+    },
+    "otherPaymentMethods": "Other Payment Methods",
+    "noTokens": "No available tokens on this chain"
   },
   "moderators": {
     "moderatorsLoading": "Loading moderators…",
@@ -2002,15 +2004,15 @@
         "disputedTimeUpBuyer": "Time is up! The moderator failed to make a decision in time. The vendor can now claim the funds.",
         "disputedTimeUpVendor": "Time is up! The moderator failed to make a decision in time. You can now claim the funds.",
         "paymentFinalizedBuyer": "The vendor has claimed the payment.",
-        "paymentFinalizedBuyerCompletable": "The vendor has claimed the payment. Please complete the order below whenever you’re ready.",
+        "paymentFinalizedBuyerCompletable": "The vendor has claimed the payment. Please complete the order below whenever you're ready.",
         "paymentFinalizedVendor": "You have claimed the payment.",
         "blocksRemaining": "%{blocksRemaining} blocks",
         "unconfirmedFunding": "This order can be disputed for %{blocksRemaining} or approximately %{timeRemaining}. The clock will start when the funding payment is confirmed.",
         "escrowExpired": "Time is up! A dispute can no longer be opened on this order.",
         "tipEscrowExpiredBuyer": "You and the vendor were given approximately %{totalTime} to open a dispute. Since a dispute was not opened, the funds can now be claimed by the vendor.",
-        "escrowExpiredVendorClaim": "Time is up! Claim payment for this order whenever you’re ready.",
+        "escrowExpiredVendorClaim": "Time is up! Claim payment for this order whenever you're ready.",
         "tipEscrowExpiredVendorClaim": "You and the buyer are given approximately %{totalTime} to open a dispute. Since a dispute was not opened, you can now claim the payment.",
-        "escrowExpiredBuyerComplete": "Time is up! A dispute can no longer be opened on this order. Please complete the order below whenever you’re ready.",
+        "escrowExpiredBuyerComplete": "Time is up! A dispute can no longer be opened on this order. Please complete the order below whenever you're ready.",
         "escrowTimeRemaining": "This order can be disputed for %{blocksRemaining} or approximately %{timeRemaining}.",
         "modDisputeEscrowExpiredBuyerOpened": "The buyer is disputing this order. You have %{timeRemaining} to process the dispute and make a decision.",
         "modDisputeEscrowExpiredVendorOpened": "The vendor is disputing this order. You have %{timeRemaining} to process the dispute and make a decision.",
@@ -2089,10 +2091,10 @@
   },
   "metrics": {
     "title": "Optional Anonymous Metrics",
-    "newVersion": "Please review the update to the analytics data agreement below and click “Activate.”",
+    "newVersion": "Please review the update to the analytics data agreement below and click \"Activate.\"",
     "msg1": "Please help improve Mobazha by agreeing to share analytics data about your experience with the development team.",
-    "msg2": "By clicking “Activate,” you agree to share the data listed below with Mulgore Company and its processors for the purposes described, and consent to the transfer of this data to servers located in the United States. You may stop the sharing of this data at any time by opening your settings, and clicking the Change Sharing Settings button in the Advanced section. If you are located in the European Economic Area, you may have certain rights with respect to this data, including the right of access, rectification, erasure, restriction of processing, objection to processing, and portability. You may contact us about these, or simply request us to stop using and delete the data we’ve collected, at any time by contacting data@mobazha.com.",
-    "listTitle": "The following data will be collected by Mulgore Company as you use Mobazha:",
+    "msg2": "By clicking \"Activate,\" you agree to share the data listed below with Mobazha Company and its processors for the purposes described, and consent to the transfer of this data to servers located in the United States. You may stop the sharing of this data at any time by opening your settings, and clicking the Change Sharing Settings button in the Advanced section. If you are located in the European Economic Area, you may have certain rights with respect to this data, including the right of access, rectification, erasure, restriction of processing, objection to processing, and portability. You may contact us about these, or simply request us to stop using and delete the data we've collected, at any time by contacting data@mobazha.com.",
+    "listTitle": "The following data will be collected by Mobazha Company as you use:",
     "list": {
       "device": "Your IP address and device information, for the purposes listed below.",
       "errors": "Performance data like errors and how long content takes to load. This makes it easier for us to fix problems users are experiencing without waiting for a specific request to fix something.",
