@@ -1690,7 +1690,9 @@
       "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency."
     },
     "otherPaymentMethods": "Other Payment Methods",
-    "noTokens": "No available tokens on this chain"
+    "noTokens": "No available tokens on this chain",
+    "collapse": "Collapse",
+    "more": "More"
   },
   "moderators": {
     "moderatorsLoading": "Loading moderators…",

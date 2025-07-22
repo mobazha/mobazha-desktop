@@ -163,7 +163,7 @@ export default {
       if (token && !token.disabled) {
         this.selectedToken = tokenId;
         this.$emit('update:modelValue', tokenId);
-        this.$emit('tokenClicked', tokenId);
+        this.$emit('methodClicked', tokenId);
       }
     },
     handleFiatMethodClick(methodId) {

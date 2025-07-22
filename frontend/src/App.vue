@@ -59,7 +59,7 @@ import PageNav from '@/views/PageNav.vue';
 import ChatContainer from '@/components/chat/ChatContainer.vue';
 
 import { createAppKit } from '@reown/appkit/vue';
-import {ethersAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, projectId } from './config/wallet'
+import {ethersAdapter, solanaWeb3JsAdapter, bitcoinAdapter, networks, NETWORKS, projectId } from './config/wallet'
 import { useAppKitConnection } from '@reown/appkit-adapter-solana/vue'
 import { useAppKit, useAppKitNetwork, useAppKitAccount, useAppKitProvider, useAppKitState, useAppKitEvents, useDisconnect } from '@reown/appkit/vue';
 import { events } from '../backbone/utils/order';
@@ -123,7 +123,7 @@ export default {
     const appKitState = useAppKitState();
     const appKitEvents = useAppKitEvents();
     const { disconnect } = useDisconnect();
-    
+
     // 使用 Pinia store
     const walletStore = useWalletStore();
     const chatStore = useChatStore();
@@ -176,6 +176,8 @@ export default {
           this.initChat();
         }, 1000);
       });
+      // 监听切链事件
+      events.on('switchAppKitNetwork', this.handleSwitchAppKitNetwork);
     });
   },
   methods: {
@@ -262,8 +264,18 @@ export default {
       }
     },
 
-    switchNetwork(network) {
-      this.networkData.value.switchNetwork(network);
+    handleSwitchAppKitNetwork({ chain }) {
+      const network = NETWORKS[chain && chain.toUpperCase()];
+      if (network && this.networkData) {
+        const result = this.networkData.switchNetwork(network);
+        if (result && typeof result.then === 'function') {
+          result.then(() => {
+            events.trigger('appkit_network_switched', { chain });
+          });
+        } else {
+          events.trigger('appkit_network_switched', { chain });
+        }
+      }
     },
 
     // 统一的交易服务初始化方法
@@ -431,11 +443,17 @@ export default {
           }
           
           this.updateWalletStatus();
+
+          // 自动弹出连接钱包弹窗
+          if (!this.walletStore.isWalletConnected && this.appKit) {
+            this.appKit.open({ view: 'Connect' });
+          }
         }
       }
     }
   },
   beforeDestroy() {
+    events.off('switchAppKitNetwork', this.handleSwitchAppKitNetwork);
     events.off('executeCryptoTransaction');
     events.off('checkWalletConnection');
     events.off('showWalletConnectMessage');

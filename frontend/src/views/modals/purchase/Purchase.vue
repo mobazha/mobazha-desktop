@@ -466,6 +466,7 @@ import PaymentMethodSelector from './PaymentMethodSelector.vue';
 import Moderators from '../../../components/global/moderators/Moderators.vue';
 import { loadStripe } from '@stripe/stripe-js'
 import { useWalletStore } from '@/stores/wallet';
+import { tokens } from '@/config/token.js';
 
 export default {
   name: 'Purchase',
@@ -544,17 +545,23 @@ export default {
       stripe: null,
       elements: null,
       processingPayment: false,
+      switchingNetwork: false,
+      _pendingPaymentCoin: null,
     };
   },
   created() {
     this.initEventChain();
     this.loadData(this.options);
+
+    events.on('appkit_network_switched', this.onAppKitNetworkSwitched);
   },
   mounted() {},
   unmounted() {
     if (this.orderSubmit) this.orderSubmit.abort();
     if (this.inventoryFetch) this.inventoryFetch.abort();
     clearTimeout(this.quantityKeyUpTimer);
+
+    events.off('appkit_network_switched', this.onAppKitNetworkSwitched);
   },
   computed: {
     isWalletConnected() {
@@ -664,7 +671,11 @@ export default {
       return this.prices.reduce((total, price) => {
         return total.plus(price.price).plus(price.vPrice).plus(price.sPrice)
       }, bigNumber(0))
-    }
+    },
+
+    canSelectPayment() {
+      return !this.switchingNetwork;
+    },
   },
   methods: {
     curDefToDecimal,
@@ -1197,8 +1208,34 @@ export default {
     },
 
     onMethodClicked(methodId) {
-      this.paymentCoin = methodId
-      
+      console.log('onMethodClicked: ', methodId);
+      const token = tokens.find(t => t.id === methodId)
+      if (token && token.chain) {
+        const chain = token.chain;
+        if (chain) {
+          this.switchingNetwork = true;
+          console.log('trigger switchAppKitNetwork: ', chain);
+          events.trigger('switchAppKitNetwork', { chain });
+
+          this._pendingPaymentCoin = methodId;
+          return;
+        }
+      }
+
+      this.setPaymentCoin(methodId);
+    },
+
+    onAppKitNetworkSwitched({ chain }) {
+      console.log('onAppKitNetworkSwitched: ', chain);
+      if (this._pendingPaymentCoin) {
+        this.setPaymentCoin(this._pendingPaymentCoin);
+        this._pendingPaymentCoin = null;
+      }
+      this.switchingNetwork = false;
+    },
+
+    setPaymentCoin(methodId) {
+      this.paymentCoin = methodId;
       if (methodId === 'stripe') {
         this.isModerated = false
         if (this.$refs.moderators) {
@@ -1207,7 +1244,6 @@ export default {
         // 初始化Stripe
         this.initializeStripe()
       }
-      
       this.order.set({ paymentCoin: methodId })
     },
 
@@ -1529,3 +1565,4 @@ export default {
   }
 }
 </style>
+

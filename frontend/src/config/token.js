@@ -3,11 +3,11 @@ export const tokens = [
   // // Bitcoin
   // { id: 'BTC', token: 'BTC', chain: 'BTC', isNative: true, decimals: 8, disabled: false },
   
-  // // 以太坊代币
-  // { id: 'ETH', token: 'ETH', chain: 'ETH', isNative: true, decimals: 18, disabled: false },
-  // { id: 'ETHUSDT', token: 'USDT', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 6, disabled: false },
-  // { id: 'ETHUSDC', token: 'USDC', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 6, disabled: false },
-  // { id: 'DAI', token: 'DAI', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 18, disabled: false },
+  // 以太坊代币
+  { id: 'ETH', token: 'ETH', chain: 'ETH', isNative: true, decimals: 18, disabled: false },
+  { id: 'ETHUSDT', token: 'USDT', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 6, disabled: false },
+  { id: 'ETHUSDC', token: 'USDC', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 6, disabled: false },
+  { id: 'DAI', token: 'DAI', chain: 'ETH', type: 'ERC20', isNative: false, decimals: 18, disabled: false },
   
   // Solana代币
   { id: 'SOL', token: 'SOL', chain: 'SOL', isNative: true, decimals: 9, disabled: false },
@@ -15,9 +15,9 @@ export const tokens = [
   { id: 'SOLUSDC', token: 'USDC', chain: 'SOL', type: 'SPL', isNative: false, decimals: 6, disabled: false },
   
   // BSC代币
-  { id: 'BNB', token: 'BNB', chain: 'BNB', isNative: true, decimals: 18, disabled: false },
-  { id: 'BUSD', token: 'BUSD', chain: 'BNB', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
-  { id: 'BSCUSDT', token: 'USDT', chain: 'BNB', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
+  { id: 'BNB', token: 'BNB', chain: 'BSC', isNative: true, decimals: 18, disabled: false },
+  { id: 'BUSD', token: 'BUSD', chain: 'BSC', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
+  { id: 'BSCUSDT', token: 'USDT', chain: 'BSC', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
   
   // Base代币
   { id: 'BASEETH', token: 'ETH', chain: 'BASE', isNative: false, decimals: 18, disabled: false },
@@ -40,10 +40,10 @@ export const chains = [
   // { id: 'BCH', name: 'Bitcoin Cash', iconCode: 'BCH', count: 0 },
   // { id: 'LTC', name: 'Litecoin', iconCode: 'LTC', count: 0 },
   // { id: 'ZEC', name: 'ZCash', iconCode: 'ZEC', count: 0 },
-  // { id: 'ETH', name: '以太坊', iconCode: 'ETH', count: 0 },
+  { id: 'ETH', name: '以太坊', iconCode: 'ETH', count: 0 },
   { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
   { id: 'BASE', name: 'Base', iconCode: 'BASE', count: 0 },
-  { id: 'BNB', name: 'BNB Chain', iconCode: 'BNB', count: 0 },
+  { id: 'BSC', name: 'Binance Smart Chain', iconCode: 'BSC', count: 0 },
   { id: 'MATIC', name: 'Polygon', iconCode: 'MATIC', count: 0 },
   // { id: 'CFX', name: 'Conflux', iconCode: 'CFX', count: 0 },
   
