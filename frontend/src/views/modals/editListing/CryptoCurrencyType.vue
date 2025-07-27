@@ -25,9 +25,9 @@
         <template v-if="formData.metadata.contractType === 'CRYPTOCURRENCY' && ob.errors['metadata.contractType']">
           <FormError :errors="ob.errors['metadata.contractType']" />
         </template>
-        <Select2 id="editListingCryptoContractType" v-model="formData.metadata.contractType" class="clrBr clrP clrSh2 marginTopAuto" :options="{ minimumResultsForSearch: Infinity }">
+        <Select2 id="editListingCryptoContractType" v-model="localContractType" class="clrBr clrP clrSh2 marginTopAuto" :options="{ minimumResultsForSearch: Infinity }" @change="onContractTypeChange">
           <template v-for="(contractType, j) in ob.contractTypes" :key="j">
-            <option :value="contractType.code" :selected="contractType.code === formData.metadata.contractType">{{ contractType.name }}</option>
+            <option :value="contractType.code" :selected="contractType.code === localContractType">{{ contractType.name }}</option>
           </template>
         </Select2>
         <div class="clrT2 txSm helper">
@@ -61,8 +61,8 @@
         <label for="editListingCryptoQuantity" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.quantity') }}</label>
         <FormError v-if="ob.errors['item.cryptoQuantity']" :errors="ob.errors['item.cryptoQuantity']" />
         <div class="posR">
-          <input type="number" class="clrBr clrP clrSh2" v-model="formData.item.cryptoQuantity" id="editListingCryptoQuantity"
-            placeholder="0.00" data-var-type="bignumber">
+          <input type="number" class="clrBr clrP clrSh2" v-model="localCryptoQuantity" id="editListingCryptoQuantity"
+            placeholder="0.00" data-var-type="bignumber" @input="onCryptoQuantityChange">
           <div class="cryptoQuantityCoinType clrT2 tx5 js-quantityCoinType">{{ curToSell }}</div>
         </div>
         <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperQuantity') }}</div>
@@ -88,9 +88,9 @@
       <label for="editListingCryptoPriceModifier" class="required">{{ ob.polyT('editListing.cryptoCurrencyType.priceModifier') }}</label>
       <FormError v-if="ob.errors['item.cryptoListingPriceModifier']" :errors="ob.errors['item.cryptoListingPriceModifier']" />
       <div class="posR marginTopAuto">
-        <input type="text" class="clrBr clrP clrSh2" v-model="formData.item.cryptoListingPriceModifier"
+        <input type="text" class="clrBr clrP clrSh2" v-model="localPriceModifier"
           id="editListingCryptoPriceModifier"
-          :placeholder="ob.polyT('editListing.cryptoCurrencyType.priceModifierPlaceholder')" data-var-type="number">
+          :placeholder="ob.polyT('editListing.cryptoCurrencyType.priceModifierPlaceholder')" data-var-type="number" @input="onPriceModifierChange">
         <div class="cryptoPriceModifierPercentSymbol clrT2 tx5">%</div>
       </div>
       <div class="clrT2 txSm helper">{{ ob.polyT('editListing.cryptoCurrencyType.helperPriceModifier') }}</div>
@@ -122,6 +122,11 @@ export default {
       isFetching: true,
       coinTypes: [],
       receiveCur: undefined,
+      
+      // 本地变量，避免直接修改父组件数据
+      localContractType: '',
+      localCryptoQuantity: '',
+      localPriceModifier: '',
     };
   },
   created () {
@@ -131,23 +136,31 @@ export default {
   },
   watch: {
     curAccepted(val) {
-      this.formData.metadata.acceptedCurrencies = [val];
+      this.$emit('update:modelValue', {
+        ...this.modelValue,
+        metadata: {
+          ...this.modelValue.metadata,
+          acceptedCurrencies: [val]
+        }
+      });
     },
     curToSell(val) {
-      this.formData.item.cryptoListingCurrencyCode = val;
+      this.$emit('update:modelValue', {
+        ...this.modelValue,
+        item: {
+          ...this.modelValue.item,
+          cryptoListingCurrencyCode: val
+        }
+      });
     },
-    formData: {
-      handler(val) {
-        if (val.metadata.contractType !== 'CRYPTOCURRENCY') {
-          // Restore acceptedCurrencies if not CRYPTOCURRENCY to switch back
-          val.metadata.acceptedCurrencies = this.model.get('metadata').get('acceptedCurrencies');
-        }
-        if (val.item.cryptoQuantity != null) {
-          val.item.cryptoQuantity = bigNumber(val.item.cryptoQuantity);
-        }
-        this.$emit('update:modelValue', val);
+    modelValue: {
+      handler(newVal) {
+        // 同步本地变量
+        this.localContractType = newVal?.metadata?.contractType || '';
+        this.localCryptoQuantity = newVal?.item?.cryptoQuantity || '';
+        this.localPriceModifier = newVal?.item?.cryptoListingPriceModifier || '';
       },
-      deep: true,
+      deep: true
     }
   },
   computed: {
@@ -206,6 +219,11 @@ export default {
       this.curAccepted = this.receiveCur || (this.receiveCurs[0] && this.receiveCurs[0].code) || 'BTC';
       this.curToSell = 'BTC';
 
+      // 初始化本地变量
+      this.localContractType = this.modelValue?.metadata?.contractType || '';
+      this.localCryptoQuantity = this.modelValue?.item?.cryptoQuantity || '';
+      this.localPriceModifier = this.modelValue?.item?.cryptoListingPriceModifier || '';
+
       // Initially we'll show this as 'invisible' for spacing purposes. A spinner will
       // show until the subsequent getCoinTypes() call returns.
       this.hideTradingPair = true;
@@ -263,6 +281,36 @@ export default {
 
     onClickViewListingOnWeb() {
       this.$emit('clickViewListingOnWeb');
+    },
+
+    onContractTypeChange() {
+      this.$emit('update:modelValue', {
+        ...this.modelValue,
+        metadata: {
+          ...this.modelValue.metadata,
+          contractType: this.localContractType
+        }
+      });
+    },
+
+    onCryptoQuantityChange() {
+      this.$emit('update:modelValue', {
+        ...this.modelValue,
+        item: {
+          ...this.modelValue.item,
+          cryptoQuantity: this.localCryptoQuantity
+        }
+      });
+    },
+
+    onPriceModifierChange() {
+      this.$emit('update:modelValue', {
+        ...this.modelValue,
+        item: {
+          ...this.modelValue.item,
+          cryptoListingPriceModifier: this.localPriceModifier
+        }
+      });
     }
   }
 }
