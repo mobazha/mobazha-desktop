@@ -33,7 +33,7 @@
           </template>
         </Select2>
         <div class="clrT2 txSm helper">
-          <div v-html="ob.polyT('editListing.helperType', { smart_count: 5 })"></div>
+          <div v-html="ob.polyT('editListing.rwaTokenType.helperType', { count: `<b> ${ob.polyT('editListing.rwaTokenType.helperTypeCount')}</b>`, })"></div>
         </div>
       </div>
     </div>
@@ -58,7 +58,6 @@
         <RwaTokenSelector 
           v-model="selectedRwaToken"
           :modelValue="selectedRwaToken || { cryptoListingCurrencyCode: modelValue?.item?.cryptoListingCurrencyCode }"
-          :blockchain="localRwaBlockchain"
           @update:modelValue="onRwaTokenSelected"
         />
         <div class="clrT2 txSm helper">{{ ob.polyT('editListing.rwaTokenType.helperTokenSelection') }}</div>
@@ -81,10 +80,7 @@
             </div>
             <div class="infoItem">
               <span class="label">代币类型:</span>
-              <span class="value">
-                <img :src="getTokenTypeIcon(selectedRwaToken.code)" :alt="getTokenTypeName(selectedRwaToken.tokenType)" class="tokenTypeIcon" />
-                {{ getTokenTypeName(selectedRwaToken.tokenType) }}
-              </span>
+              <span class="value">{{ getTokenTypeName(selectedRwaToken.tokenType) }}</span>
             </div>
             <div class="infoItem">
               <span class="label">当前价格:</span>
@@ -217,7 +213,7 @@ import { getCurrenciesSortedByCode } from '../../../../backbone/data/currencies'
 
 import ViewListingLinks from './ViewListingLinks.vue';
 import RwaTokenSelector from '../../../components/RwaTokenSelector.vue';
-import { findRwaTokenByCode, getRwaTokenIconPath } from '../../../data/rwaTokenMockData.js';
+import { findRwaTokenByCode } from '../../../data/rwaTokenMockData.js';
 
 export default {
   components: {
@@ -242,7 +238,6 @@ export default {
       selectedRwaToken: null,
       investmentSuggestions: [],
       currencies: [],
-      titleManuallyEdited: false, // 跟踪标题是否被用户手动编辑过
       
       // RWA区块链列表
       rwaBlockchains: [
@@ -253,7 +248,7 @@ export default {
         { code: 'ARBITRUM', name: 'Arbitrum (ARB)' },
         { code: 'OPTIMISM', name: 'Optimism (OP)' },
         { code: 'AVALANCHE', name: 'Avalanche (AVAX)' },
-        { code: 'SOL', name: 'Solana (SOL)' }
+        { code: 'SOLANA', name: 'Solana (SOL)' }
       ],
     };
   },
@@ -404,9 +399,6 @@ export default {
       this.localRwaTokenAddress = this.modelValue?.item?.rwaTokenAddress || '';
       this.localRwaBlockchain = this.modelValue?.item?.rwaBlockchain || 'ETH';
       
-      // 重置标题编辑标志 - 如果标题来自后端数据，则标记为未手动编辑
-      this.titleManuallyEdited = false;
-      
       // 初始化价格字段
       const price = this.modelValue?.item?.price;
       if (price instanceof bigNumber) {
@@ -448,9 +440,6 @@ export default {
     },
 
     onTitleChange() {
-      // 标记标题已被用户手动编辑
-      this.titleManuallyEdited = true;
-      
       this.$emit('update:modelValue', {
         ...this.modelValue,
         item: {
@@ -616,8 +605,8 @@ export default {
         // 更新RWA Token类型选择
         this.localContractType = 'RWA_TOKEN';
         
-        // 更新标题（只有在从未被手动编辑过且为空时才设置默认值）
-        if (!this.titleManuallyEdited && (!this.localTitle || this.localTitle.trim() === '')) {
+        // 更新标题（如果为空或包含默认值）
+        if (!this.localTitle || this.localTitle.includes('代币')) {
           this.localTitle = `${tokenData.name} 代币`;
         }
         
@@ -638,8 +627,8 @@ export default {
         // 更新RWA Token类型选择
         this.localContractType = 'RWA_TOKEN';
         
-        // 更新标题（只有在从未被手动编辑过且为空时才设置默认值）
-        if (!this.titleManuallyEdited && (!this.localTitle || this.localTitle.trim() === '')) {
+        // 更新标题（如果为空或包含默认值）
+        if (!this.localTitle || this.localTitle.includes('代币')) {
           this.localTitle = `${tokenData.name} 代币`;
         }
         
@@ -695,10 +684,6 @@ export default {
     formatAddress(address) {
       if (!address) return '';
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    },
-
-    getTokenTypeIcon(tokenCode) {
-      return getRwaTokenIconPath(tokenCode);
     },
 
     // 添加支付币种
@@ -757,14 +742,6 @@ export default {
 
       &:last-child {
         border-bottom: none;
-      }
-
-      .tokenTypeIcon {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
-        margin-right: 6px;
-        vertical-align: middle;
       }
 
       .label {

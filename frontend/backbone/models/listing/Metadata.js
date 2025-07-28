@@ -25,7 +25,8 @@ export default class extends BaseModel {
       'DIGITAL_GOOD',
       'SERVICE',
       // 2023.12.20, temporarily disable CRYPTOCURRENCY, check if there is some request in future
-      // 'CRYPTOCURRENCY',
+      'CRYPTOCURRENCY',
+      'RWA_TOKEN',
     ];
   }
 
@@ -86,12 +87,33 @@ export default class extends BaseModel {
 
     if (attrs.contractType === 'CRYPTOCURRENCY') {
       if (Array.isArray(attrs.acceptedCurrencies) && attrs.acceptedCurrencies.length > 1) {
-        addError('acceptedCurrencies', 'For cryptocurrency listings, only one acccepted '
+        addError('acceptedCurrencies', 'For cryptocurrency listings, only one accepted '
           + 'currency is allowed.');
       }
 
       if (!attrs.cryptoListingCurrencyCode || typeof attrs.cryptoListingCurrencyCode !== 'string') {
         addError('cryptoListingCurrencyCode', 'Please provide a cryptoListingCurrencyCode.');
+      }
+    } else if (attrs.contractType === 'RWA_TOKEN') {
+      // RWA Token支持同一个链上的多种支付币种（如USDT、USDC等）
+      if (!Array.isArray(attrs.acceptedCurrencies) || attrs.acceptedCurrencies.length === 0) {
+        addError('acceptedCurrencies', 'For RWA token listings, at least one accepted currency is required.');
+      }
+
+      // RWA Token 需要验证定价币种
+      if (typeof attrs.pricingCurrency !== 'object') {
+        addError('pricingCurrency', 'The pricingCurrency must be provided as an object for RWA token listings.');
+      } else {
+        if (
+          !attrs.pricingCurrency.code
+          || !getCurrencyByCode(attrs.pricingCurrency.code)
+        ) {
+          addError('pricingCurrency.code', 'The pricing currency is not one of the available ones.');
+        }
+
+        if (!isValidCoinDivisibility(attrs.pricingCurrency.divisibility)[0]) {
+          addError('pricingCurrency.divisibility', 'The divisibility is not valid.');
+        }
       }
     } else {
       // The ones in this block should not be user facing unless there's a dev error.

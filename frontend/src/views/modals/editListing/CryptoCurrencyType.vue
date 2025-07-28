@@ -157,7 +157,13 @@ export default {
       handler(newVal) {
         // 同步本地变量
         this.localContractType = newVal?.metadata?.contractType || '';
-        this.localCryptoQuantity = newVal?.item?.cryptoQuantity || '';
+        // 处理cryptoQuantity，确保它是字符串格式用于显示
+        const cryptoQuantity = newVal?.item?.cryptoQuantity;
+        if (cryptoQuantity instanceof bigNumber) {
+          this.localCryptoQuantity = cryptoQuantity.toString();
+        } else {
+          this.localCryptoQuantity = cryptoQuantity || '';
+        }
         this.localPriceModifier = newVal?.item?.cryptoListingPriceModifier || '';
       },
       deep: true
@@ -221,7 +227,13 @@ export default {
 
       // 初始化本地变量
       this.localContractType = this.modelValue?.metadata?.contractType || '';
-      this.localCryptoQuantity = this.modelValue?.item?.cryptoQuantity || '';
+      // 处理cryptoQuantity，确保它是字符串格式用于显示
+      const cryptoQuantity = this.modelValue?.item?.cryptoQuantity;
+      if (cryptoQuantity instanceof bigNumber) {
+        this.localCryptoQuantity = cryptoQuantity.toString();
+      } else {
+        this.localCryptoQuantity = cryptoQuantity || '';
+      }
       this.localPriceModifier = this.modelValue?.item?.cryptoListingPriceModifier || '';
 
       // Initially we'll show this as 'invisible' for spacing purposes. A spinner will
@@ -298,7 +310,7 @@ export default {
         ...this.modelValue,
         item: {
           ...this.modelValue.item,
-          cryptoQuantity: this.localCryptoQuantity
+          cryptoQuantity: new bigNumber(this.localCryptoQuantity || 0)
         }
       });
     },

@@ -7,14 +7,14 @@
           :class="{ active: searchMode === 'search' }"
           @click="searchMode = 'search'"
         >
-          {{ $t('rwaTokenSelector.searchMode') }}
+          搜索代币
         </button>
         <button 
           class="modeBtn" 
           :class="{ active: searchMode === 'address' }"
           @click="searchMode = 'address'"
         >
-          {{ $t('rwaTokenSelector.addressMode') }}
+          输入地址
         </button>
     </div>
 
@@ -24,7 +24,7 @@
                   <input
             type="text"
             v-model="searchQuery"
-            :placeholder="$t('rwaTokenSelector.searchPlaceholder')"
+            placeholder="搜索代币名称、代码或符号..."
             @input="onSearchInput"
             class="clrBr clrP clrSh2"
           />
@@ -36,7 +36,7 @@
       <!-- 搜索结果 -->
       <div v-if="searchResults.length > 0" class="searchResults">
         <div class="resultsHeader">
-          <h4>{{ $t('rwaTokenSelector.searchResults') }} ({{ searchResults.length }})</h4>
+          <h4>搜索结果 ({{ searchResults.length }})</h4>
         </div>
         <div class="tokenList">
           <div
@@ -46,22 +46,17 @@
             @click="selectToken(token)"
           >
             <div class="tokenInfo">
-              <div class="tokenIcon">
-                <img :src="getTokenTypeIcon(token.code)" :alt="getTokenTypeName(token.tokenType)" />
-              </div>
-              <div class="tokenDetails">
-                <div class="tokenName">{{ token.name }}</div>
-                <div class="tokenSymbol">{{ token.symbol }}</div>
-                <div class="tokenType">{{ getTokenTypeName(token.tokenType) }}</div>
-              </div>
+              <div class="tokenName">{{ token.name }}</div>
+              <div class="tokenSymbol">{{ token.symbol }}</div>
+              <div class="tokenType">{{ getTokenTypeName(token.tokenType) }}</div>
             </div>
             <div class="tokenDetails">
-              <div class="tokenPrice">{{ $t('rwaTokenSelector.currentPrice') }}: ${{ token.currentPrice }}</div>
+              <div class="tokenPrice">当前价格: ${{ token.currentPrice }}</div>
               <div class="tokenAddress">{{ formatAddress(token.contractAddress) }}</div>
             </div>
             <div class="tokenVerification" v-if="token.verification.isVerified">
               <i class="icon-verified"></i>
-              <span>{{ $t('rwaTokenSelector.verified') }}</span>
+              <span>已验证</span>
             </div>
           </div>
         </div>
@@ -69,18 +64,18 @@
 
       <!-- 无搜索结果 -->
       <div v-else-if="hasSearched && searchResults.length === 0" class="noResults">
-        <p>{{ $t('rwaTokenSelector.noResults') }}</p>
+        <p>未找到匹配的代币</p>
       </div>
     </div>
 
     <!-- 地址输入模式 -->
     <div v-else class="addressSection">
       <div class="addressInput">
-        <label>{{ $t('rwaTokenSelector.contractAddress') }}</label>
+        <label>合约地址</label>
         <input
           type="text"
           v-model="addressInput"
-          :placeholder="$t('rwaTokenSelector.addressPlaceholder')"
+          placeholder="输入0x开头的合约地址..."
           @input="onAddressInput"
           class="clrBr clrP clrSh2"
           :class="{ error: addressError }"
@@ -93,15 +88,15 @@
         :disabled="!isValidAddress || isVerifying"
         class="verifyBtn"
       >
-        <span v-if="isVerifying">{{ $t('rwaTokenSelector.verifying') }}</span>
-        <span v-else>{{ $t('rwaTokenSelector.verifyAddress') }}</span>
+        <span v-if="isVerifying">验证中...</span>
+        <span v-else>验证地址</span>
       </button>
 
       <!-- 地址验证结果 -->
       <div v-if="verifiedToken" class="verifiedToken">
         <div class="verificationSuccess">
           <i class="icon-success"></i>
-          <span>{{ $t('rwaTokenSelector.addressVerified') }}</span>
+          <span>地址验证成功</span>
         </div>
         <div class="tokenCard">
           <div class="tokenHeader">
@@ -110,24 +105,24 @@
           </div>
           <div class="tokenDetails">
             <div class="detailRow">
-              <span class="label">{{ $t('rwaTokenSelector.issuer') }}:</span>
+              <span class="label">发行方:</span>
               <span class="value">{{ verifiedToken.issuer }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">{{ $t('rwaTokenSelector.currentPrice') }}:</span>
+              <span class="label">当前价格:</span>
               <span class="value">${{ verifiedToken.currentPrice }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">{{ $t('rwaTokenSelector.riskLevel') }}:</span>
+              <span class="label">风险等级:</span>
               <span class="value">{{ verifiedToken.metadata.riskLevel }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">{{ $t('rwaTokenSelector.verification') }}:</span>
+              <span class="label">验证机构:</span>
               <span class="value">{{ verifiedToken.verification.verifiedBy }}</span>
             </div>
           </div>
           <button @click="selectToken(verifiedToken)" class="selectBtn">
-            {{ $t('rwaTokenSelector.selectThisToken') }}
+            选择此代币
           </button>
         </div>
       </div>
@@ -136,30 +131,25 @@
       <div v-else-if="addressNotFound" class="addressNotFound">
         <div class="notFoundMessage">
           <i class="icon-warning"></i>
-          <span>{{ $t('rwaTokenSelector.addressNotFound') }}</span>
+          <span>未找到该地址对应的代币</span>
         </div>
-        <p>{{ $t('rwaTokenSelector.addressNotFoundHelp') }}</p>
+        <p>请检查地址是否正确，或尝试搜索模式查找代币</p>
       </div>
     </div>
 
     <!-- 已选择的Token -->
     <div v-if="selectedToken" class="selectedToken">
       <div class="selectedHeader">
-        <h4>{{ $t('rwaTokenSelector.selectedToken') }}</h4>
+        <h4>已选择的代币</h4>
         <button @click="clearSelection" class="clearBtn">
-          {{ $t('rwaTokenSelector.change') }}
+          更改
         </button>
       </div>
       <div class="selectedTokenCard">
         <div class="tokenInfo">
-          <div class="tokenIcon">
-            <img :src="getTokenTypeIcon(selectedToken.code)" :alt="getTokenTypeName(selectedToken.tokenType)" />
-          </div>
-          <div class="tokenDetails">
-            <div class="tokenName">{{ selectedToken.name }}</div>
-            <div class="tokenSymbol">{{ selectedToken.symbol }}</div>
-            <div class="tokenAddress">{{ formatAddress(selectedToken.contractAddress) }}</div>
-          </div>
+          <div class="tokenName">{{ selectedToken.name }}</div>
+          <div class="tokenSymbol">{{ selectedToken.symbol }}</div>
+          <div class="tokenAddress">{{ formatAddress(selectedToken.contractAddress) }}</div>
         </div>
         <div class="tokenStats">
           <div class="stat">
@@ -182,8 +172,7 @@ import {
   findRwaTokenByAddress, 
   findRwaTokenByCode,
   searchRwaTokens, 
-  validateContractAddress,
-  getRwaTokenIconPath
+  validateContractAddress 
 } from '../data/rwaTokenMockData.js';
 
 export default {
@@ -191,10 +180,6 @@ export default {
   props: {
     modelValue: {
       type: Object,
-      default: null
-    },
-    blockchain: {
-      type: String,
       default: null
     }
   },
@@ -234,17 +219,6 @@ export default {
         }
       },
       immediate: true
-    },
-    blockchain: {
-      handler() {
-        // 当区块链改变时，清空搜索结果和搜索状态
-        this.searchResults = [];
-        this.hasSearched = false;
-        this.searchQuery = '';
-        this.verifiedToken = null;
-        this.addressNotFound = false;
-        this.addressError = '';
-      }
     }
   },
   methods: {
@@ -259,7 +233,7 @@ export default {
 
     performSearch() {
       if (this.searchQuery.trim()) {
-        this.searchResults = searchRwaTokens(this.searchQuery, this.blockchain);
+        this.searchResults = searchRwaTokens(this.searchQuery);
         this.hasSearched = true;
       }
     },
@@ -272,7 +246,7 @@ export default {
 
     async verifyAddress() {
       if (!this.isValidAddress) {
-        this.addressError = this.$t('rwaTokenSelector.invalidAddress');
+        this.addressError = '无效的合约地址格式';
         return;
       }
 
@@ -286,14 +260,13 @@ export default {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const token = findRwaTokenByAddress(this.addressInput);
-        // 如果指定了区块链，检查代币是否匹配
-        if (token && (!this.blockchain || token.blockchain.toLowerCase() === this.blockchain.toLowerCase())) {
+        if (token) {
           this.verifiedToken = token;
         } else {
           this.addressNotFound = true;
         }
       } catch (error) {
-        this.addressError = this.$t('rwaTokenSelector.verificationError');
+        this.addressError = '验证过程中出现错误';
       } finally {
         this.isVerifying = false;
       }
@@ -350,10 +323,6 @@ export default {
     formatAddress(address) {
       if (!address) return '';
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    },
-
-    getTokenTypeIcon(tokenCode) {
-      return getRwaTokenIconPath(tokenCode);
     }
   }
 };
@@ -456,44 +425,27 @@ export default {
         }
 
         .tokenInfo {
-          display: flex;
-          align-items: center;
-          gap: 12px;
           margin-bottom: 8px;
 
-          .tokenIcon {
-            flex-shrink: 0;
-            
-            img {
-              width: 24px;
-              height: 24px;
-              border-radius: 4px;
-            }
+          .tokenName {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
           }
 
-          .tokenDetails {
-            flex: 1;
+          .tokenSymbol {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 2px;
+          }
 
-            .tokenName {
-              font-weight: bold;
-              color: #333;
-              margin-bottom: 4px;
-            }
-
-            .tokenSymbol {
-              color: #666;
-              font-size: 12px;
-              margin-bottom: 2px;
-            }
-
-            .tokenType {
-              color: #007bff;
-              font-size: 11px;
-              background: #e3f2fd;
-              padding: 2px 6px;
-              border-radius: 3px;
-              display: inline-block;
-            }
+          .tokenType {
+            color: #007bff;
+            font-size: 11px;
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: inline-block;
           }
         }
 
@@ -675,41 +627,24 @@ export default {
       background: #f8fff9;
 
       .tokenInfo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
         margin-bottom: 15px;
 
-        .tokenIcon {
-          flex-shrink: 0;
-          
-          img {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-          }
+        .tokenName {
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 4px;
         }
 
-        .tokenDetails {
-          flex: 1;
+        .tokenSymbol {
+          color: #007bff;
+          font-size: 12px;
+          margin-bottom: 4px;
+        }
 
-          .tokenName {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 4px;
-          }
-
-          .tokenSymbol {
-            color: #007bff;
-            font-size: 12px;
-            margin-bottom: 4px;
-          }
-
-          .tokenAddress {
-            font-family: monospace;
-            font-size: 12px;
-            color: #666;
-          }
+        .tokenAddress {
+          font-family: monospace;
+          font-size: 12px;
+          color: #666;
         }
       }
 

@@ -45,7 +45,7 @@
 
                 <div class="tabFormWrapper">
                   <form class="box padSmKids padStack">
-                    <div class="standardTypeWrap js-standardTypeWrap pad0 padSmKids padStackAll" v-if="formData.metadata.contractType !== 'CRYPTOCURRENCY'">
+                    <div class="standardTypeWrap js-standardTypeWrap pad0 padSmKids padStackAll" v-if="formData.metadata.contractType !== 'CRYPTOCURRENCY' && formData.metadata.contractType !== 'RWA_TOKEN'">
                       <div class="flexRow">
                         <div class="col12">
                           <div class="flexRow">
@@ -169,8 +169,85 @@
                         @clickViewListing="onClickViewListing"
                         @clickViewListingOnWeb="onClickViewListingOnWeb"
                       />
+                      
+                      <!-- 数量范围设置 - 对加密货币也显示 -->
+                      <div class="flexRow gutterH">
+                        <div class="col6 simpleFlexCol">
+                          <label for="editListingMinQuantityCrypto" class="required">{{ ob.polyT('editListing.minQuantity') }}</label>
+                          <FormError v-if="ob.errors['item.minQuantity']" :errors="ob.errors['item.minQuantity']" />
+                          <input 
+                            type="number" 
+                            class="clrBr clrP clrSh2 marginTopAuto" 
+                            v-model="formData.item.minQuantity" 
+                            id="editListingMinQuantityCrypto"
+                            placeholder="1" 
+                            data-var-type="number"
+                          />
+                          <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperMinQuantity') }}</div>
+                        </div>
+                        <div class="col6 simpleFlexCol">
+                          <label for="editListingMaxQuantityCrypto" class="required">{{ ob.polyT('editListing.maxQuantity') }}</label>
+                          <FormError v-if="ob.errors['item.maxQuantity']" :errors="ob.errors['item.maxQuantity']" />
+                          <input 
+                            type="number" 
+                            class="clrBr clrP clrSh2 marginTopAuto" 
+                            v-model="formData.item.maxQuantity" 
+                            id="editListingMaxQuantityCrypto"
+                            placeholder="100" 
+                            data-var-type="number"
+                          />
+                          <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperMaxQuantity') }}</div>
+                        </div>
+                      </div>
                     </div>
-                    <div class="flexRow gutterH skuMatureContentRow js-skuMatureContentRow">
+                    <div class="rwaTokenTypeWrap js-rwaTokenTypeWrap pad0" v-if="formData.metadata.contractType === 'RWA_TOKEN'">
+                      <RwaTokenType
+                        v-model="formData"
+                        :options="{
+                          receiveCur,
+                        }"
+                        :bb="
+                          function () {
+                            return {
+                              model,
+                            };
+                          }
+                        "
+                        @clickViewListing="onClickViewListing"
+                        @clickViewListingOnWeb="onClickViewListingOnWeb"
+                      />
+                      
+                      <!-- 数量范围设置 - 只对RWA Token显示 -->
+                      <div class="flexRow gutterH">
+                        <div class="col6 simpleFlexCol">
+                          <label for="editListingMinQuantity" class="required">{{ ob.polyT('editListing.minQuantity') }}</label>
+                          <FormError v-if="ob.errors['item.minQuantity']" :errors="ob.errors['item.minQuantity']" />
+                          <input 
+                            type="number" 
+                            class="clrBr clrP clrSh2 marginTopAuto" 
+                            v-model="formData.item.minQuantity" 
+                            id="editListingMinQuantity"
+                            placeholder="1" 
+                            data-var-type="number"
+                          />
+                          <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperMinQuantity') }}</div>
+                        </div>
+                        <div class="col6 simpleFlexCol">
+                          <label for="editListingMaxQuantity" class="required">{{ ob.polyT('editListing.maxQuantity') }}</label>
+                          <FormError v-if="ob.errors['item.maxQuantity']" :errors="ob.errors['item.maxQuantity']" />
+                          <input 
+                            type="number" 
+                            class="clrBr clrP clrSh2 marginTopAuto" 
+                            v-model="formData.item.maxQuantity" 
+                            id="editListingMaxQuantity"
+                            placeholder="100" 
+                            data-var-type="number"
+                          />
+                          <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperMaxQuantity') }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flexRow gutterH skuMatureContentRow js-skuMatureContentRow" v-if="formData.metadata.contractType !== 'RWA_TOKEN'">
                       <div class="col6 simpleFlexCol js-skuFieldContainer">
                         <div>
                           <label for="editListingSku">{{ ob.polyT('editListing.sku') }}</label>
@@ -337,6 +414,7 @@
                 :class="`variantsSection js-variantsSection contentBox padMd clrP clrBr clrSh3 tx3 ${
                   showVariantInventorySection ? 'expandedVariantsView' : ''
                 }`"
+                v-if="formData.metadata.contractType !== 'RWA_TOKEN'"
               >
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.variantsDetailed') }}</h2>
                 <hr class="clrBr rowMd" />
@@ -360,7 +438,7 @@
                 <a class="btn clrP clrBr clrSh2 addFirstVariant" @click="onClickAddFirstVariant">{{ ob.polyT('editListing.variants.btnAddVariant') }}</a>
               </section>
 
-              <section class="contentBox padMd clrP clrBr clrSh3 tx3 js-inventoryManagementSection inventoryManagementSection">
+              <section class="contentBox padMd clrP clrBr clrSh3 tx3 js-inventoryManagementSection inventoryManagementSection" v-if="formData.metadata.contractType !== 'RWA_TOKEN'">
                 <InventoryManagement
                   :key="trackInventoryBy"
                   :options="{
@@ -376,7 +454,7 @@
               <section
                 ref="sectionVariantInventory"
                 class="contentBox variantInventorySection js-variantInventorySection padMd clrP clrBr clrSh3 tx3"
-                v-show="showVariantInventorySection"
+                v-show="showVariantInventorySection && formData.metadata.contractType !== 'RWA_TOKEN'"
               >
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.variantInventory') }}</h2>
                 <hr class="clrBr rowMd" />
@@ -400,7 +478,7 @@
                   />
                 </div>
               </section>
-              <section ref="sectionOptionalFeatures" class="contentBox optionalFeatures padMd clrP clrBr clrSh3 tx3">
+              <section ref="sectionOptionalFeatures" class="contentBox optionalFeatures padMd clrP clrBr clrSh3 tx3" v-if="formData.metadata.contractType !== 'RWA_TOKEN'">
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.optionalFeatures') }}</h2>
                 <hr class="clrBr rowMd" />
                 <OptionalFeatures
@@ -418,7 +496,7 @@
                   "
                 />
               </section>
-              <section ref="sectionReturnPolicy" class="returnPolicySection contentBox padMd clrP clrBr clrSh3 tx3">
+              <section ref="sectionReturnPolicy" class="returnPolicySection contentBox padMd clrP clrBr clrSh3 tx3" v-if="formData.metadata.contractType !== 'RWA_TOKEN'">
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.returnPolicy') }}</h2>
                 <hr class="clrBr rowMd" />
                 <FormError v-if="ob.errors['refundPolicy']" :errors="ob.errors['refundPolicy']" />
@@ -436,7 +514,7 @@
                 <div class="clrT2 txSm helper">{{ ob.polyT('editListing.helperReturnPolicy') }}</div>
               </section>
 
-              <section ref="sectionTermsAndConditions" class="termsAndConditionsSection contentBox padMd clrP clrBr clrSh3 tx3">
+              <section ref="sectionTermsAndConditions" class="termsAndConditionsSection contentBox padMd clrP clrBr clrSh3 tx3" v-if="formData.metadata.contractType !== 'RWA_TOKEN'">
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.termsAndConditions') }}</h2>
                 <hr class="clrBr rowMd" />
                 <FormError v-if="ob.errors['termsAndConditions']" :errors="ob.errors['termsAndConditions']" />
@@ -457,6 +535,7 @@
               <section
                 ref="sectionCoupons"
                 :class="`couponsSection contentBox padMd clrP clrBr clrSh3 tx3 js-couponsSection ${coupons.length ? 'expandedCouponView' : ''}`"
+                v-if="formData.metadata.contractType !== 'RWA_TOKEN'"
               >
                 <h2 class="h4 clrT">{{ ob.polyT('editListing.sectionNames.coupons') }}</h2>
                 <hr class="clrBr rowMd" />
@@ -523,6 +602,7 @@ import UnsupportedCurrency from '../../../../backbone/views/modals/editListing/U
 import ViewListingLinks from './ViewListingLinks.vue';
 import UploadPhoto from './UploadPhoto.vue';
 import CryptoCurrencyType from './CryptoCurrencyType.vue';
+import RwaTokenType from './RwaTokenType.vue';
 import Variants from './Variants.vue';
 import InventoryManagement from './InventoryManagement.vue';
 import VariantInventory from './VariantInventory.vue';
@@ -537,6 +617,7 @@ export default {
   components: {
     ViewListingLinks,
     CryptoCurrencyType,
+    RwaTokenType,
     UploadPhoto,
     Variants,
     InventoryManagement,
@@ -586,6 +667,8 @@ export default {
           description: '',
           tags: [],
           categories: [],
+          minQuantity: 1,
+          maxQuantity: 100,
         },
         metadata: {
           contractType: '',
@@ -651,7 +734,9 @@ export default {
     },
     tabs() {
       const ob = this.ob;
-      return [
+      const isRwaToken = this.formData.metadata.contractType === 'RWA_TOKEN';
+      
+      const allTabs = [
         {
           key: 'general',
           name: ob.polyT('editListing.sectionNames.general'),
@@ -693,6 +778,15 @@ export default {
           name: ob.polyT('editListing.sectionNames.coupons'),
         },
       ];
+
+      // 对于RWA Token，隐藏不需要的标签页
+      if (isRwaToken) {
+        return allTabs.filter(tab => 
+          !['variants', 'optionalFeatures', 'returnPolicy', 'termsAndConditions', 'coupons'].includes(tab.key)
+        );
+      }
+
+      return allTabs;
     },
 
     helperCryptoCurName() {
@@ -725,7 +819,8 @@ export default {
 
     receiveCur() {
       const acceptedCurs = this.model.get('metadata').get('acceptedCurrencies');
-      return this.model.isCrypto ? (acceptedCurs.length && acceptedCurs()[0]) || null : null;
+      const isCrypto = this.model.isCrypto || this.model.get('metadata').get('contractType') === 'RWA_TOKEN';
+      return isCrypto ? (acceptedCurs.length && acceptedCurs()[0]) || null : null;
     },
 
     variantErrors() {
@@ -765,6 +860,11 @@ export default {
           categories: model.item.categories,
           description: model.item.description,
           quantity: model.item.quantity,
+          // 数量范围字段 - 确保转换为数字类型用于前端显示
+          minQuantity: model.item.minQuantity ? Number(model.item.minQuantity) : 1,
+          maxQuantity: model.item.maxQuantity ? Number(model.item.maxQuantity) : 100,
+          // 确保 crypto 相关字段存在
+          cryptoListingCurrencyCode: model.item.cryptoListingCurrencyCode,
         },
         metadata: {
           contractType: model.metadata.contractType,
@@ -1394,17 +1494,35 @@ export default {
         formData.item.price = bigNumber(formData.item.price);
       }
 
+      // 将 minQuantity 和 maxQuantity 转换为字符串类型，以符合后端 protobuf 定义
+      if (formData.item.minQuantity != null) {
+        formData.item.minQuantity = String(formData.item.minQuantity);
+      }
+      if (formData.item.maxQuantity != null) {
+        formData.item.maxQuantity = String(formData.item.maxQuantity);
+      }
+
       const item = this.model.get('item');
       const metadata = this.model.get('metadata');
       const isCrypto = this.formData.metadata.contractType === 'CRYPTOCURRENCY';
+      const isRwaToken = this.formData.metadata.contractType === 'RWA_TOKEN';
 
       // set model / collection data for various child views
-      this.$refs.variantsView.setCollectionData();
-      this.$refs.variantInventory.setCollectionData();
-      this.$refs.couponsView.setCollectionData();
-      this.$refs.optionalFeatures.setCollectionData();
+      // 只有在组件存在时才调用它们的方法
+      if (this.$refs.variantsView && !isRwaToken) {
+        this.$refs.variantsView.setCollectionData();
+      }
+      if (this.$refs.variantInventory && !isRwaToken) {
+        this.$refs.variantInventory.setCollectionData();
+      }
+      if (this.$refs.couponsView && !isRwaToken) {
+        this.$refs.couponsView.setCollectionData();
+      }
+      if (this.$refs.optionalFeatures && !isRwaToken) {
+        this.$refs.optionalFeatures.setCollectionData();
+      }
 
-      if (!isCrypto) {
+      if (!isCrypto && !isRwaToken) {
         if (item.get('options').length) {
           // If we have options, we shouldn't be providing certain properties on the Item
           // model which track non-variant inventory
@@ -1437,7 +1555,7 @@ export default {
           ...formData.metadata,
           format: 'FIXED_PRICE',
         };
-      } else {
+      } else if (isCrypto) {
         item.unset('condition');
         item.unset('productId');
         item.unset('price');
@@ -1454,6 +1572,35 @@ export default {
           metadata: {
             ...formData.metadata,
             format: 'MARKET_PRICE',
+          },
+        };
+      } else if (isRwaToken) {
+        // RWA Token 特殊处理
+        item.unset('condition');
+        item.unset('productId');
+        item.unset('options');
+        item.unset('skus');
+        item.unset('quantity');
+        item.unset('infiniteInventory');
+
+        // 删除不需要的字段
+        delete formData.item.quantity;
+        delete formData.item.condition;
+        delete formData.item.productID;
+        delete formData.item.options;
+        delete formData.item.skus;
+
+        formData = {
+          ...formData,
+          coupons: [],
+          item: {
+            ...formData.item,
+            options: [],
+            skus: [],
+          },
+          metadata: {
+            ...formData.metadata,
+            format: 'FIXED_PRICE',
           },
         };
       }
