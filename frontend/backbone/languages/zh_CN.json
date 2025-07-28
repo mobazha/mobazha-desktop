@@ -1134,7 +1134,8 @@
     "PHYSICAL_GOOD": "实物商品",
     "DIGITAL_GOOD": "数字商品",
     "SERVICE": "服务",
-    "CRYPTOCURRENCY": "加密货币"
+    "CRYPTOCURRENCY": "加密货币",
+    "RWA_TOKEN": "RWA代币"
   },
   "conditionTypes": {
     "NEW": "新",
@@ -1253,7 +1254,8 @@
     "btnShowMatureContent": "显示成人内容",
     "tipShowMatureContent": "显示成人内容",
     "tipHideMatureContent": "隐藏成人内容",
-    "blockedUser": "你屏蔽了这个用户"
+    "blockedUser": "你屏蔽了这个用户",
+    "rwaTokenBadge": "RWA代币"
   },
   "listingDelete": {
     "deletingListing": "正在删除商品信息%{listing} ...",
@@ -1326,6 +1328,10 @@
     "helperReturnPolicy": "如果留空，则商品信息将显示\"无退货条款输入\"",
     "helperTerms": "如果留空，则商品信息将显示“没有条款和条件输入”",
     "helperPrice": "设置您的价格单位，如美元，元，%{cur}，或其他",
+    "minQuantity": "最小购买数量",
+    "maxQuantity": "最大购买数量",
+    "helperMinQuantity": "买家单次购买的最小数量",
+    "helperMaxQuantity": "买家单次购买的最大数量",
     "helperAcceptedCurrencies": "接受所有货币将吸引最多用户",
     "createListingLabel": "创建商品清单",
     "editListingLabel": "编辑商品清单",
@@ -1370,6 +1376,23 @@
       "priceModifierPlaceholder": "0.00 （市场利率）",
       "helperPriceModifier": "按市场价格交易，或者指定一个价格修改器（+/-）",
       "lblReceive": "接收"
+    },
+    "rwaTokenType": {
+      "helperReceive": "您交易将获得的货币（RWA Token支持多种支付币种）",
+      "addCurrency": "添加支付币种",
+      "tokenType": "代币类型",
+      "lblReceive": "接收",
+      "lblTokenType": "RWA代币类型",
+      "lblTokenAddress": "代币合约地址",
+      "lblTokenId": "代币ID（可选）",
+      "lblTokenSelection": "选择RWA代币",
+      "placeholderTokenAddress": "输入RWA代币合约地址...",
+      "placeholderTokenId": "输入代币ID（NFT代币需要）...",
+      "helperTokenAddress": "RWA代币的智能合约地址，用于验证和交易",
+      "helperTokenId": "如果是NFT代币，请输入具体的代币ID",
+      "helperTokenSelection": "搜索或输入地址来查找和确认RWA代币",
+      "lblBlockchain": "区块链",
+      "helperBlockchain": "选择RWA代币所在的区块链网络"
     },
     "coupons": {
       "titleLabel": "标题",

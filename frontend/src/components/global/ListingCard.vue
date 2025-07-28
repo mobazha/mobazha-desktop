@@ -12,6 +12,12 @@
           </template>
         </el-image>
 
+        <!-- RWA Token 标识徽章 - 右上角 -->
+        <div v-if="ob.contractType === 'RWA_TOKEN'" class="rwaTokenBadgeTopRight">
+          <i class="ion-ios-star"></i>
+          <span>{{ ob.polyT('listingCard.rwaTokenBadge') }}</span>
+        </div>
+
         <div class="nsfwOverlay overlayPanel coverFull clrP">
           <div class="flexCent">
             <div>
@@ -192,6 +198,11 @@
           <template v-if="ob.contractType !== 'CRYPTOCURRENCY' || !Array.isArray(ob.acceptedCurrencies) || !ob.acceptedCurrencies.length">
             <div :class="`rowTn inlineBlock ${ob.title.length > 60 ? 'toolTip' : 'toolTipNoWrap'} toolTipTop`" :data-tip="ob.title">
               <a class="clrT clamp3 listingTitle">{{ ob.title }}</a>
+              <!-- RWA Token 标识 - list视图标题旁 -->
+              <span v-if="ob.contractType === 'RWA_TOKEN'" class="rwaTokenBadgeInline">
+                <i class="ion-ios-star"></i>
+                <span>{{ ob.polyT('listingCard.rwaTokenBadge') }}</span>
+              </span>
             </div>
           </template>
           <div v-else v-html="ob.crypto.tradingPair({
@@ -1056,6 +1067,38 @@ export default {
 
       return this;
     },
+
+    // RWA Token 相关方法
+    getRwaTokenSymbol(tokenCode) {
+      if (!tokenCode) return '';
+      
+      // 从tokenCode中提取符号，例如 'REAL_ESTATE_001' -> 'SHRE'
+      const tokenMap = {
+        'REAL_ESTATE_001': 'SHRE',
+        'ART_001': 'ARTT',
+        'COMMODITY_001': 'GOLD',
+        'PRIVATE_EQUITY_001': 'PEQT',
+        'INFRASTRUCTURE_001': 'INFR'
+      };
+      
+      return tokenMap[tokenCode] || tokenCode.split('_')[0];
+    },
+
+    getRwaTokenType(tokenCode) {
+      if (!tokenCode) return '';
+      
+      // 从tokenCode中提取类型名称
+      const typeMap = {
+        'REAL_ESTATE': '房地产',
+        'ART': '艺术品',
+        'COMMODITY': '大宗商品',
+        'PRIVATE_EQUITY': '私募股权',
+        'INFRASTRUCTURE': '基础设施'
+      };
+      
+      const type = tokenCode.split('_')[0];
+      return typeMap[type] || type;
+    },
   },
 };
 </script>
@@ -1064,5 +1107,129 @@ export default {
 .placeholder-img {
   width: 100%;
   height: 100%;
+}
+
+// RWA Token 右上角徽章样式
+.rwaTokenBadgeTopRight {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6366f1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  i {
+    font-size: 9px;
+    color: #6366f1;
+  }
+  
+  span {
+    font-size: 9px;
+    line-height: 1;
+  }
+}
+
+// List视图专用徽章样式
+.rwaTokenBadgeList {
+  top: 1px;
+  right: 1px;
+  padding: 1px;
+  font-size: 6px;
+  border-radius: 2px;
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  i {
+    font-size: 6px;
+  }
+  
+  .rwaTokenText {
+    display: none; // 在list视图中隐藏文字，只显示图标
+  }
+}
+
+// List视图内联徽章样式
+.rwaTokenBadgeInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  padding: 1px 4px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  color: #6366f1;
+  
+  i {
+    font-size: 8px;
+    color: #6366f1;
+  }
+  
+  span {
+    font-size: 8px;
+    line-height: 1;
+  }
+}
+
+// 响应式适配
+@media (max-width: 480px) {
+  .rwaTokenBadgeTopRight {
+    padding: 2px 4px;
+    font-size: 9px;
+    
+    i {
+      font-size: 8px;
+    }
+    
+    span {
+      font-size: 8px;
+    }
+  }
+  
+  .rwaTokenBadgeList {
+    top: 0px;
+    right: 0px;
+    padding: 1px;
+    font-size: 5px;
+    width: 10px;
+    height: 10px;
+    
+    i {
+      font-size: 5px;
+    }
+    
+    .rwaTokenText {
+      display: none;
+    }
+  }
+  
+  .rwaTokenBadgeInline {
+    margin-left: 4px;
+    padding: 1px 3px;
+    font-size: 8px;
+    
+    i {
+      font-size: 7px;
+    }
+    
+    span {
+      font-size: 7px;
+    }
+  }
 }
 </style>

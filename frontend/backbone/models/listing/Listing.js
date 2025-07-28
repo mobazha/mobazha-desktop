@@ -122,14 +122,15 @@ export default class extends BaseModel {
   }
 
   get isCrypto() {
-    return this.get('metadata')
-      .get('contractType') === 'CRYPTOCURRENCY';
+    const contractType = this.get('metadata').get('contractType');
+    return contractType === 'CRYPTOCURRENCY' || contractType === 'RWA_TOKEN';
   }
 
   get price() {
     const item = this.get('item');
+    const contractType = this.get('metadata').get('contractType');
 
-    if (this.isCrypto) {
+    if (contractType === 'CRYPTOCURRENCY') {
       let modifier = 0;
 
       try {
@@ -142,6 +143,27 @@ export default class extends BaseModel {
         amount: bigNumber(1 + (modifier / 100)),
         currencyCode: item.get('cryptoListingCurrencyCode'),
         modifier,
+      };
+    } else if (contractType === 'RWA_TOKEN') {
+      // RWA Token 使用固定价格
+      let amount = bigNumber();
+      try {
+        amount = item.get('price');
+      } catch (e) {
+        // pass
+      }
+
+      const metadata = this.get('metadata');
+      let currencyCode = '';
+      try {
+        currencyCode = metadata.get('pricingCurrency').code;
+      } catch (e) {
+        // pass
+      }
+
+      return {
+        amount,
+        currencyCode,
       };
     }
 
@@ -194,7 +216,7 @@ export default class extends BaseModel {
       // pass
     }
 
-    if (contractType !== 'CRYPTOCURRENCY') {
+    if (contractType !== 'CRYPTOCURRENCY' && contractType !== 'RWA_TOKEN') {
       let curCode;
 
       if (attrs.metadata && attrs.metadata.pricingCurrency) {
@@ -224,11 +246,40 @@ export default class extends BaseModel {
           }
         }
       }
-    } else {
+    } else if (contractType === 'CRYPTOCURRENCY') {
       if (attrs.metadata.contractType === 'CRYPTOCURRENCY' &&
         typeof attrs.item.cryptoListingPriceModifier === 'number') {
         // round to two decimal places
         attrs.item.cryptoListingPriceModifier = parseFloat(upToFixed(attrs.item.cryptoListingPriceModifier, 2));
+      }
+    } else if (contractType === 'RWA_TOKEN') {
+      // RWA Token 特殊处理
+      let curCode;
+
+      if (attrs.metadata && attrs.metadata.pricingCurrency) {
+        curCode = attrs.metadata.pricingCurrency.code;
+      }
+
+      if (
+        typeof curCode === 'string' &&
+        curCode
+      ) {
+        try {
+          attrs.metadata = {
+            ...attrs.metadata,
+            pricingCurrency: {
+              code: curCode,
+              divisibility: getCoinDivisibility(curCode),
+            },
+          };
+        } catch (e) {
+          if (
+            attrs.metadata &&
+            typeof attrs.metadata.pricingCurrency === 'object'
+          ) {
+            delete attrs.metadata.pricingCurrency.divisibility;
+          }
+        }
       }
     }
 
@@ -369,6 +420,57 @@ export default class extends BaseModel {
           }
         );
       }
+    } else if (contractType === 'RWA_TOKEN') {
+      // RWA Token 特殊验证逻辑
+      if (!item || !item.cryptoListingCurrencyCode || typeof item.cryptoListingCurrencyCode !== 'string') {
+        addError('item.cryptoListingCurrencyCode', app.polyglot.t('metadataModelErrors.provideCoinType'));
+      }
+
+      if (item) {
+        if (typeof item.quantity !== 'undefined') {
+          addError('item.quantity', 'The quantity should not be set on RWA token ' +
+            'listings.');
+        }
+
+        if (typeof item.condition !== 'undefined') {
+          addError('item.condition', 'The condition should not be set on RWA token ' +
+            'listings.');
+        }
+
+        // RWA Token 需要验证价格
+        this.validateCurrencyAmount(
+          {
+            amount: item.price,
+            currency: curDefCurrency,
+          },
+          addError,
+          'price'
+        );
+
+        // RWA Token 需要验证数量范围
+        if (item.minQuantity !== undefined) {
+          const minQuantity = Number(item.minQuantity);
+          if (isNaN(minQuantity) || minQuantity < 1) {
+            addError('item.minQuantity', 'Minimum quantity must be at least 1.');
+          }
+        }
+
+        if (item.maxQuantity !== undefined) {
+          const maxQuantity = Number(item.maxQuantity);
+          if (isNaN(maxQuantity) || maxQuantity < 1) {
+            addError('item.maxQuantity', 'Maximum quantity must be at least 1.');
+          }
+        }
+
+        // 验证数量范围逻辑
+        if (item.minQuantity !== undefined && item.maxQuantity !== undefined) {
+          const minQuantity = Number(item.minQuantity);
+          const maxQuantity = Number(item.maxQuantity);
+          if (minQuantity > maxQuantity) {
+            addError('item.maxQuantity', 'Maximum quantity must be greater than or equal to minimum quantity.');
+          }
+        }
+      }
     } else {
       if (item && typeof item.cryptoQuantity !== 'undefined') {
         addError('item.cryptoQuantity', 'The cryptoQuantity should only be set on cryptocurrency ' +
@@ -465,6 +567,23 @@ export default class extends BaseModel {
       delete errObj['item.condition'];
       delete errObj['item.quantity'];
       delete errObj['item.title'];
+    } else if (contractType === 'RWA_TOKEN') {
+      // Remove the validation of certain fields that should not be set for
+      // RWA token listings.
+      Object
+        .keys(errObj)
+        .forEach(errKey => {
+          // 不删除pricingCurrency相关的错误，因为RWA Token需要pricingCurrency
+          if (errKey.startsWith('metadata.pricingCurrency')) {
+            // 保留pricingCurrency验证
+          }
+        });
+
+      delete errObj['item.condition'];
+      delete errObj['item.quantity'];
+      delete errObj['item.productID'];
+      delete errObj['item.options'];
+      delete errObj['item.skus'];
     } else {
       delete errObj['item.cryptoListingCurrencyCode'];
       delete errObj['item.cryptoListingPriceModifier'];
@@ -517,7 +636,7 @@ export default class extends BaseModel {
         options.url = options.url || app.getServerUrl('ob/listing');
         options.attrs = options.attrs || this.toJSON();
 
-        if (options.attrs.metadata.contractType !== 'CRYPTOCURRENCY') {
+        if (options.attrs.metadata.contractType !== 'CRYPTOCURRENCY' && options.attrs.metadata.contractType !== 'RWA_TOKEN') {
           // Don't send over crypto currency specific fields if it's not a
           // crypto listing.
           delete options.attrs.item.cryptoListingCurrencyCode;
@@ -545,7 +664,7 @@ export default class extends BaseModel {
           options.attrs.item.optionalFeatures.forEach(feature => {
             feature.surcharge = decimalToInteger(feature.surcharge, coinDiv);
           });
-        } else {
+        } else if (options.attrs.metadata.contractType === 'CRYPTOCURRENCY') {
           // Don't send over the price on crypto listings.
           delete options.attrs.item.price;
           delete options.attrs.metadata.pricingCurrency;
@@ -564,12 +683,39 @@ export default class extends BaseModel {
             fromCur = 'UNKNOWN';
           }
           options.attrs.item.title = `${fromCur}-${coinType}`;
+        } else if (options.attrs.metadata.contractType === 'RWA_TOKEN') {
+          // RWA Token 特殊处理
+          // 保留 cryptoListingCurrencyCode 字段
+          // 删除不需要的字段
+          delete options.attrs.item.options;
+          delete options.attrs.item.skus;
+          delete options.attrs.item.quantity;
+          delete options.attrs.item.condition;
+          delete options.attrs.item.productID;
+
+          // 处理价格 - 保留pricingCurrency
+          let coinDiv = options.attrs.metadata.pricingCurrency.divisibility;
+          let curDef = decimalToCurDef(options.attrs.item.price, options.attrs.metadata.pricingCurrency.code);
+          options.attrs.item.price = curDef.amount;
+
+          // 处理优惠券
+          options.attrs.coupons.forEach(coupon => {
+            if (coupon.priceDiscount) {
+              coupon.priceDiscount =
+                decimalToInteger(coupon.priceDiscount, coinDiv);
+            }
+          });
+
+          // 删除运费选项
+          delete options.attrs.shippingOptions;
         }
 
         // If providing a quanitity, productID or infiniteInventory bool on the
         // Item and not providing any SKUs, then we'll send them in as a "dummy" SKU
         // (as the server expects).
-        if (!options.attrs.item.skus.length) {
+        // RWA Token 不需要创建 dummy SKU
+        if (options.attrs.metadata.contractType !== 'RWA_TOKEN' && 
+            (!options.attrs.item.skus || !options.attrs.item.skus.length)) {
           const dummySku = {};
 
           if (options.attrs.metadata.contractType === 'CRYPTOCURRENCY') {
@@ -605,13 +751,15 @@ export default class extends BaseModel {
 
         // Our Sku has an infinteInventory boolean attribute, but the server
         // is expecting a quantity negative quantity in that case.
-        options.attrs.item.skus.forEach(sku => {
-          if (sku.infiniteInventory) {
-            sku.quantity = bigNumber('-1');
-          }
+        if (options.attrs.item.skus && options.attrs.item.skus.length) {
+          options.attrs.item.skus.forEach(sku => {
+            if (sku.infiniteInventory) {
+              sku.quantity = bigNumber('-1');
+            }
 
-          delete sku.infiniteInventory;
-        });
+            delete sku.infiniteInventory;
+          });
+        }
 
         // remove the hash
         delete options.attrs.hash;
@@ -676,20 +824,27 @@ export default class extends BaseModel {
     if (parsedResponse) {
       const isCrypto = parsedResponse.metadata &&
         parsedResponse.metadata.contractType === 'CRYPTOCURRENCY';
+      const isRwaToken = parsedResponse.metadata &&
+        parsedResponse.metadata.contractType === 'RWA_TOKEN';
 
       // set the cid
       parsedResponse.hash = response.cid;
 
       let currencyCode;
       try {
-        currencyCode = isCrypto ? parsedResponse.item.cryptoListingCurrencyCode : parsedResponse.metadata.pricingCurrency.code;
+        currencyCode = isCrypto || isRwaToken ? parsedResponse.item.cryptoListingCurrencyCode : parsedResponse.metadata.pricingCurrency.code;
       } catch (e) {
         // pass
       }
 
       let coinDiv;
       try {
-        coinDiv = getCoinDivisibility(currencyCode);
+        // 对于RWA Token，使用定价货币的divisibility
+        if (isRwaToken) {
+          coinDiv = getCoinDivisibility(parsedResponse.metadata.pricingCurrency.code);
+        } else {
+          coinDiv = getCoinDivisibility(currencyCode);
+        }
       } catch (e) {
         // pass
       }
@@ -700,7 +855,7 @@ export default class extends BaseModel {
         console.error('Unable to convert price fields. The coin divisibility is not valid.');
       }
 
-      if (!isCrypto) {
+      if (!isCrypto && !isRwaToken) {
         if (parsedResponse.item) {
           delete parsedResponse.item.cryptoListingCurrencyCode;
           delete parsedResponse.item.cryptoListingPriceModifier;
@@ -746,6 +901,32 @@ export default class extends BaseModel {
           });
         }
 
+        if (parsedResponse.coupons) {
+          parsedResponse.coupons.forEach(coupon => {
+            if (coupon.priceDiscount) {
+              coupon.priceDiscount =
+                integerToDecimal(
+                  coupon.priceDiscount,
+                  coinDiv,
+                  { fieldName: 'coupon.priceDiscount' }
+                );
+            }
+          });
+        }
+      } else if (isRwaToken) {
+        // RWA Token 特殊处理
+        // 保留 cryptoListingCurrencyCode 字段
+        // 处理价格
+        if (parsedResponse.item) {
+          parsedResponse.item.price =
+            integerToDecimal(
+              parsedResponse.item.price,
+              coinDiv,
+              { fieldName: 'item.price' }
+            );
+        }
+
+        // 处理优惠券
         if (parsedResponse.coupons) {
           parsedResponse.coupons.forEach(coupon => {
             if (coupon.priceDiscount) {

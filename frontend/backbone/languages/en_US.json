@@ -1142,7 +1142,8 @@
     "PHYSICAL_GOOD": "Physical Good",
     "DIGITAL_GOOD": "Digital Good",
     "SERVICE": "Service",
-    "CRYPTOCURRENCY": "Cryptocurrency"
+    "CRYPTOCURRENCY": "Cryptocurrency",
+    "RWA_TOKEN": "RWA Token"
   },
   "conditionTypes": {
     "NEW": "New",
@@ -1262,6 +1263,7 @@
     "tipShowMatureContent": "Show Mature Content",
     "tipHideMatureContent": "Hide Mature Content",
     "blockedUser": "You blocked this user",
+    "rwaTokenBadge": "RWA Token",
     "cardError": "There was an error displaying the listing card. It's possible the listing data is malformed."
   },
   "listingDelete": {
@@ -1336,6 +1338,10 @@
     "helperReturnPolicy": "If left blank, the listing will display \"No return policy entered\"",
     "helperTerms": "If left blank, the listing will display \"No terms and conditions entered\"",
     "helperPrice": "Set your price in Dollars, Yuan, %{cur}, anything",
+    "minQuantity": "Minimum Purchase Quantity",
+    "maxQuantity": "Maximum Purchase Quantity",
+    "helperMinQuantity": "Minimum quantity a buyer can purchase in a single order",
+    "helperMaxQuantity": "Maximum quantity a buyer can purchase in a single order",
     "helperAcceptedCurrencies": "Accepting all coins will attract the largest audience",
     "createListingLabel": "Create Listing",
     "editListingLabel": "Edit Listing",
@@ -1382,6 +1388,23 @@
       "priceModifierPlaceholder": "0.00 (market rate)",
       "helperPriceModifier": "Trade at market rate, or specify a price modifier (+/-)",
       "lblReceive": "Receive"
+    },
+    "rwaTokenType": {
+      "helperReceive": "The currency you'll receive for the trade (RWA Token supports multiple payment currencies)",
+      "addCurrency": "Add Payment Currency",
+      "tokenType": "Token Type",
+      "lblReceive": "Receive",
+      "lblTokenType": "RWA Token Type",
+      "lblTokenAddress": "Token Contract Address",
+      "lblTokenId": "Token ID (Optional)",
+      "lblTokenSelection": "Select RWA Token",
+      "placeholderTokenAddress": "Enter RWA token contract address...",
+      "placeholderTokenId": "Enter token ID (required for NFT tokens)...",
+      "helperTokenAddress": "Smart contract address of the RWA token for verification and trading",
+      "helperTokenId": "If it's an NFT token, please enter the specific token ID",
+      "helperTokenSelection": "Search or enter address to find and confirm RWA token",
+      "lblBlockchain": "Blockchain",
+      "helperBlockchain": "Select the blockchain network where the RWA token is deployed"
     },
     "coupons": {
       "titleLabel": "Title",
@@ -6210,5 +6233,29 @@
     "zh-TW": "Chinese (T)",
     "zu": "Zulu",
     "zu-ZA": "Zulu (South Africa)"
+  },
+  "rwaTokenSelector": {
+    "searchMode": "Search Tokens",
+    "addressMode": "Enter Address",
+    "searchPlaceholder": "Search by token name, code or symbol...",
+    "searchResults": "Search Results",
+    "noResults": "No matching tokens found",
+    "contractAddress": "Contract Address",
+    "addressPlaceholder": "Enter contract address starting with 0x...",
+    "verifyAddress": "Verify Address",
+    "verifying": "Verifying...",
+    "addressVerified": "Address verified successfully",
+    "addressNotFound": "No token found for this address",
+    "addressNotFoundHelp": "Please check if the address is correct, or try search mode to find tokens",
+    "invalidAddress": "Invalid contract address format",
+    "verificationError": "Error occurred during verification",
+    "selectedToken": "Selected Token",
+    "change": "Change",
+    "currentPrice": "Current Price",
+    "issuer": "Issuer",
+    "riskLevel": "Risk Level",
+    "verification": "Verification Authority",
+    "selectThisToken": "Select This Token",
+    "verified": "Verified"
   }
 }
