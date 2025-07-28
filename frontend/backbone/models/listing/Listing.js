@@ -122,8 +122,7 @@ export default class extends BaseModel {
   }
 
   get isCrypto() {
-    const contractType = this.get('metadata').get('contractType');
-    return contractType === 'CRYPTOCURRENCY' || contractType === 'RWA_TOKEN';
+    return this.get('metadata').get('contractType') === 'CRYPTOCURRENCY';
   }
 
   get price() {

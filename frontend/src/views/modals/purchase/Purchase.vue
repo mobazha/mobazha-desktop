@@ -29,7 +29,7 @@
                   <div class="js-items-quantity-errors">
                     <FormError v-if="errors['items-quantity']" :errors="errors['items-quantity']" />
                   </div>
-                  <template v-if="!ob.isCrypto">
+                  <template v-if="!ob.isCrypto && !ob.isRwaToken">
                     <div class="flexVCent gutterH">
                       <div class="thumb" :style="ob.getListingBgImage(listing.item.images[0])"></div>
                       <div class="flexExpand">
@@ -107,46 +107,55 @@
                     </div>
                   </template>
 
-                  <template v-else>
+                  <template v-else-if="ob.isCrypto">
                     <div class="flexVCent gutterHLg row cryptoTitleWrap">
                       <div ref="cryptoTitle" :class="`js-cryptoTitle ${ob.phase !== 'checkout' && ob.phase !== 'creatingOrder' ? 'flexExpand' : ''}`">
                         <CryptoTradingPairWrap
                           :options="{
                             tradingPairClass: 'cryptoTradingPairXL',
                             exchangeRateClass: 'clrT2 tx6',
-                            fromCur: listing.get('metadata').get('acceptedCurrencies')[0],
-                            toCur: listing.get('item').get('cryptoListingCurrencyCode'),
+                            fromCur: listing.metadata.acceptedCurrencies[0],
+                            toCur: listing.item.cryptoListingCurrencyCode,
                           }"
                         />
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else-if="ob.isRwaToken">
+                    <div class="flexVCent gutterHLg row rwaTitleWrap">
+                      <div ref="rwaTitle" :class="`js-rwaTitle ${ob.phase !== 'checkout' && ob.phase !== 'creatingOrder' ? 'flexExpand' : ''}`">
+                        <h3>{{ listing.item.title }}</h3>
                       </div>
                       <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
                         <div class="flexExpand">
                           <div class="flexVCent gutterHLg">
-                            <label for="cryptoAmount" class="clrT txB required">{{ ob.polyT('purchase.cryptoAmount') }}</label>
+                            <label for="rwaAmount" class="clrT txB required">{{ ob.polyT('purchase.rwaAmount') }}</label>
                             <div class="inputSelect">
                               <input
                                 type="number"
                                 class="clrBr clrP clrSh2"
-                                id="cryptoAmount"
-                                @change="onChangeCryptoAmount"
-                                :value="ob.quantity"
+                                id="rwaAmount"
+                                v-model="rwaAmountValue"
+                                @change="onChangeRwaAmount"
                                 @keyup="keyupQuantity(idx)"
-                                placeholder="0.0000"
+                                :placeholder="`${listing.item.minQuantity || 1} - ${listing.item.maxQuantity || 100}`"
+                                :min="listing.item.minQuantity || 1"
+                                :max="listing.item.maxQuantity || 100"
                                 size="8"
                                 data-var-type="bignumber"
                               />
-                              <template v-if="displayCurrency !== listing.item.cryptoListingCurrencyCode">
+                              <template v-if="displayCurrency !== 'FCC'">
                                 <Select2
-                                  id="cryptoAmountCurrency"
-                                  v-model="cryptoAmountCurrency"
-                                  @change="changeCryptoAmountCurrency(idx)"
+                                  id="rwaAmountCurrency"
+                                  v-model="rwaAmountCurrency"
+                                  @change="changeRwaAmountCurrency(idx)"
                                   class="clrBr clrP nestInputRight"
                                 >
                                   <option
-                                    v-for="cur in [listing.item.cryptoListingCurrencyCode, displayCurrency]"
+                                    v-for="cur in getRwaTokenCurrencies()"
                                     :key="cur"
                                     :value="cur"
-                                    :selected="cur === cryptoAmountCurrency"
+                                    :selected="cur === rwaAmountCurrency"
                                   >
                                     {{ cur }}
                                   </option>
@@ -154,42 +163,19 @@
                               </template>
                             </div>
                           </div>
+                          <!-- 数量范围提示 -->
+                          <div class="quantityRangeHint clrT2 txSm">
+                            {{ ob.polyT('purchase.rwaQuantityRange', { 
+                              min: listing.item.minQuantity || 1, 
+                              max: listing.item.maxQuantity || 100 
+                            }) }}
+                          </div>
                         </div>
                       </template>
                       <div class="pad flexNoShrink">
-                        <CryptoPrice
-                          :options="{
-                            priceAmount: totalPrice(idx),
-                            priceCurrencyCode: pricingCurrency(idx),
-                            displayCurrency: displayCurrency,
-                            priceModifier: listing.item.cryptoListingPriceModifier,
-                          }"
-                        />
+                        <b>{{ ob.currencyMod.convertAndFormatCurrency(totalPrice(idx), pricingCurrency(idx), displayCurrency) }}</b>
                       </div>
                     </div>
-                    <hr class="clrBr rowLg" />
-                    <div class="rowSm">
-                      <label class="h4 flexExpand required" for="purchaseCryptoAddress">{{ heading }}</label>
-                    </div>
-                    <div class="js-items-paymentAddress-errors">
-                      <FormError v-if="errors['items-paymentAddress']" :errors="errors['items-paymentAddress']" />
-                    </div>
-                    <template v-if="ob.phase === 'checkout' || ob.phase === 'creatingOrder'">
-                      <input
-                        type="text"
-                        id="purchaseCryptoAddress"
-                        @change="changeCryptoAddress"
-                        :value="ob.items[0].paymentAddress"
-                        :placeholder="ob.polyT('purchase.cryptoAddressPlaceholder', { coinType: coinName })"
-                        class="clrBr clrP rowSm"
-                        :maxlength="ob.itemConstraints.maxPaymentAddressLength"
-                      />
-                    </template>
-
-                    <template v-else>
-                      <p class="cryptoPaymentAddress">{{ ob.items[0].paymentAddress }}</p>
-                    </template>
-                    <div class="txSm clrT2">{{ helper }}</div>
                   </template>
                 </section>
               </template>
@@ -276,8 +262,66 @@
                       ref="paymentMethodSelector"
                       :disabledMsg="ob.polyT('purchase.cryptoCurrencyInvalid')"
                       v-model="paymentCoin"
+                      :isRwaTokenPurchase="ob.isRwaToken"
+                      :rwaBlockchain="rwaTokenBlockchain"
                       @methodClicked="onMethodClicked"
                     />
+                  </div>
+                </div>
+              </section>
+              
+              <!-- Receiving Account配置 - 仅在RWA Token购买时显示 -->
+              <section v-if="ob.isRwaToken" class="contentBox padMd clrP clrBr clrSh3">
+                <div class="flexColRows gutterVSm">
+                  <div>
+                    <div class="js-items-paymentAddress-errors">
+                      <FormError v-if="errors['items-paymentAddress']" :errors="errors['items-paymentAddress']" />
+                    </div>
+                    <h2 class="h4 flexExpand required">{{ ob.polyT('purchase.rwaReceivingAccount') }}</h2>
+                    
+                    <div class="receivingAccountSelector">
+                      <div v-if="availableReceivingAccounts.length > 0" class="accountSelection">
+                        <Select2
+                          id="rwaReceivingAccount"
+                          v-model="selectedReceivingAccountId"
+                          @change="onReceivingAccountChange"
+                          class="clrBr clrP rowSm"
+                        >
+                          <option value="" disabled>{{ ob.polyT('purchase.selectReceivingAccount') }}</option>
+                          <option
+                            v-for="account in availableReceivingAccounts"
+                            :key="account.id"
+                            :value="account.id"
+                          >
+                            {{ account.name }} - {{ formatAddress(account.address) }}
+                          </option>
+                        </Select2>
+                        <div class="accountInfo clrT2 txSm">
+                          {{ ob.polyT('purchase.receivingAccountInfo') }}
+                        </div>
+                      </div>
+                      <div v-else class="noAccountWarning">
+                        <div class="warningMessage">
+                          <i class="ion-alert-circled"></i>
+                          <span>{{ ob.polyT('purchase.noReceivingAccount') }}</span>
+                        </div>
+                        <el-button 
+                          type="primary" 
+                          size="small" 
+                          @click="navigateToReceivingAccounts"
+                          class="addAccountBtn"
+                        >
+                          {{ ob.polyT('purchase.addReceivingAccount') }}
+                        </el-button>
+                      </div>
+                    </div>
+                    <div v-if="selectedReceivingAccount" class="selectedAccountInfo">
+                      <p class="rwaPaymentAddress">{{ selectedReceivingAccount.address }}</p>
+                      <p class="accountName clrT2">{{ selectedReceivingAccount.name }}</p>
+                    </div>
+                    <div v-else class="noAccountSelected">
+                      <p class="clrT2">{{ ob.polyT('purchase.noAccountSelected') }}</p>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -467,6 +511,7 @@ import Moderators from '../../../components/global/moderators/Moderators.vue';
 import { loadStripe } from '@stripe/stripe-js'
 import { useWalletStore } from '@/stores/wallet';
 import { tokens } from '@/config/token.js';
+import { findRwaTokenByCode } from '@/data/rwaTokenMockData.js';
 
 export default {
   name: 'Purchase',
@@ -547,6 +592,10 @@ export default {
       processingPayment: false,
       switchingNetwork: false,
       _pendingPaymentCoin: null,
+      rwaAmountCurrency: 'FCC',
+      rwaAmountValue: '1',
+      selectedReceivingAccountId: '', // 新增：用于存储选中的接收账户ID
+      availableReceivingAccounts: [], // 新增：用于存储可用的接收账户列表
     };
   },
   created() {
@@ -555,7 +604,14 @@ export default {
 
     events.on('appkit_network_switched', this.onAppKitNetworkSwitched);
   },
-  mounted() {},
+  mounted() {
+    // 监听阶段变化
+    this.$watch('_state.phase', (newPhase) => {
+      if (newPhase === 'pendingPayment' && this.ob.isRwaToken) {
+        this.fetchAvailableReceivingAccounts();
+      }
+    });
+  },
   unmounted() {
     if (this.orderSubmit) this.orderSubmit.abort();
     if (this.inventoryFetch) this.inventoryFetch.abort();
@@ -569,6 +625,25 @@ export default {
     },
     walletAddress() {
       return this.walletStore.walletAddress;
+    },
+    rwaTokenBlockchain() {
+      if (!this.ob.isRwaToken || !this.oneListing) {
+        return '';
+      }
+      
+      // 使用 cryptoListingCurrencyCode 查找 RWA Token
+      const cryptoListingCurrencyCode = this.oneListing.get('item').get('cryptoListingCurrencyCode');
+      if (!cryptoListingCurrencyCode) {
+        return '';
+      }
+      
+      // 通过 findRwaTokenByCode 查找 RWA Token 信息
+      const rwaToken = findRwaTokenByCode(cryptoListingCurrencyCode);
+      if (!rwaToken) {
+        return '';
+      }
+      
+      return rwaToken.blockchain;
     },
     ob() {
       const item = this.order.get('items').at(0);
@@ -586,6 +661,7 @@ export default {
         itemConstraints: this.order.get('items').at(0).constraints,
         quantity: uiQuantity,
         isCrypto: this.oneListing.isCrypto,
+        isRwaToken: this.oneListing.get('metadata').get('contractType') === 'RWA_TOKEN',
         phaseClass: `phase${capitalize(this._state.phase)}`,
       };
     },
@@ -675,6 +751,11 @@ export default {
 
     canSelectPayment() {
       return !this.switchingNetwork;
+    },
+
+    selectedReceivingAccount() {
+      if (!this.selectedReceivingAccountId) return null;
+      return this.availableReceivingAccounts.find(acc => acc.id === this.selectedReceivingAccountId);
     },
   },
   methods: {
@@ -807,6 +888,12 @@ export default {
       });
 
       this.cryptoAmountCurrency = this.oneListing.get('item').get('cryptoListingCurrencyCode');
+
+      // 初始化RWA Token数量
+      if (this.oneListing.get('metadata').get('contractType') === 'RWA_TOKEN') {
+        const minQuantity = Number(this.oneListing.get('item').get('minQuantity')) || 1;
+        this.rwaAmountValue = minQuantity.toString();
+      }
 
       // If the parent has the inventory, pass it in, otherwise we'll fetch it.
       // -- commenting out for now since inventory is not functioning properly on the server
@@ -947,10 +1034,33 @@ export default {
       }
 
       this.quantityKeyUpTimer = setTimeout(() => {
-        let { quantity } = this.formData.itemsData[idx];
-        if (quantity != null) {
+        let quantity;
+        
+        if (this.ob.isRwaToken) {
+          // 对于 RWA Token，从 rwaAmountValue 获取数量
+          quantity = parseFloat(this.rwaAmountValue) || 0;
+          // 验证数量范围
+          const listing = this.oneListing;
+          const minQuantity = Number(listing.get('item').get('minQuantity')) || 1;
+          const maxQuantity = Number(listing.get('item').get('maxQuantity')) || 100;
+          
+          if (quantity < minQuantity) {
+            quantity = minQuantity;
+            this.rwaAmountValue = minQuantity.toString();
+          } else if (quantity > maxQuantity) {
+            quantity = maxQuantity;
+            this.rwaAmountValue = maxQuantity.toString();
+          }
+          // 确保RWA Token的数量使用 bigNumber
           quantity = bigNumber(quantity);
+        } else {
+          // 对于普通商品，从表单数据获取数量
+          quantity = this.formData.itemsData[idx]?.quantity;
+          if (quantity != null) {
+            quantity = bigNumber(quantity);
+          }
         }
+        
         if (this.oneListing.isCrypto) this._cryptoQuantity = quantity;
         this.setModelQuantity(idx, quantity);
       }, 150);
@@ -1189,6 +1299,19 @@ export default {
     },
 
     async payListing() {
+      // 对于RWA Token，验证接收账户选择
+      if (this.ob.isRwaToken) {
+        if (!this.selectedReceivingAccountId || !this.selectedReceivingAccount) {
+          this.insertErrors('items-paymentAddress', [app.polyglot.t('purchase.errors.noReceivingAccountSelected')]);
+          return;
+        }
+        
+        // 确保支付地址已设置
+        if (!this.order.get('items').at(0).get('paymentAddress')) {
+          this.order.get('items').at(0).set('paymentAddress', this.selectedReceivingAccount.address);
+        }
+      }
+      
       // 根据支付币种选择不同的处理方式
       if (this.paymentCoin === 'ETH') {
         await this.processEthPayment();
@@ -1527,6 +1650,159 @@ export default {
     async processEthPayment() {
       return await this.processCryptoPayment('ethereum');
     },
+
+    onChangeRwaAmount() {
+      const quantity = parseFloat(this.rwaAmountValue) || 0;
+      const listing = this.oneListing;
+      
+      // 确保 minQuantity 和 maxQuantity 是数字类型
+      const minQuantity = Number(listing.get('item').get('minQuantity')) || 1;
+      const maxQuantity = Number(listing.get('item').get('maxQuantity')) || 100;
+      
+      // 验证数量范围
+      if (quantity < minQuantity) {
+        ElMessage({
+          message: `购买数量不能少于 ${minQuantity}`,
+          type: 'warning',
+          duration: 3000
+        });
+        this.rwaAmountValue = minQuantity.toString();
+        this.setModelQuantity(0, bigNumber(minQuantity));
+      } else if (quantity > maxQuantity) {
+        ElMessage({
+          message: `购买数量不能超过 ${maxQuantity}`,
+          type: 'warning',
+          duration: 3000
+        });
+        this.rwaAmountValue = maxQuantity.toString();
+        this.setModelQuantity(0, bigNumber(maxQuantity));
+      } else if (quantity > 0) {
+        // 只有有效数量才更新模型，确保使用 bigNumber
+        this.setModelQuantity(0, bigNumber(quantity));
+      }
+    },
+
+    changeRwaAmountCurrency(idx) {
+      this.order.get('items').at(idx).set('rwaAmountCurrency', this.rwaAmountCurrency);
+    },
+
+    getRwaTokenCurrencies() {
+      // 根据RWA Token的区块链和支付币种返回可用的币种选项
+      const listing = this.oneListing;
+      if (!listing || !this.ob.isRwaToken) {
+        return ['FCC', this.displayCurrency];
+      }
+
+      // 使用计算属性获取区块链信息
+      const blockchain = this.rwaTokenBlockchain || 'ETH';
+      const acceptedCurrencies = listing.get('metadata').get('acceptedCurrencies') || [];
+      
+      // 构建币种选项：FCC + 显示币种 + 接受的支付币种
+      const currencies = ['FCC'];
+      
+      if (this.displayCurrency !== 'FCC') {
+        currencies.push(this.displayCurrency);
+      }
+      
+      // 添加接受的支付币种
+      acceptedCurrencies.forEach(currency => {
+        if (!currencies.includes(currency)) {
+          currencies.push(currency);
+        }
+      });
+      
+      return currencies;
+    },
+
+    // 新增方法：获取可用的接收账户
+    async fetchAvailableReceivingAccounts() {
+      try {
+        const listing = this.oneListing;
+        // 使用计算属性获取区块链信息
+        const blockchain = this.rwaTokenBlockchain || 'ETH';
+        
+        // 获取当前用户的接收账户列表
+        const response = await myGet(app.getServerUrl('wallet/receivingaccountlist'));
+        
+        if (response && response.receivingAccounts) {
+          // 区块链类型映射，处理不同的格式
+          const blockchainMapping = {
+            'ETH': ['ETH', 'Ethereum'],
+            'SOL': ['SOL', 'Solana'],
+            'BSC': ['BSC', 'Binance Smart Chain'],
+            'BASE': ['BASE', 'Base'],
+            'POLYGON': ['POLYGON', 'Polygon'],
+            'ARBITRUM': ['ARBITRUM', 'Arbitrum'],
+            'OPTIMISM': ['OPTIMISM', 'Optimism'],
+            'AVALANCHE': ['AVALANCHE', 'Avalanche']
+          };
+          
+          // 获取当前区块链的所有可能格式
+          const validChainTypes = blockchainMapping[blockchain] || [blockchain];
+          
+          // 过滤出相同区块链类型的激活账户
+          this.availableReceivingAccounts = response.receivingAccounts.filter(account => {
+            const isValidChainType = validChainTypes.includes(account.chainType);
+            const isActive = account.isActive;
+            
+            return isValidChainType && isActive;
+          });
+          
+          // 如果有可用账户，默认选择第一个
+          if (this.availableReceivingAccounts.length > 0) {
+            this.selectedReceivingAccountId = this.availableReceivingAccounts[0].id;
+            // 设置默认的支付地址
+            this.order.get('items').at(0).set('paymentAddress', this.availableReceivingAccounts[0].address);
+            // 清除之前的错误
+            this.errors['items-paymentAddress'] = null;
+          } else {
+            this.selectedReceivingAccountId = '';
+            this.order.get('items').at(0).set('paymentAddress', '');
+          }
+        } else {
+          this.availableReceivingAccounts = [];
+          this.selectedReceivingAccountId = '';
+        }
+      } catch (error) {
+        console.error('获取接收账户失败:', error);
+        ElMessage.error('获取接收账户失败，请稍后再试');
+        this.availableReceivingAccounts = [];
+        this.selectedReceivingAccountId = '';
+      }
+    },
+
+    // 新增方法：导航到接收账户管理页面
+    navigateToReceivingAccounts() {
+      this.showSettings = true;
+      this.$nextTick(() => {
+        this.$refs.settings.selectTab('Addresses');
+      });
+    },
+
+    // 新增方法：格式化地址
+    formatAddress(address) {
+      if (!address) return '';
+      const maxLength = 10; // 显示前10位和后10位
+      if (address.length <= maxLength * 2) {
+        return address;
+      }
+      return `${address.substring(0, maxLength)}...${address.substring(address.length - maxLength)}`;
+    },
+
+    // 新增方法：接收账户改变时触发
+    onReceivingAccountChange() {
+      const selectedAccount = this.availableReceivingAccounts.find(acc => acc.id === this.selectedReceivingAccountId);
+      if (selectedAccount) {
+        // 设置选中的接收账户地址
+        this.order.get('items').at(0).set('paymentAddress', selectedAccount.address);
+        // 清除之前的错误
+        this.errors['items-paymentAddress'] = null;
+      } else {
+        this.order.get('items').at(0).set('paymentAddress', ''); // 清空地址
+        // 显示错误信息
+        this.insertErrors('items-paymentAddress', [app.polyglot.t('purchase.errors.noReceivingAccountSelected')]);
+      }
+    },
   },
 };
 </script>
@@ -1563,6 +1839,82 @@ export default {
     width: 100%;
     margin-top: 20px;
   }
+}
+
+// RWA Token 接收账户选择器样式
+.receivingAccountSelector {
+  .accountSelection {
+    .accountInfo {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background-color: #f0f9ff;
+      border-radius: 4px;
+      border-left: 3px solid #3b82f6;
+    }
+  }
+
+  .noAccountWarning {
+    padding: 16px;
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+    margin-top: 8px;
+
+    .warningMessage {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      color: #92400e;
+
+      i {
+        margin-right: 8px;
+        font-size: 16px;
+      }
+
+      span {
+        font-weight: 500;
+      }
+    }
+
+    .addAccountBtn {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+      
+      &:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+      }
+    }
+  }
+}
+
+.selectedAccountInfo {
+  padding: 12px;
+  background-color: #f0f9ff;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+
+  .rwaPaymentAddress {
+    margin: 0 0 4px 0;
+    font-family: monospace;
+    font-size: 14px;
+    color: #1e40af;
+    word-break: break-all;
+  }
+
+  .accountName {
+    margin: 0;
+    font-size: 12px;
+  }
+}
+
+.noAccountSelected {
+  padding: 12px;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  text-align: center;
+  color: #6b7280;
 }
 </style>
 

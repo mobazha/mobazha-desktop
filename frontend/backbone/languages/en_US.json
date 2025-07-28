@@ -1574,6 +1574,15 @@
     "next": "Next"
   },
   "purchase": {
+    "rwaAmount": "RWA Token Amount",
+    "rwaQuantityRange": "Purchase quantity range: %{min} - %{max}",
+    "rwaAddressPlaceholder": "Please enter your RWA token address",
+    "rwaReceivingAccount": "Receiving Account",
+    "selectReceivingAccount": "Select a receiving account",
+    "receivingAccountInfo": "Please select a receiving account for this RWA token purchase. The account must be on the same blockchain as the token.",
+    "noReceivingAccount": "No receiving account available for this blockchain. Please add a receiving account first.",
+    "addReceivingAccount": "Add Receiving Account",
+    "noAccountSelected": "No receiving account selected",
     "purchaseDataChangedPopin": "The data for this listing has changed.",
     "returnToListing": "Return To Listing",
     "returnToCart": "Return To Cart",
@@ -1710,7 +1719,8 @@
       "genericPurchaseErrTitle": "Unable To Complete The Purchase",
       "invalidCoinDiv": "The listing does not have a valid coin divisibility.",
       "unableToConvertCryptoQuantity": "Unable to convert the crypto quantity to base units.",
-      "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency."
+      "serverErrorBelowDust": "The purchase price is below the minimum spend amount for the payment currency.",
+      "noReceivingAccountSelected": "Please select a receiving account for RWA token purchase."
     },
     "otherPaymentMethods": "Other Payment Methods",
     "noTokens": "No available tokens on this chain",

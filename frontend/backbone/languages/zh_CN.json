@@ -1563,6 +1563,15 @@
     "next": "下一页"
   },
   "purchase": {
+    "rwaAmount": "RWA代币数量",
+    "rwaQuantityRange": "购买数量范围：%{min} - %{max}",
+    "rwaAddressPlaceholder": "请输入您的RWA代币地址",
+    "rwaReceivingAccount": "收款账户",
+    "selectReceivingAccount": "选择收款账户",
+    "receivingAccountInfo": "请为此次RWA代币购买选择一个收款账户。账户必须与代币在同一区块链上。",
+    "noReceivingAccount": "此区块链没有可用的收款账户。请先添加收款账户。",
+    "addReceivingAccount": "添加收款账户",
+    "noAccountSelected": "未选择收款账户",
     "purchaseDataChangedPopin": "此商品信息的数据已更改。",
     "returnToListing": "返回商品信息",
     "returnToCart": "Return To Cart",
@@ -1692,7 +1701,8 @@
       "insufficientInventoryTitle": "库存不足",
       "insufficientInventoryBody": "卖家没有足够的库存，只剩下%{remainingInventory}个商品。 |||| 卖家没有足够的库存，只剩下%{remainingInventory}个商品。",
       "reloadOutdatedHash": "加载最新版本",
-      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买商家信息，请%{reloadLink}并重新开始购买流程。"
+      "outdatedHash": "您正在查看该商家信息的过期版本。 要购买商家信息，请%{reloadLink}并重新开始购买流程。",
+      "noReceivingAccountSelected": "请为RWA代币购买选择收款账户。"
     },
     "otherPaymentMethods": "其他支付方式",
     "noTokens": "该链上暂无可用代币",

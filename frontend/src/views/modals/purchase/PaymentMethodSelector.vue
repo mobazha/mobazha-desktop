@@ -1,7 +1,7 @@
 <template>
   <div class="paymentMethodSelector">
     <!-- 区块链选择标签 -->
-    <div class="chainTabs">
+    <div class="chainTabs" v-if="!isRwaTokenPurchase">
       <div 
         v-for="chain in chains" 
         :key="chain.id" 
@@ -16,6 +16,17 @@
         </div>
         <span>{{ chain.name }}</span>
         <span class="tokenCount">({{ chain.count }})</span>
+      </div>
+    </div>
+    
+    <!-- RWA Token 支付提示 -->
+    <div v-if="isRwaTokenPurchase" class="rwaPaymentNotice">
+      <div class="noticeHeader">
+        <i class="ion-information-circled"></i>
+        <span>RWA Token 支付</span>
+      </div>
+      <div class="noticeContent">
+        此 RWA Token 基于 {{ rwaBlockchain }} 区块链，仅支持该链上的稳定币支付
       </div>
     </div>
     
@@ -59,7 +70,7 @@
     </div>
     
     <!-- 其他支付方式 -->
-    <div class="otherPaymentMethods">
+    <div class="otherPaymentMethods" v-if="!isRwaTokenPurchase">
       <h3 class="sectionTitle">{{$t('purchase.otherPaymentMethods')}}</h3>
       <div class="fiatCards">
         <div 
@@ -93,6 +104,16 @@ export default {
     modelValue: {
       type: String,
       default: ''
+    },
+    // 新增：是否为 RWA Token 购买
+    isRwaTokenPurchase: {
+      type: Boolean,
+      default: false
+    },
+    // 新增：RWA Token 的区块链
+    rwaBlockchain: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -107,11 +128,36 @@ export default {
     };
   },
   computed: {
-    filteredTokens() {
-      if (this.activeChain === 'all') {
-        return this.tokens;
+    // 根据是否为 RWA Token 购买来过滤代币
+    availableTokens() {
+      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
+        // 对于 RWA Token，只显示对应链上的非原生代币
+        return this.tokens.filter(token => 
+          token.chain === this.rwaBlockchain && !token.isNative
+        );
       }
-      return this.tokens.filter(token => token.chain === this.activeChain);
+      return this.tokens;
+    },
+    // 根据是否为 RWA Token 购买来过滤链
+    availableChains() {
+      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
+        // 对于 RWA Token，只显示对应的链
+        return this.chains.filter(chain => 
+          chain.id === this.rwaBlockchain || chain.id === 'all'
+        );
+      }
+      return this.chains;
+    },
+    filteredTokens() {
+      if (this.isRwaTokenPurchase) {
+        // 对于 RWA Token，直接返回可用代币，不需要链过滤
+        return this.availableTokens;
+      }
+      
+      if (this.activeChain === 'all') {
+        return this.availableTokens;
+      }
+      return this.availableTokens.filter(token => token.chain === this.activeChain);
     },
     visibleTokens() {
       if (this.showAllTokens) {
@@ -124,11 +170,11 @@ export default {
     },
     chainCounts() {
       const counts = {};
-      this.chains.forEach(chain => {
+      this.availableChains.forEach(chain => {
         if (chain.id === 'all') {
-          counts[chain.id] = this.tokens.length;
+          counts[chain.id] = this.availableTokens.length;
         } else {
-          counts[chain.id] = this.tokens.filter(token => token.chain === chain.id).length;
+          counts[chain.id] = this.availableTokens.filter(token => token.chain === chain.id).length;
         }
       });
       return counts;
@@ -139,15 +185,15 @@ export default {
       this.selectedToken = newVal;
       
       // 如果选择了代币，自动切换到对应的链标签
-      const selectedTokenData = this.tokens.find(t => t.id === newVal);
-      if (selectedTokenData) {
+      const selectedTokenData = this.availableTokens.find(t => t.id === newVal);
+      if (selectedTokenData && !this.isRwaTokenPurchase) {
         this.activeChain = selectedTokenData.chain;
       }
     },
     chainCounts: {
       immediate: true,
       handler(counts) {
-        this.chains.forEach(chain => {
+        this.availableChains.forEach(chain => {
           chain.count = counts[chain.id] || 0;
         });
       }
@@ -155,11 +201,32 @@ export default {
     activeChain() {
       // 切换链时重置展开状态
       this.showAllTokens = false;
+    },
+    // 监听 RWA Token 相关属性变化
+    isRwaTokenPurchase() {
+      if (this.isRwaTokenPurchase) {
+        // 对于 RWA Token，自动选择第一个可用代币
+        if (this.availableTokens.length > 0) {
+          this.selectedToken = this.availableTokens[0].id;
+          this.$emit('update:modelValue', this.selectedToken);
+          this.$emit('methodClicked', this.selectedToken);
+        }
+      }
+    },
+    rwaBlockchain() {
+      if (this.isRwaTokenPurchase && this.rwaBlockchain) {
+        // 当 RWA Token 区块链变化时，重新选择可用代币
+        if (this.availableTokens.length > 0) {
+          this.selectedToken = this.availableTokens[0].id;
+          this.$emit('update:modelValue', this.selectedToken);
+          this.$emit('methodClicked', this.selectedToken);
+        }
+      }
     }
   },
   methods: {
     handleTokenClick(tokenId) {
-      const token = this.tokens.find(t => t.id === tokenId);
+      const token = this.availableTokens.find(t => t.id === tokenId);
       if (token && !token.disabled) {
         this.selectedToken = tokenId;
         this.$emit('update:modelValue', tokenId);
@@ -247,6 +314,34 @@ export default {
         opacity: 0.7;
         font-size: 0.8em;
       }
+    }
+  }
+  
+  // RWA Token 支付提示样式
+  .rwaPaymentNotice {
+    margin-bottom: 15px;
+    padding: 12px 16px;
+    background-color: #e3f2fd;
+    border: 1px solid #2196F3;
+    border-radius: 8px;
+    
+    .noticeHeader {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #1976d2;
+      
+      i {
+        margin-right: 8px;
+        font-size: 16px;
+      }
+    }
+    
+    .noticeContent {
+      color: #424242;
+      font-size: 0.9em;
+      line-height: 1.4;
     }
   }
   
