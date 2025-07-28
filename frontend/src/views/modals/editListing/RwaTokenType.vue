@@ -33,7 +33,7 @@
           </template>
         </Select2>
         <div class="clrT2 txSm helper">
-          <div v-html="ob.polyT('editListing.rwaTokenType.helperType', { count: `<b> ${ob.polyT('editListing.rwaTokenType.helperTypeCount')}</b>`, })"></div>
+          <div v-html="ob.polyT('editListing.helperType', { smart_count: 5 })"></div>
         </div>
       </div>
     </div>

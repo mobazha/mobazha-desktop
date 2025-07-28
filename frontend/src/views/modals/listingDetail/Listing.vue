@@ -274,6 +274,97 @@
               </div>
             </div>
 
+            <!-- RWA Token 详细信息 -->
+            <div v-if="rwaTokenInfo" class="contentBox rwaTokenInfoSection padLg clrP clrBr clrSh3">
+              <h2 class="txUnb">RWA代币信息</h2>
+              <div class="rwaTokenInfoGrid">
+                <div class="infoItem">
+                  <span class="label">代币名称:</span>
+                  <span class="value">{{ rwaTokenInfo.name }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">代币符号:</span>
+                  <span class="value">{{ rwaTokenInfo.symbol }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">代币类型:</span>
+                  <span class="value">{{ getTokenTypeName(rwaTokenInfo.tokenType) }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">当前价格:</span>
+                  <span class="value">${{ rwaTokenInfo.currentPrice }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">发行方:</span>
+                  <span class="value">{{ rwaTokenInfo.issuer }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">风险等级:</span>
+                  <span class="value">{{ rwaTokenInfo.metadata?.riskLevel }}</span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">验证状态:</span>
+                  <span class="value verified">
+                    <i class="icon-verified"></i>
+                    {{ rwaTokenInfo.verification?.verifiedBy || '已验证' }}
+                  </span>
+                </div>
+                <div class="infoItem">
+                  <span class="label">合约地址:</span>
+                  <span class="value address">{{ formatAddress(rwaTokenInfo.contractAddress) }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.metadata?.location">
+                  <span class="label">项目位置:</span>
+                  <span class="value">{{ rwaTokenInfo.metadata.location }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.metadata?.annualYield">
+                  <span class="label">年化收益率:</span>
+                  <span class="value">{{ rwaTokenInfo.metadata.annualYield }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.metadata?.minInvestment">
+                  <span class="label">最小投资额:</span>
+                  <span class="value">${{ rwaTokenInfo.metadata.minInvestment }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.metadata?.maxInvestment">
+                  <span class="label">最大投资额:</span>
+                  <span class="value">${{ rwaTokenInfo.metadata.maxInvestment }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.issueDate">
+                  <span class="label">发行日期:</span>
+                  <span class="value">{{ rwaTokenInfo.issueDate }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.maturityDate">
+                  <span class="label">到期日期:</span>
+                  <span class="value">{{ rwaTokenInfo.maturityDate }}</span>
+                </div>
+                <div class="infoItem" v-if="rwaTokenInfo.totalSupply">
+                  <span class="label">总供应量:</span>
+                  <span class="value">{{ formatTokenAmount(rwaTokenInfo.totalSupply, rwaTokenInfo.decimals) }}</span>
+                </div>
+              </div>
+              
+              <!-- 价格历史 -->
+              <div class="priceHistory" v-if="rwaTokenInfo.priceHistory && rwaTokenInfo.priceHistory.length > 0">
+                <h5>价格历史</h5>
+                <div class="priceHistoryChart">
+                  <div v-for="(pricePoint, index) in rwaTokenInfo.priceHistory" :key="index" class="pricePoint">
+                    <span class="date">{{ pricePoint.date }}</span>
+                    <span class="price">${{ pricePoint.price }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 投资建议 -->
+              <div class="investmentAdvice" v-if="getInvestmentSuggestions(rwaTokenInfo).length > 0">
+                <h5>投资建议</h5>
+                <ul>
+                  <li v-for="(suggestion, index) in getInvestmentSuggestions(rwaTokenInfo)" :key="index">
+                    {{ suggestion }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
             <div class="contentBox descriptionSection padLg clrP clrBr clrSh3">
               <h2 class="txUnb">{{ ob.polyT('listingDetail.description') }}</h2>
               <div v-html="ob.item.description" />
@@ -478,6 +569,7 @@ import Reviews from '../../reviews/Reviews.vue';
 import PurchaseError from '@/views/modals/listingDetail/PurchaseError.vue';
 import Purchase from '../purchase/Purchase.vue';
 import EditListing from '../editListing/EditListing.vue';
+import { findRwaTokenByCode } from '../../../data/rwaTokenMockData.js';
 
 export default {
   components: {
@@ -531,6 +623,9 @@ export default {
       showPurchase: false,
       showEditListing: false,
       showCloneListing: false,
+      
+      // RWA Token 相关数据
+      selectedRwaToken: null,
     };
   },
   created() {
@@ -733,6 +828,17 @@ export default {
         };
       }
       return {};
+    },
+    
+    // RWA Token 信息
+    rwaTokenInfo() {
+      if (this.model.get('metadata').get('contractType') === 'RWA_TOKEN') {
+        const cryptoListingCurrencyCode = this.model.get('item').get('cryptoListingCurrencyCode');
+        if (cryptoListingCurrencyCode) {
+          return findRwaTokenByCode(cryptoListingCurrencyCode);
+        }
+      }
+      return null;
     }
   },
   methods: {
@@ -887,6 +993,14 @@ export default {
       this.moreListingsFetch = this.moreListingsCol.fetch(fetchOpts).done(() => {
         this.moreListingsData = this.randomizeMoreListings(this.moreListingsCol);
       });
+
+      // 初始化RWA Token信息
+      if (this.model.get('metadata').get('contractType') === 'RWA_TOKEN') {
+        const cryptoListingCurrencyCode = this.model.get('item').get('cryptoListingCurrencyCode');
+        if (cryptoListingCurrencyCode) {
+          this.selectedRwaToken = findRwaTokenByCode(cryptoListingCurrencyCode);
+        }
+      }
 
       this._outdatedHashState = null;
     },
@@ -1215,6 +1329,59 @@ export default {
 
       return this;
     },
+
+    // RWA Token 相关方法
+    getTokenTypeName(tokenType) {
+      const tokenTypeNames = {
+        'REAL_ESTATE': '房地产代币',
+        'BOND': '债券代币',
+        'COMMODITY': '商品代币',
+        'ART': '艺术品代币',
+        'CARBON_CREDIT': '碳信用代币',
+        'CUSTOM': '自定义代币'
+      };
+      return tokenTypeNames[tokenType] || tokenType;
+    },
+
+    formatAddress(address) {
+      if (!address) return '';
+      return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    },
+
+    getInvestmentSuggestions(tokenData) {
+      if (!tokenData) return [];
+      
+      const suggestions = [];
+      
+      if (tokenData.metadata && tokenData.metadata.riskLevel === '低') {
+        suggestions.push('低风险代币，适合保守型投资者');
+      } else if (tokenData.metadata && tokenData.metadata.riskLevel === '中等') {
+        suggestions.push('中等风险代币，适合平衡型投资者');
+      } else if (tokenData.metadata && tokenData.metadata.riskLevel === '高') {
+        suggestions.push('高风险代币，适合激进型投资者');
+      }
+
+      if (tokenData.tokenType === 'REAL_ESTATE') {
+        suggestions.push('房地产代币通常具有稳定的现金流');
+      } else if (tokenData.tokenType === 'CARBON_CREDIT') {
+        suggestions.push('碳信用代币支持环保项目');
+      }
+
+      return suggestions;
+    },
+
+    formatTokenAmount(amount, decimals = 18) {
+      if (!amount) return '0';
+      
+      try {
+        const bigNum = new bigNumber(amount);
+        const divisor = new bigNumber(10).pow(decimals);
+        const result = bigNum.dividedBy(divisor);
+        return result.toFormat(0);
+      } catch (e) {
+        return amount;
+      }
+    },
   },
 };
 </script>
@@ -1259,5 +1426,133 @@ export default {
 .introVideoItem {
   width: 330px;
   height: 300px;
+}
+
+// RWA Token 信息样式
+.rwaTokenInfoSection {
+  .rwaTokenInfoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+
+    .infoItem {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        color: #666;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .value {
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+
+        &.verified {
+          color: #28a745;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          i {
+            font-size: 12px;
+          }
+        }
+
+        &.address {
+          font-family: monospace;
+          font-size: 12px;
+          color: #007bff;
+        }
+      }
+    }
+  }
+
+  .priceHistory {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+
+    h5 {
+      color: #007bff;
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .priceHistoryChart {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      .pricePoint {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+        min-width: 80px;
+
+        .date {
+          font-size: 11px;
+          color: #666;
+          margin-bottom: 4px;
+        }
+
+        .price {
+          font-size: 13px;
+          font-weight: 600;
+          color: #28a745;
+        }
+      }
+    }
+  }
+
+  .investmentAdvice {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+
+    h5 {
+      color: #007bff;
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        padding: 6px 0;
+        color: #666;
+        font-size: 13px;
+        position: relative;
+        padding-left: 20px;
+
+        &:before {
+          content: "💡";
+          position: absolute;
+          left: 0;
+          top: 6px;
+          font-size: 12px;
+        }
+      }
+    }
+  }
 }
 </style>
