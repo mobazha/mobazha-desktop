@@ -44,7 +44,7 @@ export const rwaTokenMockData = [
     name: '森林碳汇信用代币',
     symbol: 'FCC',
     blockchain: 'ETH',
-    contractAddress: '0x2345678901234567890123456789012345678901',
+    contractAddress: '0x91DaF662f2D8565C9Fa73a43Ca943ba78b0ff4B7',
     tokenType: 'CARBON_CREDIT',
     decimals: 18,
     totalSupply: '500000000000000000000000', // 500,000 tokens

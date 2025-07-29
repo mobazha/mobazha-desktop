@@ -6,10 +6,10 @@ import { getContractAddress, getTokenConfig, getCurrentNetworkConfig } from '../
 // RWA Marketplace合约ABI - 根据实际合约更新
 const RWAMarketplaceABI = [
   // 创建订单并付款 - 根据合约实际方法签名更新
-  "function createOrderAndPay(bytes32 orderId, address buyer, address seller, address rwaTokenAddress, address paymentTokenAddress, address buyerReceiveAddress, uint256 rwaTokenAmount, uint256 paymentAmount) external payable returns (bytes32)",
+  "function createOrderAndPay(bytes32 orderId, address seller, address rwaTokenAddress, address paymentTokenAddress, address buyerReceiveAddress, uint256 rwaTokenAmount, uint256 paymentAmount) external payable returns (bytes32)",
   
   // 发货并完成交易
-  "function shipAndComplete(bytes32 orderId, address sellerReceiveAddress) external",
+  "function shipAndComplete(bytes32 orderId) external",
   
   // 取消订单
   "function cancelOrder(bytes32 orderId) external",
@@ -81,10 +81,11 @@ export class RWAMarketplaceService {
   /**
    * 初始化服务
    * @param {Object} walletProvider - 钱包提供者
+   * @param {string} walletAddress - 钱包地址
    * @param {string} networkType - 网络类型 ('ethereum' | 'solana')
    * @param {string} contractAddress - 合约地址（可选，如果不提供则使用默认Sepolia地址）
    */
-  async initialize(walletProvider, networkType, contractAddress = null) {
+  async initialize(walletProvider, walletAddress, networkType, contractAddress = null) {
     try {
       this.networkType = networkType;
       
@@ -95,9 +96,9 @@ export class RWAMarketplaceService {
       }
       
       if (networkType === 'ethereum') {
-        await this.initializeEthereum(walletProvider, contractAddress);
+        await this.initializeEthereum(walletProvider, walletAddress, contractAddress);
       } else if (networkType === 'solana') {
-        await this.initializeSolana(walletProvider, contractAddress);
+        await this.initializeSolana(walletProvider, walletAddress, contractAddress);
       } else {
         throw new Error(`不支持的网络类型: ${networkType}`);
       }
@@ -113,10 +114,16 @@ export class RWAMarketplaceService {
   /**
    * 初始化以太坊网络
    */
-  async initializeEthereum(walletProvider, contractAddress) {
+  async initializeEthereum(walletProvider, walletAddress, contractAddress) {
     // 创建provider和signer (ethers v6)
     this.provider = new ethers.BrowserProvider(walletProvider);
     this.signer = await this.provider.getSigner();
+    
+    // 验证钱包地址
+    const signerAddress = await this.signer.getAddress();
+    if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw new Error('钱包地址不匹配');
+    }
     
     // 创建合约实例
     this.contract = new ethers.Contract(contractAddress, RWAMarketplaceABI, this.signer);
@@ -132,6 +139,14 @@ export class RWAMarketplaceService {
   }
 
   /**
+   * 初始化Solana网络
+   */
+  async initializeSolana(walletProvider, walletAddress, contractAddress) {
+    // Solana网络暂未实现，抛出错误
+    throw new Error('Solana网络暂未支持RWA Marketplace');
+  }
+
+  /**
    * 生成唯一的订单ID
    * @param {string} prefix - 订单前缀
    * @param {string} buyerAddress - 买家地址
@@ -139,8 +154,9 @@ export class RWAMarketplaceService {
    * @param {number} timestamp - 时间戳
    * @returns {string} 订单ID
    */
-  generateOrderId(orderId) {
-    return ethers.keccak256(ethers.toUtf8Bytes(orderId));
+  generateOrderId(prefix = 'ORDER', buyerAddress = '', sellerAddress = '', timestamp = Date.now()) {
+    const data = `${prefix}_${buyerAddress}_${sellerAddress}_${timestamp}`;
+    return ethers.keccak256(ethers.toUtf8Bytes(data));
   }
 
   /**
@@ -151,8 +167,6 @@ export class RWAMarketplaceService {
   async createOrderAndPay(orderData) {
     try {
       const {
-        orderId,
-        buyer,
         seller,
         rwaTokenAddress,
         paymentTokenAddress,
@@ -167,15 +181,16 @@ export class RWAMarketplaceService {
       // 检查用户余额
       await this.checkUserBalance(paymentTokenAddress, paymentAmount);
 
-      const txOrderId = this.generateOrderId(orderId);
+      // 生成唯一的订单ID
+      const buyerAddress = await this.signer.getAddress();
+      const orderId = this.generateOrderId('ORDER', buyerAddress, seller);
 
       let transaction;
       
       if (paymentTokenAddress === ethers.ZeroAddress) {
         // ETH支付
         transaction = await this.contract.createOrderAndPay(
-          txOrderId,
-          buyer,
+          orderId,
           seller,
           rwaTokenAddress,
           paymentTokenAddress,
@@ -190,8 +205,7 @@ export class RWAMarketplaceService {
         await this.approvePaymentToken(paymentTokenAddress, paymentAmount);
         
         transaction = await this.contract.createOrderAndPay(
-          txOrderId,
-          this.signer.getAddress(), // buyer
+          orderId,
           seller,
           rwaTokenAddress,
           paymentTokenAddress,
@@ -214,15 +228,16 @@ export class RWAMarketplaceService {
         logs: receipt.logs
       });
       
-      // 使用辅助方法从收据中获取交易信息
-      const transactionHash = this.getTransactionHashFromReceipt(receipt);
+      // 解析事件获取订单ID
+      const orderCreatedEvent = receipt.events?.find(event => event.event === 'OrderCreated');
+      const eventOrderId = orderCreatedEvent?.args?.orderId;
 
       return {
         success: true,
-        orderId,
-        transactionHash: transactionHash,
-        status: receipt.status || 1,
-        logs: receipt.logs || [],
+        orderId: eventOrderId ? eventOrderId.toString() : orderId,
+        transactionHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed ? receipt.gasUsed.toString() : '0',
+        effectiveGasPrice: receipt.effectiveGasPrice ? receipt.effectiveGasPrice.toString() : '0'
       };
 
     } catch (error) {
@@ -236,23 +251,20 @@ export class RWAMarketplaceService {
    * @param {string} orderId - 订单ID
    * @param {string} rwaTokenAddress - RWA Token地址
    * @param {string} rwaTokenAmount - RWA Token数量
-   * @param {string} sellerReceiveAddress - 卖家收款地址
    * @returns {Promise<Object>} 交易结果
    */
-  async shipAndComplete(orderId, rwaTokenAddress, rwaTokenAmount, sellerReceiveAddress) {
+  async shipAndComplete(orderId, rwaTokenAddress, rwaTokenAmount) {
     try {
       // 授权Marketplace合约使用RWA Token
       await this.approveRWAToken(rwaTokenAddress, rwaTokenAmount);
 
       // 执行发货完成交易
-      const transaction = await this.contract.shipAndComplete(orderId, sellerReceiveAddress);
+      const transaction = await this.contract.shipAndComplete(orderId);
       const receipt = await transaction.wait();
-
-      const transactionHash = this.getTransactionHashFromReceipt(receipt);
 
       // 打印收据信息用于调试
       console.log('🔧 发货完成交易收据信息:', {
-        transactionHash,
+        transactionHash: receipt.transactionHash,
         gasUsed: receipt.gasUsed,
         effectiveGasPrice: receipt.effectiveGasPrice,
         status: receipt.status,
@@ -262,7 +274,7 @@ export class RWAMarketplaceService {
 
       return {
         success: true,
-        transactionHash,
+        transactionHash: receipt.transactionHash,
         gasUsed: receipt.gasUsed ? receipt.gasUsed.toString() : '0',
         effectiveGasPrice: receipt.effectiveGasPrice ? receipt.effectiveGasPrice.toString() : '0'
       };
@@ -313,12 +325,7 @@ export class RWAMarketplaceService {
    */
   async getOrder(orderId) {
     try {
-      if (!this.contract) {
-        throw new Error('RWA Marketplace服务未初始化，请先调用initialize方法');
-      }
-      
-      const txOrderId = this.generateOrderId(orderId);
-      const order = await this.contract.getOrder(txOrderId);
+      const order = await this.contract.getOrder(orderId);
       
       return {
         buyer: order.buyer,
@@ -347,10 +354,6 @@ export class RWAMarketplaceService {
    */
   async getBuyerOrders(buyerAddress) {
     try {
-      if (!this.contract) {
-        throw new Error('RWA Marketplace服务未初始化，请先调用initialize方法');
-      }
-      
       const orderIds = await this.contract.getBuyerOrders(buyerAddress);
       return orderIds.map(id => id ? id.toString() : '');
     } catch (error) {
@@ -366,10 +369,6 @@ export class RWAMarketplaceService {
    */
   async getSellerOrders(sellerAddress) {
     try {
-      if (!this.contract) {
-        throw new Error('RWA Marketplace服务未初始化，请先调用initialize方法');
-      }
-      
       const orderIds = await this.contract.getSellerOrders(sellerAddress);
       return orderIds.map(id => id ? id.toString() : '');
     } catch (error) {
@@ -727,29 +726,6 @@ export class RWAMarketplaceService {
     this.rwaTokenContract = null;
     this.paymentTokenContract = null;
     this.networkType = null;
-  }
-
-  /**
-   * 从交易收据中获取交易哈希
-   * @param {Object} receipt - 交易收据
-   * @returns {string} 交易哈希
-   */
-  getTransactionHashFromReceipt(receipt) {
-    // 首先尝试从收据本身获取
-    if (receipt.transactionHash) {
-      return receipt.transactionHash;
-    }
-    
-    // 如果收据中没有，尝试从logs中获取
-    if (receipt.logs && receipt.logs.length > 0) {
-      for (const log of receipt.logs) {
-        if (log.transactionHash) {
-          return log.transactionHash;
-        }
-      }
-    }
-    
-    return 'unknown';
   }
 }
 

@@ -3,7 +3,7 @@
 
 // Sepolia测试网配置
 const SEPOLIA_CONFIG = {
-  rwaMarketplace: '0x196738d76a0d44f8568488819a2435E284149daA', // RWA Marketplace合约地址
+  rwaMarketplace: '0xbB15E3f875D53B965AE8de992d2FC67709557043', // RWA Marketplace合约地址
   mockUSDT: '0xF36BFeE8fd7F1950c0129714Faf6d1e1F94a66AA', // 模拟USDT合约地址
   mockUSDC: '0xF36BFeE8fd7F1950c0129714Faf6d1e1F94a66AA', // 模拟USDC合约地址
   mockDAI: '0xF36BFeE8fd7F1950c0129714Faf6d1e1F94a66AA',  // 模拟DAI合约地址
@@ -18,7 +18,7 @@ const MAINNET_CONFIG = {
 };
 
 // 当前使用的网络配置
-let CURRENT_NETWORK = 'sepolia'; // 或 'mainnet'
+const CURRENT_NETWORK = 'sepolia'; // 或 'mainnet'
 
 /**
  * 获取合约地址

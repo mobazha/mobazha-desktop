@@ -512,6 +512,10 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useWalletStore } from '@/stores/wallet';
 import { tokens } from '@/config/token.js';
 import { findRwaTokenByCode } from '@/data/rwaTokenMockData.js';
+import { rwaMarketplaceService } from '@/services/rwaMarketplaceService.js';
+import { getContractAddress, getTokenConfig } from '@/config/rwaMarketplaceConfig.js';
+import { ethers } from 'ethers';
+import { useAppKitProvider } from '@reown/appkit/vue';
 
 export default {
   name: 'Purchase',
@@ -596,6 +600,8 @@ export default {
       rwaAmountValue: '1',
       selectedReceivingAccountId: '', // 新增：用于存储选中的接收账户ID
       availableReceivingAccounts: [], // 新增：用于存储可用的接收账户列表
+      rwaMarketplaceContractAddress: '', // RWA Marketplace合约地址
+      isRwaMarketplaceInitialized: false, // RWA Marketplace是否已初始化
     };
   },
   created() {
@@ -625,6 +631,18 @@ export default {
     },
     walletAddress() {
       return this.walletStore.walletAddress;
+    },
+    currentNetworkType() {
+      // 从App.vue获取当前网络类型
+      if (!this.walletStore.walletProvider) return null;
+      
+      // 根据钱包提供者类型判断网络
+      if (this.walletStore.networkType === 'ethereum') {
+        return 'ethereum';
+      } else if (this.walletStore.networkType === 'solana') {
+        return 'solana';
+      }
+      return null;
     },
     rwaTokenBlockchain() {
       if (!this.ob.isRwaToken || !this.oneListing) {
@@ -1299,7 +1317,7 @@ export default {
     },
 
     async payListing() {
-      // 对于RWA Token，验证接收账户选择
+      // 对于RWA Token，使用RWA Marketplace合约
       if (this.ob.isRwaToken) {
         if (!this.selectedReceivingAccountId || !this.selectedReceivingAccount) {
           this.insertErrors('items-paymentAddress', [app.polyglot.t('purchase.errors.noReceivingAccountSelected')]);
@@ -1310,8 +1328,13 @@ export default {
         if (!this.order.get('items').at(0).get('paymentAddress')) {
           this.order.get('items').at(0).set('paymentAddress', this.selectedReceivingAccount.address);
         }
+        
+        // 使用RWA Marketplace处理购买
+        await this.processRwaTokenPurchase();
+        return;
       }
       
+      // 对于其他商品，使用原有的支付流程
       // 根据支付币种选择不同的处理方式
       if (this.paymentCoin === 'ETH') {
         await this.processEthPayment();
@@ -1802,6 +1825,188 @@ export default {
         // 显示错误信息
         this.insertErrors('items-paymentAddress', [app.polyglot.t('purchase.errors.noReceivingAccountSelected')]);
       }
+    },
+
+    // RWA Marketplace相关方法
+    async initializeRwaMarketplace() {
+      try {
+        if (!this.isWalletConnected) {
+          throw new Error('请先连接钱包');
+        }
+
+        // 获取合约地址（这里应该从配置或后端获取）
+        const contractAddress = await this.getRwaMarketplaceContractAddress();
+        
+        // 从App.vue获取正确的钱包提供者
+        let walletProvider = null;
+        if (this.currentNetworkType === 'ethereum') {
+          const { walletProvider: ethProvider } = useAppKitProvider('eip155');
+          walletProvider = ethProvider;
+        } else if (this.currentNetworkType === 'solana') {
+          const { walletProvider: solanaProvider } = useAppKitProvider('solana');
+          walletProvider = solanaProvider;
+        }
+        
+        if (!walletProvider) {
+          throw new Error('无法获取钱包提供者，请确保钱包已连接');
+        }
+        
+        // 初始化RWA Marketplace服务
+        await rwaMarketplaceService.initialize(
+          walletProvider,
+          this.walletStore.walletAddress,
+          'ethereum', // 目前只支持以太坊
+          contractAddress
+        );
+
+        this.rwaMarketplaceContractAddress = contractAddress;
+        this.isRwaMarketplaceInitialized = true;
+        
+        console.log('✅ RWA Marketplace初始化成功');
+        return true;
+      } catch (error) {
+        console.error('❌ RWA Marketplace初始化失败:', error);
+        ElMessage.error(error.message || 'RWA Marketplace初始化失败');
+        return false;
+      }
+    },
+
+    async getRwaMarketplaceContractAddress() {
+      try {
+        // 使用Sepolia测试网合约地址
+        const contractAddress = getContractAddress('rwaMarketplace');
+        console.log('🔧 使用Sepolia测试网RWA Marketplace合约地址:', contractAddress);
+        return contractAddress;
+      } catch (error) {
+        console.error('获取合约地址失败:', error);
+        throw error;
+      }
+    },
+
+    async processRwaTokenPurchase() {
+      try {
+        // 检查钱包连接
+        if (!this.isWalletConnected) {
+          throw new Error('请先连接钱包');
+        }
+
+        // 检查RWA Marketplace是否已初始化
+        if (!this.isRwaMarketplaceInitialized) {
+          const initialized = await this.initializeRwaMarketplace();
+          if (!initialized) {
+            throw new Error('RWA Marketplace初始化失败');
+          }
+        }
+
+        // 获取订单数据
+        const orderData = this.buildRwaTokenOrderData();
+        
+        // 在创建订单前检查用户余额
+        try {
+          const balanceInfo = await rwaMarketplaceService.getUserTokenBalance(orderData.paymentTokenAddress);
+          console.log('🔧 用户余额信息:', balanceInfo);
+          
+          // 显示余额信息给用户
+          ElMessage.info(`当前${balanceInfo.symbol}余额: ${balanceInfo.formattedBalance}`);
+        } catch (balanceError) {
+          console.warn('无法获取用户余额:', balanceError);
+        }
+        
+        // 调用合约创建订单并付款
+        const result = await rwaMarketplaceService.createOrderAndPay(orderData);
+        
+        console.log('✅ RWA Token订单创建成功:', result);
+        
+        // 更新订单状态
+        this.orderID = result.orderId;
+        this.setState({ phase: 'complete' });
+        
+        ElMessage.success('RWA Token购买成功！');
+        
+        return result;
+      } catch (error) {
+        console.error('❌ RWA Token购买失败:', error);
+        
+        // 根据错误类型显示不同的消息
+        let errorMessage = error.message || 'RWA Token购买失败';
+        
+        if (error.message.includes('余额不足') || error.message.includes('transfer amount exceeds balance')) {
+          errorMessage = '代币余额不足，请检查您的钱包余额或充值后重试';
+        } else if (error.message.includes('授权额度不足')) {
+          errorMessage = '代币授权额度不足，请重新授权后重试';
+        }
+        
+        ElMessage.error(errorMessage);
+        throw error;
+      }
+    },
+
+    buildRwaTokenOrderData() {
+      const listing = this.oneListing;
+      const item = this.order.get('items').at(0);
+      
+      // 获取卖家地址
+      const sellerAddress = listing.get('vendorID').peerID;
+      
+      // 获取RWA Token地址
+      const rwaTokenCode = listing.get('item').get('cryptoListingCurrencyCode');
+      const rwaToken = findRwaTokenByCode(rwaTokenCode);
+      const rwaTokenAddress = rwaToken?.contractAddress || '0x0000000000000000000000000000000000000000';
+      
+      // 获取支付代币地址
+      const paymentTokenAddress = this.getPaymentTokenAddress();
+      
+      // 确保支付代币地址有效
+      if (!paymentTokenAddress) {
+        throw new Error('支付代币地址无效');
+      }
+      
+      // 获取买家接收地址
+      const buyerReceiveAddress = this.selectedReceivingAccount?.address || this.walletStore.walletAddress || '';
+      
+      // 确保买家接收地址有效
+      if (!buyerReceiveAddress || buyerReceiveAddress === '0x0000000000000000000000000000000000000000') {
+        throw new Error('买家接收地址无效');
+      }
+      
+      // 获取RWA Token数量 - 使用BigNumber确保精度
+      const rwaTokenAmount = ethers.parseUnits(
+        this.rwaAmountValue.toString(),
+        18 // RWA Token通常使用18位小数
+      );
+      
+      // 获取支付金额 - 根据支付代币的精度进行转换
+      let paymentAmount;
+      if (paymentTokenAddress === '0x0000000000000000000000000000000000000000') {
+        // ETH支付
+        paymentAmount = ethers.parseEther(this.totalAmount.toString());
+      } else {
+        // ERC20代币支付 - 需要根据代币精度进行转换
+        // 这里假设支付代币使用6位小数（如USDT）
+        paymentAmount = ethers.parseUnits(this.totalAmount.toString(), 6);
+      }
+
+      return {
+        orderId: this.orderID,
+        seller: sellerAddress,
+        rwaTokenAddress,
+        paymentTokenAddress,
+        buyerReceiveAddress,
+        rwaTokenAmount: rwaTokenAmount.toString(),
+        paymentAmount: paymentAmount.toString()
+      };
+    },
+
+    getPaymentTokenAddress() {
+      // 根据支付币种返回对应的代币地址
+      const tokenMap = {
+        'ETH': '0x0000000000000000000000000000000000000000', // ETH使用零地址
+        'ETHUSDT': getContractAddress('mockUSDT'), // Sepolia测试网USDT
+        'ETHUSDC': getContractAddress('mockUSDC'), // 暂未部署
+        'ETHDAI': getContractAddress('mockDAI') // 暂未部署
+      };
+      
+      return tokenMap[this.paymentCoin] || '0x0000000000000000000000000000000000000000';
     },
   },
 };
