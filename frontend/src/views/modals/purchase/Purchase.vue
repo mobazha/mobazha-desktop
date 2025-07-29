@@ -1854,7 +1854,6 @@ export default {
         // 初始化RWA Marketplace服务
         await rwaMarketplaceService.initialize(
           walletProvider,
-          this.walletStore.walletAddress,
           'ethereum', // 目前只支持以太坊
           contractAddress
         );
@@ -1912,18 +1911,9 @@ export default {
           console.warn('无法获取用户余额:', balanceError);
         }
         
-        // 调用合约创建订单并付款
-        const result = await rwaMarketplaceService.createOrderAndPay(orderData);
+        // 使用统一的事件系统执行RWA Token交易
+        return await this.executeRwaTokenTransaction(orderData);
         
-        console.log('✅ RWA Token订单创建成功:', result);
-        
-        // 更新订单状态
-        this.orderID = result.orderId;
-        this.setState({ phase: 'complete' });
-        
-        ElMessage.success('RWA Token购买成功！');
-        
-        return result;
       } catch (error) {
         console.error('❌ RWA Token购买失败:', error);
         
@@ -1939,6 +1929,83 @@ export default {
         ElMessage.error(errorMessage);
         throw error;
       }
+    },
+
+    /**
+     * 执行RWA Token交易 - 使用统一事件系统
+     */
+    async executeRwaTokenTransaction(orderData) {
+      // 构建paymentData用于回调
+      const paymentData = {
+        isRwaToken: true,
+        contractAddress: getContractAddress('rwaMarketplace'),
+        orderID: this.orderID,
+        coin: this.paymentCoin,
+        amount: parseInt(orderData.paymentAmount),
+        timestamp: new Date().toISOString(),
+        method: 1,
+        rwaTokenData: {
+          rwaTokenAddress: orderData.rwaTokenAddress,
+          rwaTokenAmount: orderData.rwaTokenAmount,
+          paymentTokenAddress: orderData.paymentTokenAddress,
+          paymentAmount: orderData.paymentAmount,
+          buyerReceiveAddress: orderData.buyerReceiveAddress
+        }
+      };
+
+      // 触发RWA Token交易事件
+      events.trigger('executeRwaTokenTransaction', {
+        orderID: this.orderID,
+        transactionData: orderData,
+        paymentData
+      });
+
+      // 等待交易完成
+      return new Promise((resolve, reject) => {
+        const handleRwaTransactionComplete = (e) => {
+          if (e.orderID === this.orderID) {
+            this.cleanupRwaEventListeners(handleRwaTransactionComplete, handleRwaTransactionError);
+            
+            this.handlePaymentCompletion(e.paymentData, e.result)
+              .then(resolve)
+              .catch(reject);
+          }
+        };
+
+        const handleRwaTransactionError = (e) => {
+          if (e.orderID === this.orderID) {
+            this.cleanupRwaEventListeners(handleRwaTransactionComplete, handleRwaTransactionError);
+            
+            let errorMessage = e.error?.message || 'RWA Token交易失败';
+            
+            // 根据错误类型显示不同的消息
+            if (errorMessage.includes('余额不足') || errorMessage.includes('transfer amount exceeds balance')) {
+              errorMessage = '代币余额不足，请检查您的钱包余额或充值后重试';
+            } else if (errorMessage.includes('授权额度不足')) {
+              errorMessage = '代币授权额度不足，请重新授权后重试';
+            }
+            
+            ElMessage({
+              message: errorMessage,
+              type: 'error',
+              duration: 3000
+            });
+            reject(e.error);
+          }
+        };
+
+        // 绑定RWA Token交易事件监听器
+        events.on('rwaTokenTransactionComplete', handleRwaTransactionComplete);
+        events.on('rwaTokenTransactionError', handleRwaTransactionError);
+      });
+    },
+
+    /**
+     * 清理RWA Token事件监听器
+     */
+    cleanupRwaEventListeners(completeHandler, errorHandler) {
+      events.off('rwaTokenTransactionComplete', completeHandler);
+      events.off('rwaTokenTransactionError', errorHandler);
     },
 
     buildRwaTokenOrderData() {

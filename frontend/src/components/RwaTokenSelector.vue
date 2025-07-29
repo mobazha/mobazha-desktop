@@ -7,14 +7,14 @@
           :class="{ active: searchMode === 'search' }"
           @click="searchMode = 'search'"
         >
-          搜索代币
+          {{ $t('rwaTokenSelector.searchMode') }}
         </button>
         <button 
           class="modeBtn" 
           :class="{ active: searchMode === 'address' }"
           @click="searchMode = 'address'"
         >
-          输入地址
+          {{ $t('rwaTokenSelector.addressMode') }}
         </button>
     </div>
 
@@ -24,7 +24,7 @@
                   <input
             type="text"
             v-model="searchQuery"
-            placeholder="搜索代币名称、代码或符号..."
+            :placeholder="$t('rwaTokenSelector.searchPlaceholder')"
             @input="onSearchInput"
             class="clrBr clrP clrSh2"
           />
@@ -36,7 +36,7 @@
       <!-- 搜索结果 -->
       <div v-if="searchResults.length > 0" class="searchResults">
         <div class="resultsHeader">
-          <h4>搜索结果 ({{ searchResults.length }})</h4>
+          <h4>{{ $t('rwaTokenSelector.searchResults') }} ({{ searchResults.length }})</h4>
         </div>
         <div class="tokenList">
           <div
@@ -51,12 +51,12 @@
               <div class="tokenType">{{ getTokenTypeName(token.tokenType) }}</div>
             </div>
             <div class="tokenDetails">
-              <div class="tokenPrice">当前价格: ${{ token.currentPrice }}</div>
+              <div class="tokenPrice">{{ $t('rwaTokenSelector.currentPrice') }}: ${{ token.currentPrice }}</div>
               <div class="tokenAddress">{{ formatAddress(token.contractAddress) }}</div>
             </div>
             <div class="tokenVerification" v-if="token.verification.isVerified">
               <i class="icon-verified"></i>
-              <span>已验证</span>
+              <span>{{ $t('rwaTokenSelector.verified') }}</span>
             </div>
           </div>
         </div>
@@ -64,18 +64,18 @@
 
       <!-- 无搜索结果 -->
       <div v-else-if="hasSearched && searchResults.length === 0" class="noResults">
-        <p>未找到匹配的代币</p>
+        <p>{{ $t('rwaTokenSelector.noResults') }}</p>
       </div>
     </div>
 
     <!-- 地址输入模式 -->
     <div v-else class="addressSection">
       <div class="addressInput">
-        <label>合约地址</label>
+        <label>{{ $t('rwaTokenSelector.contractAddress') }}</label>
         <input
           type="text"
           v-model="addressInput"
-          placeholder="输入0x开头的合约地址..."
+          :placeholder="$t('rwaTokenSelector.addressPlaceholder')"
           @input="onAddressInput"
           class="clrBr clrP clrSh2"
           :class="{ error: addressError }"
@@ -88,15 +88,15 @@
         :disabled="!isValidAddress || isVerifying"
         class="verifyBtn"
       >
-        <span v-if="isVerifying">验证中...</span>
-        <span v-else>验证地址</span>
+        <span v-if="isVerifying">{{ $t('rwaTokenSelector.verifying') }}</span>
+        <span v-else>{{ $t('rwaTokenSelector.verifyAddress') }}</span>
       </button>
 
       <!-- 地址验证结果 -->
       <div v-if="verifiedToken" class="verifiedToken">
         <div class="verificationSuccess">
           <i class="icon-success"></i>
-          <span>地址验证成功</span>
+          <span>{{ $t('rwaTokenSelector.addressVerified') }}</span>
         </div>
         <div class="tokenCard">
           <div class="tokenHeader">
@@ -105,24 +105,24 @@
           </div>
           <div class="tokenDetails">
             <div class="detailRow">
-              <span class="label">发行方:</span>
+              <span class="label">{{ $t('rwaTokenSelector.issuer') }}:</span>
               <span class="value">{{ verifiedToken.issuer }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">当前价格:</span>
+              <span class="label">{{ $t('rwaTokenSelector.currentPrice') }}:</span>
               <span class="value">${{ verifiedToken.currentPrice }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">风险等级:</span>
+              <span class="label">{{ $t('rwaTokenSelector.riskLevel') }}:</span>
               <span class="value">{{ verifiedToken.metadata.riskLevel }}</span>
             </div>
             <div class="detailRow">
-              <span class="label">验证机构:</span>
+              <span class="label">{{ $t('rwaTokenSelector.verification') }}:</span>
               <span class="value">{{ verifiedToken.verification.verifiedBy }}</span>
             </div>
           </div>
           <button @click="selectToken(verifiedToken)" class="selectBtn">
-            选择此代币
+            {{ $t('rwaTokenSelector.selectThisToken') }}
           </button>
         </div>
       </div>
@@ -131,18 +131,18 @@
       <div v-else-if="addressNotFound" class="addressNotFound">
         <div class="notFoundMessage">
           <i class="icon-warning"></i>
-          <span>未找到该地址对应的代币</span>
+          <span>{{ $t('rwaTokenSelector.addressNotFound') }}</span>
         </div>
-        <p>请检查地址是否正确，或尝试搜索模式查找代币</p>
+        <p>{{ $t('rwaTokenSelector.addressNotFoundHelp') }}</p>
       </div>
     </div>
 
     <!-- 已选择的Token -->
     <div v-if="selectedToken" class="selectedToken">
       <div class="selectedHeader">
-        <h4>已选择的代币</h4>
+        <h4>{{ $t('rwaTokenSelector.selectedToken') }}</h4>
         <button @click="clearSelection" class="clearBtn">
-          更改
+          {{ $t('rwaTokenSelector.change') }}
         </button>
       </div>
       <div class="selectedTokenCard">
@@ -246,7 +246,7 @@ export default {
 
     async verifyAddress() {
       if (!this.isValidAddress) {
-        this.addressError = '无效的合约地址格式';
+        this.addressError = this.$t('rwaTokenSelector.invalidAddress');
         return;
       }
 
@@ -266,7 +266,7 @@ export default {
           this.addressNotFound = true;
         }
       } catch (error) {
-        this.addressError = '验证过程中出现错误';
+        this.addressError = this.$t('rwaTokenSelector.verificationError');
       } finally {
         this.isVerifying = false;
       }

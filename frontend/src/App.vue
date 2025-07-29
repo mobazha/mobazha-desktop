@@ -376,6 +376,56 @@ export default {
           }, 0);
         }
       });
+
+      // RWA Token交易监听器
+      events.on('executeRwaTokenTransaction', async (data) => {
+        const { orderID, transactionData, paymentData } = data;
+        
+        console.log(`📨 收到RWA Token交易执行请求, orderID: ${orderID}`);
+        
+        try {
+          // 检查钱包连接
+          if (!this.accountData.isConnected) {
+            throw new Error('请先连接钱包');
+          }
+
+          // 检查RWA Marketplace服务是否可用
+          if (!window.rwaMarketplaceService) {
+            // 尝试从模块导入RWA Marketplace服务
+            const { rwaMarketplaceService } = await import('@/services/rwaMarketplaceService.js');
+            window.rwaMarketplaceService = rwaMarketplaceService;
+          }
+
+          if (!window.rwaMarketplaceService) {
+            throw new Error('RWA Marketplace服务未初始化');
+          }
+
+          // 执行RWA Token交易
+          const result = await window.rwaMarketplaceService.createOrderAndPay(transactionData);
+          
+          console.log(`🎉 RWA Token交易完成:`, result);
+          
+          // 使用result中的orderId作为交易结果
+          const transactionResult = result.transactionHash;
+          
+          setTimeout(() => {
+            events.trigger('rwaTokenTransactionComplete', {
+              orderID,
+              result: transactionResult,
+              paymentData
+            });
+          }, 0);
+        } catch (error) {
+          console.error(`❌ RWA Token交易执行失败:`, error);
+          
+          setTimeout(() => {
+            events.trigger('rwaTokenTransactionError', {
+              orderID,
+              error: error
+            });
+          }, 0);
+        }
+      });
     },
 
     setupOrderEvents() {
