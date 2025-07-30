@@ -6,10 +6,10 @@ import { getContractAddress, getTokenConfig, getCurrentNetworkConfig } from '../
 // RWA Marketplace合约ABI - 根据实际合约更新
 const RWAMarketplaceABI = [
   // 创建订单并付款 - 根据合约实际方法签名更新
-  "function createOrderAndPay(bytes32 orderId, address seller, address rwaTokenAddress, address paymentTokenAddress, address buyerReceiveAddress, uint256 rwaTokenAmount, uint256 paymentAmount) external payable returns (bytes32)",
+  "function createOrderAndPay(bytes32 orderId, address buyer, address seller, address rwaTokenAddress, address paymentTokenAddress, address buyerReceiveAddress, uint256 rwaTokenAmount, uint256 paymentAmount) external payable returns (bytes32)",
   
   // 发货并完成交易
-  "function shipAndComplete(bytes32 orderId) external",
+  "function shipAndComplete(bytes32 orderId, address sellerReceiveAddress) external",
   
   // 取消订单
   "function cancelOrder(bytes32 orderId) external",
@@ -174,6 +174,7 @@ export class RWAMarketplaceService {
         // ETH支付
         transaction = await this.contract.createOrderAndPay(
           txOrderId,
+          this.signer.getAddress(), // buyer
           seller,
           rwaTokenAddress,
           paymentTokenAddress,
@@ -189,6 +190,7 @@ export class RWAMarketplaceService {
         
         transaction = await this.contract.createOrderAndPay(
           txOrderId,
+          this.signer.getAddress(), // buyer
           seller,
           rwaTokenAddress,
           paymentTokenAddress,
@@ -233,15 +235,16 @@ export class RWAMarketplaceService {
    * @param {string} orderId - 订单ID
    * @param {string} rwaTokenAddress - RWA Token地址
    * @param {string} rwaTokenAmount - RWA Token数量
+   * @param {string} sellerReceiveAddress - 卖家收款地址
    * @returns {Promise<Object>} 交易结果
    */
-  async shipAndComplete(orderId, rwaTokenAddress, rwaTokenAmount) {
+  async shipAndComplete(orderId, rwaTokenAddress, rwaTokenAmount, sellerReceiveAddress) {
     try {
       // 授权Marketplace合约使用RWA Token
       await this.approveRWAToken(rwaTokenAddress, rwaTokenAmount);
 
       // 执行发货完成交易
-      const transaction = await this.contract.shipAndComplete(orderId);
+      const transaction = await this.contract.shipAndComplete(orderId, sellerReceiveAddress);
       const receipt = await transaction.wait();
 
       // 打印收据信息用于调试

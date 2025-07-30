@@ -131,6 +131,17 @@
           </div>
         </div>
 
+        <!-- 卖家收款地址选择器 -->
+        <div v-if="orderInfo" class="sellerReceiveAddressSection">
+          <h3 class="orderInfoTitle">{{ ob.polyT(`orderDetail.fulfillOrderTab.sellerReceiveAddress`) }}</h3>
+          
+          <ReceivingAccountSelector
+            :blockchain="getRwaTokenBlockchain()"
+            @account-selected="onSellerReceiveAddressSelected"
+            @navigate-to-accounts="navigateToReceivingAccounts"
+          />
+        </div>
+
         <!-- 加载状态 -->
         <div v-else class="loadingState">
           <div class="loadingSpinner">
@@ -157,7 +168,7 @@
         </div>
         
         <!-- RWA Token转移按钮 -->
-        <div class="flexRow gutterH" v-if="orderInfo && (!rwaTokenRechargeStatus || rwaTokenRechargeStatus.status === 'error')">
+        <div class="flexRow gutterH" v-if="orderInfo && selectedSellerReceiveAddress && (!rwaTokenRechargeStatus || rwaTokenRechargeStatus.status === 'error')">
           <div class="col12">
             <button 
               type="button" 
@@ -169,6 +180,16 @@
               <span v-else>{{ ob.polyT(`orderDetail.fulfillOrderTab.rwaTransferText`) }}</span>
             </button>
             <div class="clrT2 txSm helper">{{ ob.polyT(`orderDetail.fulfillOrderTab.rwaTransferHelper`) }}</div>
+          </div>
+        </div>
+        
+        <!-- 未选择收款地址的提示 -->
+        <div class="flexRow gutterH" v-if="orderInfo && !selectedSellerReceiveAddress">
+          <div class="col12">
+            <div class="noReceiveAddressWarning">
+              <i class="ion-alert-circled"></i>
+              <span>{{ ob.polyT(`orderDetail.fulfillOrderTab.pleaseSelectReceiveAddress`) }}</span>
+            </div>
           </div>
         </div>
       </template>
@@ -220,6 +241,7 @@ import { rwaMarketplaceService } from '@/services/rwaMarketplaceService.js';
 import { getContractAddress } from '@/config/rwaMarketplaceConfig.js';
 import { ethers } from 'ethers';
 import { useAppKitProvider } from '@reown/appkit/vue';
+import ReceivingAccountSelector from '@/components/ReceivingAccountSelector.vue';
 
 export default {
   props: {
@@ -261,6 +283,7 @@ export default {
       rwaMarketplaceContractAddress: '', // RWA Marketplace合约地址
       isRwaMarketplaceInitialized: false, // RWA Marketplace是否已初始化
       orderInfo: null, // 订单信息
+      selectedSellerReceiveAddress: null,
     };
   },
   created () {
@@ -360,7 +383,8 @@ export default {
         const result = await rwaMarketplaceService.shipAndComplete(
           orderInfo.orderId,
           orderInfo.rwaTokenAddress,
-          orderInfo.rwaTokenAmount
+          orderInfo.rwaTokenAmount,
+          this.selectedSellerReceiveAddress?.address
         );
         
         if (result.success) {
@@ -574,10 +598,14 @@ export default {
       return tokenSymbols[tokenAddress] || 'TOKEN';
     },
 
-    getSellerAddress() {
-      // 获取卖家地址
-      // 这里需要根据实际的用户数据来获取
-      return '0x1234567890123456789012345678901234567890'; // 示例地址
+    onSellerReceiveAddressSelected(selectedAccount) {
+      this.selectedSellerReceiveAddress = selectedAccount;
+      console.log('✅ 卖家收款地址已选择:', selectedAccount);
+    },
+
+    navigateToReceivingAccounts() {
+      // 触发导航到收款账户管理页面的事件
+      this.$emit('navigate-to-receiving-accounts');
     },
 
     onClickSubmit () {
@@ -623,6 +651,10 @@ export default {
       if (e.id === this.model.id) {
         this.processing = false;
       }
+    },
+
+    getRwaTokenBlockchain() {
+      return this.orderInfo?.rwaTokenDelivery?.blockchain || 'ETH';
     },
   }
 }
@@ -771,6 +803,23 @@ export default {
   
   i {
     font-size: 18px;
+  }
+}
+
+.noReceiveAddressWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #E6A23C;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 15px;
+  border-radius: 6px;
+  background-color: #FFFBE6;
+  border: 1px solid #FFECB5;
+
+  i {
+    font-size: 20px;
   }
 }
 </style>

@@ -1573,16 +1573,19 @@
     "previous": "Previous",
     "next": "Next"
   },
+  "receivingAccountSelector": {
+    "placeholder": "Please select a receiving account",
+    "infoText": "Select an account for receiving funds",
+    "receivingAccountInfo": "Please select a receiving account for this RWA token purchase. The account must be on the same blockchain as the token.",
+    "noAccountText": "No receiving account available for this blockchain. Please add a receiving account first.",
+    "addAccountText": "Add Receiving Account",
+    "noSelectionText": "Please select a receiving account",
+    "fetchError": "Failed to fetch receiving accounts, please try again later"
+  },
   "purchase": {
     "rwaAmount": "RWA Token Amount",
     "rwaQuantityRange": "Purchase quantity range: %{min} - %{max}",
-    "rwaAddressPlaceholder": "Please enter your RWA token address",
     "rwaReceivingAccount": "Receiving Account",
-    "selectReceivingAccount": "Select a receiving account",
-    "receivingAccountInfo": "Please select a receiving account for this RWA token purchase. The account must be on the same blockchain as the token.",
-    "noReceivingAccount": "No receiving account available for this blockchain. Please add a receiving account first.",
-    "addReceivingAccount": "Add Receiving Account",
-    "noAccountSelected": "No receiving account selected",
     "purchaseDataChangedPopin": "The data for this listing has changed.",
     "returnToListing": "Return To Listing",
     "returnToCart": "Return To Cart",

@@ -279,49 +279,11 @@
                     </div>
                     <h2 class="h4 flexExpand required">{{ ob.polyT('purchase.rwaReceivingAccount') }}</h2>
                     
-                    <div class="receivingAccountSelector">
-                      <div v-if="availableReceivingAccounts.length > 0" class="accountSelection">
-                        <Select2
-                          id="rwaReceivingAccount"
-                          v-model="selectedReceivingAccountId"
-                          @change="onReceivingAccountChange"
-                          class="clrBr clrP rowSm"
-                        >
-                          <option value="" disabled>{{ ob.polyT('purchase.selectReceivingAccount') }}</option>
-                          <option
-                            v-for="account in availableReceivingAccounts"
-                            :key="account.id"
-                            :value="account.id"
-                          >
-                            {{ account.name }} - {{ formatAddress(account.address) }}
-                          </option>
-                        </Select2>
-                        <div class="accountInfo clrT2 txSm">
-                          {{ ob.polyT('purchase.receivingAccountInfo') }}
-                        </div>
-                      </div>
-                      <div v-else class="noAccountWarning">
-                        <div class="warningMessage">
-                          <i class="ion-alert-circled"></i>
-                          <span>{{ ob.polyT('purchase.noReceivingAccount') }}</span>
-                        </div>
-                        <el-button 
-                          type="primary" 
-                          size="small" 
-                          @click="navigateToReceivingAccounts"
-                          class="addAccountBtn"
-                        >
-                          {{ ob.polyT('purchase.addReceivingAccount') }}
-                        </el-button>
-                      </div>
-                    </div>
-                    <div v-if="selectedReceivingAccount" class="selectedAccountInfo">
-                      <p class="rwaPaymentAddress">{{ selectedReceivingAccount.address }}</p>
-                      <p class="accountName clrT2">{{ selectedReceivingAccount.name }}</p>
-                    </div>
-                    <div v-else class="noAccountSelected">
-                      <p class="clrT2">{{ ob.polyT('purchase.noAccountSelected') }}</p>
-                    </div>
+                    <ReceivingAccountSelector
+                      :blockchain="rwaTokenBlockchain"
+                      @account-selected="onReceivingAccountSelected"
+                      @navigate-to-accounts="navigateToReceivingAccounts"
+                    />
                   </div>
                 </div>
               </section>
@@ -516,6 +478,7 @@ import { rwaMarketplaceService } from '@/services/rwaMarketplaceService.js';
 import { getContractAddress, getTokenConfig } from '@/config/rwaMarketplaceConfig.js';
 import { ethers } from 'ethers';
 import { useAppKitProvider } from '@reown/appkit/vue';
+import ReceivingAccountSelector from '@/components/ReceivingAccountSelector.vue';
 
 export default {
   name: 'Purchase',
@@ -530,6 +493,7 @@ export default {
     Settings,
     PaymentMethodSelector,
     Moderators,
+    ReceivingAccountSelector,
   },
   props: {
     options: {
@@ -598,8 +562,7 @@ export default {
       _pendingPaymentCoin: null,
       rwaAmountCurrency: 'FCC',
       rwaAmountValue: '1',
-      selectedReceivingAccountId: '', // 新增：用于存储选中的接收账户ID
-      availableReceivingAccounts: [], // 新增：用于存储可用的接收账户列表
+
       rwaMarketplaceContractAddress: '', // RWA Marketplace合约地址
       isRwaMarketplaceInitialized: false, // RWA Marketplace是否已初始化
     };
@@ -611,12 +574,6 @@ export default {
     events.on('appkit_network_switched', this.onAppKitNetworkSwitched);
   },
   mounted() {
-    // 监听阶段变化
-    this.$watch('_state.phase', (newPhase) => {
-      if (newPhase === 'pendingPayment' && this.ob.isRwaToken) {
-        this.fetchAvailableReceivingAccounts();
-      }
-    });
   },
   unmounted() {
     if (this.orderSubmit) this.orderSubmit.abort();
@@ -769,11 +726,6 @@ export default {
 
     canSelectPayment() {
       return !this.switchingNetwork;
-    },
-
-    selectedReceivingAccount() {
-      if (!this.selectedReceivingAccountId) return null;
-      return this.availableReceivingAccounts.find(acc => acc.id === this.selectedReceivingAccountId);
     },
   },
   methods: {
@@ -1319,16 +1271,13 @@ export default {
     async payListing() {
       // 对于RWA Token，使用RWA Marketplace合约
       if (this.ob.isRwaToken) {
-        if (!this.selectedReceivingAccountId || !this.selectedReceivingAccount) {
+        // 检查是否已设置支付地址
+        const paymentAddress = this.order.get('items').at(0).get('paymentAddress');
+        if (!paymentAddress) {
           this.insertErrors('items-paymentAddress', [app.polyglot.t('purchase.errors.noReceivingAccountSelected')]);
           return;
         }
-        
-        // 确保支付地址已设置
-        if (!this.order.get('items').at(0).get('paymentAddress')) {
-          this.order.get('items').at(0).set('paymentAddress', this.selectedReceivingAccount.address);
-        }
-        
+
         // 使用RWA Marketplace处理购买
         await this.processRwaTokenPurchase();
         return;
@@ -1737,63 +1686,6 @@ export default {
       return currencies;
     },
 
-    // 新增方法：获取可用的接收账户
-    async fetchAvailableReceivingAccounts() {
-      try {
-        const listing = this.oneListing;
-        // 使用计算属性获取区块链信息
-        const blockchain = this.rwaTokenBlockchain || 'ETH';
-        
-        // 获取当前用户的接收账户列表
-        const response = await myGet(app.getServerUrl('wallet/receivingaccountlist'));
-        
-        if (response && response.receivingAccounts) {
-          // 区块链类型映射，处理不同的格式
-          const blockchainMapping = {
-            'ETH': ['ETH', 'Ethereum'],
-            'SOL': ['SOL', 'Solana'],
-            'BSC': ['BSC', 'Binance Smart Chain'],
-            'BASE': ['BASE', 'Base'],
-            'POLYGON': ['POLYGON', 'Polygon'],
-            'ARBITRUM': ['ARBITRUM', 'Arbitrum'],
-            'OPTIMISM': ['OPTIMISM', 'Optimism'],
-            'AVALANCHE': ['AVALANCHE', 'Avalanche']
-          };
-          
-          // 获取当前区块链的所有可能格式
-          const validChainTypes = blockchainMapping[blockchain] || [blockchain];
-          
-          // 过滤出相同区块链类型的激活账户
-          this.availableReceivingAccounts = response.receivingAccounts.filter(account => {
-            const isValidChainType = validChainTypes.includes(account.chainType);
-            const isActive = account.isActive;
-            
-            return isValidChainType && isActive;
-          });
-          
-          // 如果有可用账户，默认选择第一个
-          if (this.availableReceivingAccounts.length > 0) {
-            this.selectedReceivingAccountId = this.availableReceivingAccounts[0].id;
-            // 设置默认的支付地址
-            this.order.get('items').at(0).set('paymentAddress', this.availableReceivingAccounts[0].address);
-            // 清除之前的错误
-            this.errors['items-paymentAddress'] = null;
-          } else {
-            this.selectedReceivingAccountId = '';
-            this.order.get('items').at(0).set('paymentAddress', '');
-          }
-        } else {
-          this.availableReceivingAccounts = [];
-          this.selectedReceivingAccountId = '';
-        }
-      } catch (error) {
-        console.error('获取接收账户失败:', error);
-        ElMessage.error('获取接收账户失败，请稍后再试');
-        this.availableReceivingAccounts = [];
-        this.selectedReceivingAccountId = '';
-      }
-    },
-
     // 新增方法：导航到接收账户管理页面
     navigateToReceivingAccounts() {
       this.showSettings = true;
@@ -1802,19 +1694,8 @@ export default {
       });
     },
 
-    // 新增方法：格式化地址
-    formatAddress(address) {
-      if (!address) return '';
-      const maxLength = 10; // 显示前10位和后10位
-      if (address.length <= maxLength * 2) {
-        return address;
-      }
-      return `${address.substring(0, maxLength)}...${address.substring(address.length - maxLength)}`;
-    },
-
     // 新增方法：接收账户改变时触发
-    onReceivingAccountChange() {
-      const selectedAccount = this.availableReceivingAccounts.find(acc => acc.id === this.selectedReceivingAccountId);
+    onReceivingAccountSelected(selectedAccount) {
       if (selectedAccount) {
         // 设置选中的接收账户地址
         this.order.get('items').at(0).set('paymentAddress', selectedAccount.address);
@@ -2029,7 +1910,7 @@ export default {
       }
       
       // 获取买家接收地址
-      const buyerReceiveAddress = this.selectedReceivingAccount?.address || this.walletStore.walletAddress || '';
+      const buyerReceiveAddress = this.order.get('items').at(0).get('paymentAddress') || this.walletStore.walletAddress || '';
       
       // 确保买家接收地址有效
       if (!buyerReceiveAddress || buyerReceiveAddress === '0x0000000000000000000000000000000000000000') {
