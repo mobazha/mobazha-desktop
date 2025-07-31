@@ -10,7 +10,7 @@
           <div class="flexExpand tx5">
             <div class="flexRow gutterH row">
               <div class="flexExpand col4">
-                <a :href="`#${`${listing.vendorID.peerID}/store/${listing.slug}`}`" :class="`txB clrT inlineBlock ${ob.description || isCrypto ? 'rowTn' : ''}`" v-html="listing.item.title"></a>
+                <a :href="`#${`${listing.vendorID.peerID}/store/${listing.slug}`}`" :class="`txB clrT inlineBlock ${ob.description || isCrypto || isRwaToken ? 'rowTn' : ''}`" v-html="listing.item.title"></a>
                 <div v-if="ob.sku">{{ ob.polyT('orderDetail.summaryTab.orderDetails.skuLabel') }}: {{ ob.sku }}</div>
                 <div v-if="order.items[idx].options && order.items[idx].options.length">{{ order.items[idx].options.map(option => `${option.name}:&nbsp;${option.value}`).join(',&nbsp;') }}</div>
                 <template v-if="isCrypto">
@@ -20,6 +20,14 @@
                     <a class=" clrTEm" v-if="order.items[idx].quantity" @click="onClickCopyCryptoQuantity(order.items[idx].quantity)"> {{ ob.polyT('orderDetail.summaryTab.orderDetails.copyLink') }}</a>
                   </div>
                   <div class="clrT2 hide orderDetailsCopiedToClipboard js-cryptoQuantityCopiedToClipboard">{{ ob.polyT('copiedToClipboard') }}</div>
+                </template>
+                <template v-if="isRwaToken">
+                  <div class="rowTn">
+                    <span class="txB">{{ ob.polyT('orderDetail.summaryTab.orderDetails.quantityHeading') }}:</span>
+                    {{ ob.currencyMod.convertAndFormatCurrency(order.items[idx].quantity, 'RWA_TOKEN') }}
+                    <a class=" clrTEm" v-if="order.items[idx].quantity" @click="onClickCopyRwaQuantity(order.items[idx].quantity)"> {{ ob.polyT('orderDetail.summaryTab.orderDetails.copyLink') }}</a>
+                  </div>
+                  <div class="clrT2 hide orderDetailsCopiedToClipboard js-rwaQuantityCopiedToClipboard">{{ ob.polyT('copiedToClipboard') }}</div>
                 </template>
                 <OptionalFeatureLine :optionalFeatures="getItemOptionalFeatures(idx)" :pricingCurrency="listing.price?.currencyCode" :displayCurrency="ob.displayCurrency" />
               </div>
@@ -43,7 +51,7 @@
           <hr class="clrBr" />
           <div class="flexRow gutterH">
             <div class="col4">
-              <div :class="`gutterVTn ${isCrypto ? 'row' : ''}`">
+              <div :class="`gutterVTn ${isCrypto || isRwaToken ? 'row' : ''}`">
                 <div class="txB">{{ ob.polyT('orderDetail.summaryTab.orderDetails.shipToHeading') }}</div>
                 <template v-if="ob.order.shipping && ob.order.shipping.country !== 'NA'">
                   <div>{{ ob.order.shipping.shipTo }}</div>
@@ -208,6 +216,9 @@ export default {
     },
     isCrypto () {
       return this.oneListing.metadata.contractType === 'CRYPTOCURRENCY';
+    },
+    isRwaToken () {
+      return this.oneListing.metadata.contractType === 'RWA_TOKEN';
     },
 
     coinType () {
@@ -439,6 +450,18 @@ export default {
         .velocity('fadeIn', {
           complete: () => {
             $('.js-cryptoQuantityCopiedToClipboard')
+              .velocity('fadeOut', { delay: 1000 });
+          },
+        });
+    },
+
+    onClickCopyRwaQuantity (quantity) {
+      ipc.send('controller.system.writeToClipboard', quantity);
+      $('.js-rwaQuantityCopiedToClipboard')
+        .velocity('stop')
+        .velocity('fadeIn', {
+          complete: () => {
+            $('.js-rwaQuantityCopiedToClipboard')
               .velocity('fadeOut', { delay: 1000 });
           },
         });

@@ -720,7 +720,9 @@ export default {
     },
     totalAmount() {
       return this.prices.reduce((total, price) => {
-        return total.plus(price.price).plus(price.vPrice).plus(price.sPrice)
+        // 计算单个商品的总价：单价 × 数量
+        const itemTotal = price.price.plus(price.vPrice).plus(price.sPrice).times(price.quantity);
+        return total.plus(itemTotal);
       }, bigNumber(0))
     },
 
