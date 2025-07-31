@@ -596,18 +596,6 @@ function start() {
             Backbone.history.start();
           }
 
-          // 初始化Vue聊天模块
-          if (window.vueApp && window.vueApp.$chat) {
-            // 获取WebSocket连接并传递给聊天模块
-            const serverSocket = getSocket();
-            if (serverSocket) {
-              window.vueApp.$store.dispatch('chat/initSocket', serverSocket);
-            }
-            
-            // 初始化聊天数据
-            window.vueApp.$chat.getConversations();
-          }
-
           fetchVerifiedMods();
           setInterval(() => fetchVerifiedMods(), 1000 * 60 * 60);
 
@@ -623,7 +611,7 @@ function start() {
           }
 
           // Make sure the client is running on a compatible version of the server.
-          if (app.settings.prettyServerVer !== serverVersionRequired) {
+          if (import.meta.env.VITE_APP && app.settings.prettyServerVer !== serverVersionRequired) {
             const cLink = `<a href="https://github.com/Mobazha/mobazha/releases">${app.polyglot.t('serverVersionWarning.clientLink')}</a>`;
             const sLink = `<a href="https://github.com/Mobazha/mobazha/releases">${app.polyglot.t('serverVersionWarning.serverLink')}</a>`;
             const message = app.polyglot.t('serverVersionWarning.message', {
