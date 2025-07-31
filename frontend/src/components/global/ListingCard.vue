@@ -590,7 +590,7 @@ export default {
       if (!ob.currencyMod.isFiatCur(ob.displayCurrency)) return 6;
     },
     ownListing() {
-      return app.profile.id === this.ownerGuid;
+      return app.profile?.id === this.ownerGuid;
     },
     cardErrorInfo() {
       let messageHtml = app.polyglot.t('listingCard.cardError');
@@ -851,7 +851,7 @@ export default {
       const hash = this.model.get('cid');
       const listingHash = getNewerHash(hash || this.model.get('hash'));
 
-      if (listingHash && this.ownerGuid !== app.profile.id) {
+      if (listingHash && this.ownerGuid !== app.profile?.id) {
         this.ipfsFetch = this.getFullListing().fetch({
           hash: listingHash,
           showErrorOnFetchFail: false,

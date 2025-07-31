@@ -247,9 +247,11 @@ export class RWAMarketplaceService {
       const transaction = await this.contract.shipAndComplete(orderId, sellerReceiveAddress);
       const receipt = await transaction.wait();
 
+      const transactionHash = this.getTransactionHashFromReceipt(receipt);
+
       // 打印收据信息用于调试
       console.log('🔧 发货完成交易收据信息:', {
-        transactionHash: receipt.transactionHash,
+        transactionHash,
         gasUsed: receipt.gasUsed,
         effectiveGasPrice: receipt.effectiveGasPrice,
         status: receipt.status,
@@ -259,7 +261,7 @@ export class RWAMarketplaceService {
 
       return {
         success: true,
-        transactionHash: receipt.transactionHash,
+        transactionHash,
         gasUsed: receipt.gasUsed ? receipt.gasUsed.toString() : '0',
         effectiveGasPrice: receipt.effectiveGasPrice ? receipt.effectiveGasPrice.toString() : '0'
       };

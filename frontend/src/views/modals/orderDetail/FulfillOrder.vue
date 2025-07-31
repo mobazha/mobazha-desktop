@@ -416,22 +416,8 @@ export default {
       try {
         this.processing = true;
         
-        // 构建发货数据
-        const fulfillmentData = {
-          orderID: this.orderID,
-          rwaTokenDelivery: {
-            transactionHash: this.formData.rwaTokenDelivery.transactionHash,
-            blockchain: this.formData.rwaTokenDelivery.blockchain
-          }
-          // RWA Token订单不需要note字段
-        };
-        
-        // 调用后端完成订单
-        await this.model.save(fulfillmentData);
-        
-        // 触发订单完成事件
-        this.$emit('fulfillOrderComplete');
-        
+        this.onClickSubmit();
+
         console.log('✅ RWA Token订单自动完成成功');
       } catch (error) {
         console.error('❌ 自动完成订单失败:', error);
