@@ -116,6 +116,16 @@ export default {
       unifiedTransactionService: new UnifiedTransactionService()
     };
   },
+  watch: {
+    'app.initialized': {
+      handler(newVal) {
+        if (newVal) {
+          this.initialized = true;
+        }
+      },
+      immediate: true
+    }
+  },
   setup() {
     const appKit = useAppKit();
     const networkData = useAppKitNetwork();
@@ -167,7 +177,6 @@ export default {
   created() {
     this.$nextTick(() => {
       this.initAppKit();
-      this.initialized = true;
       this.setupOrderEvents();
       
       // 延迟初始化聊天模块，确保WebSocket连接已建立
@@ -178,6 +187,14 @@ export default {
       });
       // 监听切链事件
       events.on('switchAppKitNetwork', this.handleSwitchAppKitNetwork);
+      
+      // Fallback: if Backbone app doesn't initialize within 10 seconds, initialize anyway
+      setTimeout(() => {
+        if (!this.initialized) {
+          console.warn('Backbone app initialization timeout, initializing Vue app anyway');
+          this.initialized = true;
+        }
+      }, 10000);
     });
   },
   methods: {

@@ -535,6 +535,7 @@ function start() {
     onboardIfNeeded().done(() => {
       fetchStartupData2().done(() => {
         ensureValidSettingsCurrency().done(() => {
+          app.initialized = true;
           window.vueApp.initialized = true;
           console.log('window.vueApp.initialized: ', window.vueApp.initialized);
           const curConn = getCurrentConnection();

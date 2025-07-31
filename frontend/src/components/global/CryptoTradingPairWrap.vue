@@ -57,7 +57,7 @@ export default {
         fromCur: '',
         fromCurAmount: 1,
         toCur: '',
-        localCurrency: app.settings.get('localCurrency'),
+        localCurrency: (app.settings && app.settings.get('localCurrency')) || 'USD',
         // If passing this in, it should be a string or a function. If it's a function
         // it will be passed the state and coin(s) with missing exchange rates and it
         // should return a string.

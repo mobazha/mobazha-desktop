@@ -1,6 +1,7 @@
 // Object where we can (very judiciously) attach any app-wide
 // shared state (e.g. router)
 export default {
+  initialized: false,
   serverConfig: {},
 
   // Short-hand convenience method to get the HTTP url of the active server configuration

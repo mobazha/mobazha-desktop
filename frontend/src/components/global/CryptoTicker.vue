@@ -48,7 +48,7 @@ export default {
   },
   computed: {
     displayCur () {
-      return app.settings.get('localCurrency') || 'USD';
+      return (app.settings && app.settings.get('localCurrency')) || 'USD';
     },
     displayRate () {
       let access = this.rateToggle;

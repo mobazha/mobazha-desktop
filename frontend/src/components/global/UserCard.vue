@@ -301,7 +301,7 @@ export default {
 
     saveModeratorList (add = false) {
       // clone the array, otherwise it is a reference
-      let modList = _.clone(app.settings.get('storeModerators'));
+      let modList = _.clone((app.settings && app.settings.get('storeModerators')) || []);
 
       if (add && !this.isOwnMod()) {
         modList.push(this.guid);

@@ -156,7 +156,7 @@ export default {
       const verifiedMod = app.verifiedMods.get(this.model.get('peerID'));
       return {
         ...this.templateHelpers,
-        displayCurrency: app.settings.get('localCurrency'),
+        displayCurrency: (app.settings && app.settings.get('localCurrency')) || 'USD',
         valid: this.model.isModerator,
         hasValidCurrency: this.hasValidCurrency(),
         radioStyle: this.options.radioStyle,

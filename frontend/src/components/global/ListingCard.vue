@@ -687,10 +687,12 @@ export default {
           }
         });
 
-        this.listenTo(app.settings, 'change:showNsfw', () => {
-          this._userClickedShowNsfw = null;
-          this.setHideNsfwClass();
-        });
+        if (app.settings) {
+          this.listenTo(app.settings, 'change:showNsfw', () => {
+            this._userClickedShowNsfw = null;
+            this.setHideNsfwClass();
+          });
+        }
 
         this.verifiedMods = app.verifiedMods.matched(this.model.get('moderators'));
 
@@ -995,7 +997,7 @@ export default {
 
     setHideNsfwClass() {
       // explicitly checking for false, since null means something different
-      this.hideNsfw = this._userClickedShowNsfw === false || (this.model.get('nsfw') && !this._userClickedShowNsfw && !app.settings.get('showNsfw'));
+      this.hideNsfw = this._userClickedShowNsfw === false || (this.model.get('nsfw') && !this._userClickedShowNsfw && !(app.settings && app.settings.get('showNsfw')));
     },
 
     fetchFullListing(options = {}) {

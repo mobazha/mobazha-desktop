@@ -49,7 +49,7 @@ export default {
         contentFailedClass: '',
         spinnerClass: 'spinnerSm',
         tipClass: 'clrT tx5 txCtr',
-        localCur: app.settings.get('localCurrency'),
+        localCur: (app.settings && app.settings.get('localCurrency')) || 'USD',
       }
     };
   },
@@ -112,7 +112,7 @@ export default {
           contentFailedClass: '',
           spinnerClass: 'spinnerSm',
           tipClass: 'clrT tx5 txCtr',
-          localCur: app.settings.get('localCurrency'),
+          localCur: (app.settings && app.settings.get('localCurrency')) || 'USD',
           // amount: undefined, // will be set on a 'inventory-change' or
           // can be provided as a number
           ...options.initialState,
