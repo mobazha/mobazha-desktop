@@ -181,6 +181,10 @@ export default {
     modelValue: {
       type: Object,
       default: null
+    },
+    blockchain: {
+      type: String,
+      default: null
     }
   },
   emits: ['update:modelValue'],
@@ -219,6 +223,17 @@ export default {
         }
       },
       immediate: true
+    },
+    blockchain: {
+      handler() {
+        // 当区块链改变时，清空搜索结果和搜索状态
+        this.searchResults = [];
+        this.hasSearched = false;
+        this.searchQuery = '';
+        this.verifiedToken = null;
+        this.addressNotFound = false;
+        this.addressError = '';
+      }
     }
   },
   methods: {
@@ -233,7 +248,7 @@ export default {
 
     performSearch() {
       if (this.searchQuery.trim()) {
-        this.searchResults = searchRwaTokens(this.searchQuery);
+        this.searchResults = searchRwaTokens(this.searchQuery, this.blockchain);
         this.hasSearched = true;
       }
     },
@@ -260,7 +275,8 @@ export default {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const token = findRwaTokenByAddress(this.addressInput);
-        if (token) {
+        // 如果指定了区块链，检查代币是否匹配
+        if (token && (!this.blockchain || token.blockchain.toLowerCase() === this.blockchain.toLowerCase())) {
           this.verifiedToken = token;
         } else {
           this.addressNotFound = true;

@@ -58,6 +58,7 @@
         <RwaTokenSelector 
           v-model="selectedRwaToken"
           :modelValue="selectedRwaToken || { cryptoListingCurrencyCode: modelValue?.item?.cryptoListingCurrencyCode }"
+          :blockchain="localRwaBlockchain"
           @update:modelValue="onRwaTokenSelected"
         />
         <div class="clrT2 txSm helper">{{ ob.polyT('editListing.rwaTokenType.helperTokenSelection') }}</div>
@@ -248,7 +249,7 @@ export default {
         { code: 'ARBITRUM', name: 'Arbitrum (ARB)' },
         { code: 'OPTIMISM', name: 'Optimism (OP)' },
         { code: 'AVALANCHE', name: 'Avalanche (AVAX)' },
-        { code: 'SOLANA', name: 'Solana (SOL)' }
+        { code: 'SOL', name: 'Solana (SOL)' }
       ],
     };
   },

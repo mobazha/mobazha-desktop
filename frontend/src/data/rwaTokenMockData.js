@@ -216,9 +216,19 @@ export function findRwaTokenByCode(code) {
 }
 
 // 根据名称搜索RWA Token
-export function searchRwaTokens(query) {
+export function searchRwaTokens(query, blockchain = null) {
   const lowerQuery = query.toLowerCase();
-  return rwaTokenMockData.filter(token => 
+  let filteredTokens = rwaTokenMockData;
+  
+  // 如果指定了区块链，先按区块链过滤
+  if (blockchain) {
+    filteredTokens = rwaTokenMockData.filter(token => 
+      token.blockchain.toLowerCase() === blockchain.toLowerCase()
+    );
+  }
+  
+  // 然后在过滤后的结果中搜索
+  return filteredTokens.filter(token => 
     token.name.toLowerCase().includes(lowerQuery) ||
     token.symbol.toLowerCase().includes(lowerQuery) ||
     token.code.toLowerCase().includes(lowerQuery)
