@@ -2,7 +2,7 @@
 export const rwaTokenMockData = [
   {
     code: 'REAL_ESTATE_001',
-    name: '上海商业地产代币',
+    name: '上海商业地产收益代币',
     symbol: 'SHRE',
     blockchain: 'ETH',
     contractAddress: '0x1234567890123456789012345678901234567890',
@@ -41,7 +41,7 @@ export const rwaTokenMockData = [
   },
   {
     code: 'CARBON_CREDIT_001',
-    name: '森林碳汇信用代币',
+    name: '绿色债券代币',
     symbol: 'FCC',
     blockchain: 'ETH',
     contractAddress: '0x91DaF662f2D8565C9Fa73a43Ca943ba78b0ff4B7',
@@ -82,7 +82,7 @@ export const rwaTokenMockData = [
   },
   {
     code: 'SOLANA_REAL_ESTATE_001',
-    name: 'Solana 商业地产代币',
+    name: 'Solana 商业地产收益代币',
     symbol: 'SOLRE',
     blockchain: 'SOL',
     contractAddress: '0x3456789012345678901234567890123456789012',
@@ -162,7 +162,7 @@ export const rwaTokenMockData = [
   },
   {
     code: 'BASE_REAL_ESTATE_001',
-    name: 'Base 住宅地产代币',
+    name: 'Base 住宅地产收益代币',
     symbol: 'BASERE',
     blockchain: 'BASE',
     contractAddress: '0x5678901234567890123456789012345678901234',
