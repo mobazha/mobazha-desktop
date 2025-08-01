@@ -892,6 +892,8 @@ export default {
 
       if (this.contract.type === 'CRYPTOCURRENCY') {
         this.fulfilledOptions.coinType = this.listings[0].metadata.coinType;
+      } else if (this.contract.type === 'RWA_TOKEN') {
+        this.fulfilledOptions.coinType = this.listings[0].item.cryptoListingCurrencyCode;
       }
 
       this.showFulfilled = true;

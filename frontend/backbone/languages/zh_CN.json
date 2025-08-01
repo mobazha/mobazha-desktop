@@ -2121,6 +2121,8 @@
       "notePlaceholder": "可选",
       "noteHelperTextDigital": "买家将收到包含文件信息的通知",
       "noteHelperTextRwa": "买家将收到RWA代币充值通知",
+      "sellerReceiveAddress": "卖家收款地址",
+      "pleaseSelectReceiveAddress": "请选择收款地址",
       "btnCancel": "取消",
       "btnSubmit": "提交"
     },
@@ -2371,14 +2373,7 @@
     "provideUrl": "请提供一个文件的URL",
     "invalidUrl": "请提供有效的URL。",
     "provideTransactionID": "请提供交易ID。",
-    "transactionIDTooLong": "交易ID超过%{maxLength}个字符的最大长度。",
-    "provideRwaTokenAddress": "请提供RWA代币地址。",
-    "provideRwaTokenAmount": "请提供RWA代币数量。",
-    "provideRwaTransactionHash": "请提供RWA交易哈希。",
-    "provideRwaBlockchain": "请选择区块链。",
-    "invalidRwaTokenAddress": "请提供有效的RWA代币地址。",
-    "invalidRwaTransactionHash": "请提供有效的RWA交易哈希。",
-    "invalidRwaTokenAmount": "请提供有效的RWA代币数量。"
+    "transactionIDTooLong": "交易ID超过%{maxLength}个字符的最大长度。"
   },
   "errorPage": {
     "userNotFoundTitle": "无法找到该用户",

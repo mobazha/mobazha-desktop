@@ -242,6 +242,7 @@ import { getContractAddress } from '@/config/rwaMarketplaceConfig.js';
 import { ethers } from 'ethers';
 import { useAppKitProvider } from '@reown/appkit/vue';
 import ReceivingAccountSelector from '@/components/ReceivingAccountSelector.vue';
+import { findRwaTokenByAddress } from '@/data/rwaTokenMockData.js';
 
 export default {
   props: {
@@ -270,10 +271,6 @@ export default {
         },
         cryptocurrencyDelivery: {
           transactionID: '',
-        },
-        rwaTokenDelivery: {
-          transactionHash: '',
-          blockchain: 'ETH',
         },
         note: '',
       },
@@ -388,7 +385,7 @@ export default {
         );
         
         if (result.success) {
-          this.formData.rwaTokenDelivery.transactionHash = result.transactionHash;
+          this.formData.cryptocurrencyDelivery.transactionID = result.transactionHash;
           this.rwaTokenRechargeStatus = {
             status: 'success',
             title: '转移成功',
@@ -604,7 +601,7 @@ export default {
         formData.physicalDelivery = this.formData.physicalDelivery;
       } else if (this.contractType === 'RWA_TOKEN') {
         // 检查RWA Token转移是否完成
-        if (!this.formData.rwaTokenDelivery.transactionHash) {
+        if (!this.formData.cryptocurrencyDelivery.transactionID) {
           this.rwaTokenRechargeStatus = {
             status: 'error',
             title: '发货失败',
@@ -612,7 +609,7 @@ export default {
           };
           return;
         }
-        formData.rwaTokenDelivery = this.formData.rwaTokenDelivery;
+        formData.cryptocurrencyDelivery = this.formData.cryptocurrencyDelivery;
       }
       formData.note = this.formData.note;
 
@@ -640,7 +637,15 @@ export default {
     },
 
     getRwaTokenBlockchain() {
-      return this.orderInfo?.rwaTokenDelivery?.blockchain || 'ETH';
+      // 通过RWA token地址获取区块链信息
+      if (this.orderInfo?.rwaTokenAddress) {
+        const rwaToken = findRwaTokenByAddress(this.orderInfo.rwaTokenAddress);
+        if (rwaToken) {
+          return rwaToken.blockchain;
+        }
+      }
+
+      return '';
     },
   }
 }

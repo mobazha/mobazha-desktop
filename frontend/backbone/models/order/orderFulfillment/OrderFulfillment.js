@@ -3,17 +3,14 @@ import BaseModel from '../../BaseModel';
 import PhysicalDelivery from './PhysicalDelivery';
 import DigitalDelivery from './DigitalDelivery';
 import CryptoDelivery from './CryptoDelivery';
-import RwaTokenDelivery from './RwaTokenDelivery';
 
 function defaults(attrs = {}, context = {}) {
   if (context.contractType === 'DIGITAL_GOOD') {
     attrs.digitalDelivery = new DigitalDelivery(attrs.digitalDelivery || {});
-  } else if (context.contractType === 'CRYPTOCURRENCY') {
+  } else if (context.contractType === 'CRYPTOCURRENCY' || context.contractType === 'RWA_TOKEN') {
     attrs.cryptocurrencyDelivery = new CryptoDelivery(attrs.cryptocurrencyDelivery || {});
   } else if (context.contractType === 'PHYSICAL_GOOD' && !context.isLocalPickup) {
     attrs.physicalDelivery = new PhysicalDelivery(attrs.physicalDelivery || {});
-  } else if (context.contractType === 'RWA_TOKEN') {
-    attrs.rwaTokenDelivery = new RwaTokenDelivery(attrs.rwaTokenDelivery || {});
   }
 
   return attrs;
@@ -52,7 +49,6 @@ export default class extends BaseModel {
       physicalDelivery: PhysicalDelivery,
       digitalDelivery: DigitalDelivery,
       cryptocurrencyDelivery: CryptoDelivery,
-      rwaTokenDelivery: RwaTokenDelivery,
     };
   }
 
@@ -82,10 +78,6 @@ export default class extends BaseModel {
 
       if (options.attrs.cryptocurrencyDelivery) {
         options.attrs.cryptocurrencyDelivery = options.attrs.cryptocurrencyDelivery;
-      }
-
-      if (options.attrs.rwaTokenDelivery) {
-        options.attrs.rwaTokenDelivery = options.attrs.rwaTokenDelivery;
       }
     }
 

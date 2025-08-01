@@ -2139,6 +2139,8 @@
       "notePlaceholder": "optional",
       "noteHelperTextDigital": "The buyer will receive a notification containing the file information",
       "noteHelperTextRwa": "The buyer will receive RWA token transfer notification",
+      "sellerReceiveAddress": "Seller Receive Address",
+      "pleaseSelectReceiveAddress": "Please select a receive address",
       "btnCancel": "Cancel",
       "btnSubmit": "Submit"
     },
@@ -2403,14 +2405,7 @@
     "provideUrl": "Please provide a file url.",
     "invalidUrl": "Please provide a valid url.",
     "provideTransactionID": "Please provide a transaction ID.",
-    "transactionIDTooLong": "Transaction ID exceeds the maximum length of %{maxLength} characters.",
-    "provideRwaTokenAddress": "Please provide RWA token address.",
-    "provideRwaTokenAmount": "Please provide RWA token amount.",
-    "provideRwaTransactionHash": "Please provide RWA transaction hash.",
-    "provideRwaBlockchain": "Please select blockchain.",
-    "invalidRwaTokenAddress": "Please provide a valid RWA token address.",
-    "invalidRwaTransactionHash": "Please provide a valid RWA transaction hash.",
-    "invalidRwaTokenAmount": "Please provide a valid RWA token amount."
+    "transactionIDTooLong": "Transaction ID exceeds the maximum length of %{maxLength} characters."
   },
   "errorPage": {
     "userNotFoundTitle": "This User Could Not Be Found",

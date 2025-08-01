@@ -58,7 +58,7 @@
         </div>
       </template>
 
-      <template v-else-if="ob.contractType === 'CRYPTOCURRENCY'">
+      <template v-else-if="ob.contractType === 'CRYPTOCURRENCY' || ob.contractType === 'RWA_TOKEN'">
         <div class="flex gutterH clrT">
           <div class="statusIconCol">
             <CryptoIcon :code="ob.coinType" className="clrBr"/>
@@ -127,7 +127,7 @@ export default {
   computed: {
     ob () {
       const cd = this.dataObject.cryptocurrencyDelivery;
-      const transactionID = cd && cd[0] && cd[0].transactionID || '';
+      const transactionID = cd && cd.transactionID || '';
 
       return {
         ...this.templateHelpers,
