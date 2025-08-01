@@ -14,7 +14,7 @@
 
         <!-- RWA Token 标识徽章 - 右上角 -->
         <div v-if="ob.contractType === 'RWA_TOKEN'" class="rwaTokenBadgeTopRight">
-          <i class="ion-ios-star"></i>
+          <img :src="getRwaTokenIcon()" alt="RWA Token" class="rwaTokenIcon" />
           <span>{{ ob.polyT('listingCard.rwaTokenBadge') }}</span>
         </div>
 
@@ -199,10 +199,10 @@
             <div :class="`rowTn inlineBlock ${ob.title.length > 60 ? 'toolTip' : 'toolTipNoWrap'} toolTipTop`" :data-tip="ob.title">
               <a class="clrT clamp3 listingTitle">{{ ob.title }}</a>
               <!-- RWA Token 标识 - list视图标题旁 -->
-              <span v-if="ob.contractType === 'RWA_TOKEN'" class="rwaTokenBadgeInline">
-                <i class="ion-ios-star"></i>
-                <span>{{ ob.polyT('listingCard.rwaTokenBadge') }}</span>
-              </span>
+                      <span v-if="ob.contractType === 'RWA_TOKEN'" class="rwaTokenBadgeInline">
+          <img :src="getRwaTokenIcon()" alt="RWA Token" class="rwaTokenIcon" />
+          <span>{{ ob.polyT('listingCard.rwaTokenBadge') }}</span>
+        </span>
             </div>
           </template>
           <div v-else v-html="ob.crypto.tradingPair({
@@ -458,6 +458,7 @@ import ListingDetail from '../../views/modals/listingDetail/Listing.vue';
 import EditListing from '@/views/modals/editListing/EditListing.vue';
 
 import * as casdoor from '@/utils/casdoor';
+import { getRwaTokenIconPath } from '../../data/rwaTokenMockData.js';
 
 export default {
   components: {
@@ -716,6 +717,16 @@ export default {
     attributes() {
       // make it possible to tab to this element
       return { tabIndex: 0 };
+    },
+
+    getRwaTokenIcon() {
+      // 根据listing的token代码获取对应的图标
+      const tokenCode = this.model.get('item')?.cryptoListingCurrencyCode;
+      if (tokenCode) {
+        return getRwaTokenIconPath(tokenCode);
+      }
+      // 如果没有找到token代码，使用默认图标
+      return '/imgs/rwa-tokens/carbon-credit-001.svg';
     },
     onClickEdit() {
       recordEvent('Lisitng_EditFromCard');
@@ -1130,9 +1141,10 @@ export default {
   color: #6366f1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   
-  i {
-    font-size: 9px;
-    color: #6366f1;
+  .rwaTokenIcon {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
   }
   
   span {
@@ -1154,8 +1166,10 @@ export default {
   align-items: center;
   justify-content: center;
   
-  i {
-    font-size: 6px;
+  .rwaTokenIcon {
+    width: 8px;
+    height: 8px;
+    border-radius: 1px;
   }
   
   .rwaTokenText {
@@ -1177,9 +1191,10 @@ export default {
   font-weight: 500;
   color: #6366f1;
   
-  i {
-    font-size: 8px;
-    color: #6366f1;
+  .rwaTokenIcon {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
   }
   
   span {
@@ -1194,8 +1209,9 @@ export default {
     padding: 2px 4px;
     font-size: 9px;
     
-    i {
-      font-size: 8px;
+    .rwaTokenIcon {
+      width: 10px;
+      height: 10px;
     }
     
     span {
@@ -1211,8 +1227,9 @@ export default {
     width: 10px;
     height: 10px;
     
-    i {
-      font-size: 5px;
+    .rwaTokenIcon {
+      width: 6px;
+      height: 6px;
     }
     
     .rwaTokenText {
@@ -1225,8 +1242,9 @@ export default {
     padding: 1px 3px;
     font-size: 8px;
     
-    i {
-      font-size: 7px;
+    .rwaTokenIcon {
+      width: 8px;
+      height: 8px;
     }
     
     span {

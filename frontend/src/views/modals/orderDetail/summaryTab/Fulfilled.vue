@@ -58,7 +58,7 @@
         </div>
       </template>
 
-      <template v-else-if="ob.contractType === 'CRYPTOCURRENCY' || ob.contractType === 'RWA_TOKEN'">
+      <template v-else-if="ob.contractType === 'CRYPTOCURRENCY'">
         <div class="flex gutterH clrT">
           <div class="statusIconCol">
             <CryptoIcon :code="ob.coinType" className="clrBr"/>
@@ -69,11 +69,39 @@
                 coinTypeVerbose,
             }) }}</div>
 
-            <div class="row">
-              <span>{{ ob.polyT('orderDetail.summaryTab.fulfilled.transactionIDLabel') }}</span>
-              <span class="clamp3 inline">{{ ob.encodedTxId }}</span>
-              <a class="clrTEm  flexNoShrink" @click="onClickCopyText(ob.transactionID, $event)" data-status-indicator=".js-transactionIDCopiedToClipboard">{{
-                  ob.polyT('orderDetail.summaryTab.fulfilled.copyLink') }}</a>
+            <div class="row transactionIdRow">
+              <div class="transactionIdLabel">{{ ob.polyT('orderDetail.summaryTab.fulfilled.transactionIDLabel') }}</div>
+              <div class="transactionIdContent">
+                <span class="transactionIdText">{{ formatTransactionId(ob.transactionID) }}</span>
+                <a class="clrTEm copyLink" @click="onClickCopyText(ob.transactionID, $event)" data-status-indicator=".js-transactionIDCopiedToClipboard">{{
+                    ob.polyT('orderDetail.summaryTab.fulfilled.copyLink') }}</a>
+              </div>
+              <a class="hide js-transactionIDCopiedToClipboard">{{ ob.polyT('copiedToClipboard') }}</a>
+            </div>
+            <div class="rowTn txB">{{ ob.noteFromLabel }}</div>
+            <div v-html="`${ ob.note ? ob.parseEmojis(ob.note) : ob.polyT('orderDetail.summaryTab.notApplicable') }`"></div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="ob.contractType === 'RWA_TOKEN'">
+        <div class="flex gutterH clrT">
+          <div class="statusIconCol">
+            <img :src="getRwaTokenIcon()" :alt="getRwaTokenName()" class="rwaTokenIcon" />
+          </div>
+          <div class="flexExpand tx5 posR">
+            <div class="rowTn txB">{{ ob.polyT('orderDetail.summaryTab.fulfilled.cryptoSentLabel', {
+              coinTypeVerbose:
+                coinTypeVerbose,
+            }) }}</div>
+
+            <div class="row transactionIdRow">
+              <div class="transactionIdLabel">{{ ob.polyT('orderDetail.summaryTab.fulfilled.transactionIDLabel') }}</div>
+              <div class="transactionIdContent">
+                <span class="transactionIdText">{{ formatTransactionId(ob.transactionID) }}</span>
+                <a class="clrTEm copyLink" @click="onClickCopyText(ob.transactionID, $event)" data-status-indicator=".js-transactionIDCopiedToClipboard">{{
+                    ob.polyT('orderDetail.summaryTab.fulfilled.copyLink') }}</a>
+              </div>
               <a class="hide js-transactionIDCopiedToClipboard">{{ ob.polyT('copiedToClipboard') }}</a>
             </div>
             <div class="rowTn txB">{{ ob.noteFromLabel }}</div>
@@ -92,6 +120,7 @@ import moment from 'moment';
 import { ipc } from '../../../../utils/ipcRenderer.js';
 import 'velocity-animate';
 import app from '../../../../../backbone/app.js';
+import { findRwaTokenByCode, getRwaTokenIconPath } from '../../../../data/rwaTokenMockData.js';
 
 
 export default {
@@ -179,14 +208,17 @@ export default {
     onClickCopyText (content, event) {
       const target = event.target;
       ipc.send('controller.system.writeToClipboard', content.replace(/\[!\$quote\$!\]/g, '"'));
-      $(target.attr('data-status-indicator'))
-        .velocity('stop')
-        .velocity('fadeIn', {
-          complete: () => {
-            $(target.attr('data-status-indicator'))
-              .velocity('fadeOut', { delay: 1000 });
-          },
-        });
+      const statusIndicator = target.getAttribute('data-status-indicator');
+      if (statusIndicator) {
+        $(statusIndicator)
+          .velocity('stop')
+          .velocity('fadeIn', {
+            complete: () => {
+              $(statusIndicator)
+                .velocity('fadeOut', { delay: 1000 });
+            },
+          });
+      }
     },
 
     revealEscapeChars (input) {
@@ -201,7 +233,95 @@ export default {
 
       return output;
     },
+
+    getRwaTokenIcon() {
+      // 根据coinType（实际上是token代码）获取对应的图标
+      const tokenCode = this.ob.coinType;
+      if (tokenCode) {
+        return getRwaTokenIconPath(tokenCode);
+      }
+      // 如果没有找到token代码，使用默认图标
+      return '/imgs/rwa-tokens/custom.svg';
+    },
+
+    getRwaTokenName() {
+      // 根据coinType获取token名称
+      const tokenCode = this.ob.coinType;
+      if (tokenCode) {
+        const token = findRwaTokenByCode(tokenCode);
+        return token ? token.name : tokenCode;
+      }
+      return this.ob.coinType || 'RWA Token';
+    },
+
+    formatTransactionId(transactionId) {
+      if (!transactionId) return '';
+      
+      // 移除转义字符
+      const cleanTxId = transactionId.replace(/\[!\$quote\$!\]/g, '"');
+      
+      // 如果长度超过20个字符，截断显示
+      if (cleanTxId.length > 20) {
+        return `${cleanTxId.slice(0, 10)}...${cleanTxId.slice(-10)}`;
+      }
+      
+      return cleanTxId;
+    },
   }
 }
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.rwaTokenIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.transactionIdRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  .transactionIdLabel {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .transactionIdContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+
+    .transactionIdText {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #e9ecef;
+      font-size: 13px;
+      color: #495057;
+      word-break: break-all;
+      max-width: 300px;
+    }
+
+    .copyLink {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #007bff;
+        color: white;
+      }
+    }
+  }
+}
+</style>

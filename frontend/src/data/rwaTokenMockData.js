@@ -7,6 +7,7 @@ export const rwaTokenMockData = [
     blockchain: 'ETH',
     contractAddress: '0x1234567890123456789012345678901234567890',
     tokenType: 'REAL_ESTATE',
+    iconPath: '/imgs/rwa-tokens/real-estate-001.svg',
     decimals: 18,
     totalSupply: '1000000000000000000000000', // 1,000,000 tokens
     description: '上海核心商业区商业地产代币化项目，包含多个高端写字楼和商业综合体',
@@ -46,6 +47,7 @@ export const rwaTokenMockData = [
     blockchain: 'ETH',
     contractAddress: '0x91DaF662f2D8565C9Fa73a43Ca943ba78b0ff4B7',
     tokenType: 'CARBON_CREDIT',
+    iconPath: '/imgs/rwa-tokens/carbon-credit-001.svg',
     decimals: 18,
     totalSupply: '500000000000000000000000', // 500,000 tokens
     description: '基于可持续森林管理的碳汇信用代币，每个代币代表1吨CO2当量的碳汇',
@@ -87,6 +89,7 @@ export const rwaTokenMockData = [
     blockchain: 'SOL',
     contractAddress: '0x3456789012345678901234567890123456789012',
     tokenType: 'REAL_ESTATE',
+    iconPath: '/imgs/rwa-tokens/solana-real-estate-001.svg',
     decimals: 9,
     totalSupply: '1000000000', // 1,000,000,000 tokens
     description: '基于 Solana 区块链的商业地产代币化项目',
@@ -126,6 +129,7 @@ export const rwaTokenMockData = [
     blockchain: 'BSC',
     contractAddress: '0x4567890123456789012345678901234567890123',
     tokenType: 'CARBON_CREDIT',
+    iconPath: '/imgs/rwa-tokens/bsc-carbon-credit-001.svg',
     decimals: 18,
     totalSupply: '300000000000000000000000', // 300,000 tokens
     description: '基于 BSC 区块链的碳汇信用代币',
@@ -167,6 +171,7 @@ export const rwaTokenMockData = [
     blockchain: 'BASE',
     contractAddress: '0x5678901234567890123456789012345678901234',
     tokenType: 'REAL_ESTATE',
+    iconPath: '/imgs/rwa-tokens/base-real-estate-001.svg',
     decimals: 18,
     totalSupply: '2000000000000000000000000', // 2,000,000 tokens
     description: '基于 Base 区块链的住宅地产代币化项目',
@@ -250,4 +255,15 @@ export function getAllRwaTokenTypes() {
 // 根据类型获取RWA Token列表
 export function getRwaTokensByType(tokenType) {
   return rwaTokenMockData.filter(token => token.tokenType === tokenType);
+}
+
+// 获取RWA Token图标路径
+export function getRwaTokenIconPath(tokenCode) {
+  // 首先尝试从现有token数据中获取图标路径
+  const existingToken = rwaTokenMockData.find(token => token.code === tokenCode);
+  if (existingToken && existingToken.iconPath) {
+    return existingToken.iconPath;
+  }
+  
+  return '/imgs/rwa-tokens/custom.svg';
 } 

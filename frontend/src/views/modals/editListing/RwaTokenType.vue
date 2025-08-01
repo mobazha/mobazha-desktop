@@ -81,7 +81,10 @@
             </div>
             <div class="infoItem">
               <span class="label">代币类型:</span>
-              <span class="value">{{ getTokenTypeName(selectedRwaToken.tokenType) }}</span>
+              <span class="value">
+                <img :src="getTokenTypeIcon(selectedRwaToken.code)" :alt="getTokenTypeName(selectedRwaToken.tokenType)" class="tokenTypeIcon" />
+                {{ getTokenTypeName(selectedRwaToken.tokenType) }}
+              </span>
             </div>
             <div class="infoItem">
               <span class="label">当前价格:</span>
@@ -214,7 +217,7 @@ import { getCurrenciesSortedByCode } from '../../../../backbone/data/currencies'
 
 import ViewListingLinks from './ViewListingLinks.vue';
 import RwaTokenSelector from '../../../components/RwaTokenSelector.vue';
-import { findRwaTokenByCode } from '../../../data/rwaTokenMockData.js';
+import { findRwaTokenByCode, getRwaTokenIconPath } from '../../../data/rwaTokenMockData.js';
 
 export default {
   components: {
@@ -687,6 +690,10 @@ export default {
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
     },
 
+    getTokenTypeIcon(tokenCode) {
+      return getRwaTokenIconPath(tokenCode);
+    },
+
     // 添加支付币种
     addAcceptedCurrency() {
       if (this.selectedAcceptedCurrencies.length < 5) { // 限制最多5种币种
@@ -743,6 +750,14 @@ export default {
 
       &:last-child {
         border-bottom: none;
+      }
+
+      .tokenTypeIcon {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: middle;
       }
 
       .label {

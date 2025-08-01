@@ -46,9 +46,14 @@
             @click="selectToken(token)"
           >
             <div class="tokenInfo">
-              <div class="tokenName">{{ token.name }}</div>
-              <div class="tokenSymbol">{{ token.symbol }}</div>
-              <div class="tokenType">{{ getTokenTypeName(token.tokenType) }}</div>
+              <div class="tokenIcon">
+                <img :src="getTokenTypeIcon(token.code)" :alt="getTokenTypeName(token.tokenType)" />
+              </div>
+              <div class="tokenDetails">
+                <div class="tokenName">{{ token.name }}</div>
+                <div class="tokenSymbol">{{ token.symbol }}</div>
+                <div class="tokenType">{{ getTokenTypeName(token.tokenType) }}</div>
+              </div>
             </div>
             <div class="tokenDetails">
               <div class="tokenPrice">{{ $t('rwaTokenSelector.currentPrice') }}: ${{ token.currentPrice }}</div>
@@ -147,9 +152,14 @@
       </div>
       <div class="selectedTokenCard">
         <div class="tokenInfo">
-          <div class="tokenName">{{ selectedToken.name }}</div>
-          <div class="tokenSymbol">{{ selectedToken.symbol }}</div>
-          <div class="tokenAddress">{{ formatAddress(selectedToken.contractAddress) }}</div>
+          <div class="tokenIcon">
+            <img :src="getTokenTypeIcon(selectedToken.code)" :alt="getTokenTypeName(selectedToken.tokenType)" />
+          </div>
+          <div class="tokenDetails">
+            <div class="tokenName">{{ selectedToken.name }}</div>
+            <div class="tokenSymbol">{{ selectedToken.symbol }}</div>
+            <div class="tokenAddress">{{ formatAddress(selectedToken.contractAddress) }}</div>
+          </div>
         </div>
         <div class="tokenStats">
           <div class="stat">
@@ -172,7 +182,8 @@ import {
   findRwaTokenByAddress, 
   findRwaTokenByCode,
   searchRwaTokens, 
-  validateContractAddress 
+  validateContractAddress,
+  getRwaTokenIconPath
 } from '../data/rwaTokenMockData.js';
 
 export default {
@@ -339,6 +350,10 @@ export default {
     formatAddress(address) {
       if (!address) return '';
       return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    },
+
+    getTokenTypeIcon(tokenCode) {
+      return getRwaTokenIconPath(tokenCode);
     }
   }
 };
@@ -441,27 +456,44 @@ export default {
         }
 
         .tokenInfo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
           margin-bottom: 8px;
 
-          .tokenName {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 4px;
+          .tokenIcon {
+            flex-shrink: 0;
+            
+            img {
+              width: 24px;
+              height: 24px;
+              border-radius: 4px;
+            }
           }
 
-          .tokenSymbol {
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 2px;
-          }
+          .tokenDetails {
+            flex: 1;
 
-          .tokenType {
-            color: #007bff;
-            font-size: 11px;
-            background: #e3f2fd;
-            padding: 2px 6px;
-            border-radius: 3px;
-            display: inline-block;
+            .tokenName {
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 4px;
+            }
+
+            .tokenSymbol {
+              color: #666;
+              font-size: 12px;
+              margin-bottom: 2px;
+            }
+
+            .tokenType {
+              color: #007bff;
+              font-size: 11px;
+              background: #e3f2fd;
+              padding: 2px 6px;
+              border-radius: 3px;
+              display: inline-block;
+            }
           }
         }
 
@@ -643,24 +675,41 @@ export default {
       background: #f8fff9;
 
       .tokenInfo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         margin-bottom: 15px;
 
-        .tokenName {
-          font-weight: bold;
-          color: #333;
-          margin-bottom: 4px;
+        .tokenIcon {
+          flex-shrink: 0;
+          
+          img {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+          }
         }
 
-        .tokenSymbol {
-          color: #007bff;
-          font-size: 12px;
-          margin-bottom: 4px;
-        }
+        .tokenDetails {
+          flex: 1;
 
-        .tokenAddress {
-          font-family: monospace;
-          font-size: 12px;
-          color: #666;
+          .tokenName {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+          }
+
+          .tokenSymbol {
+            color: #007bff;
+            font-size: 12px;
+            margin-bottom: 4px;
+          }
+
+          .tokenAddress {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+          }
         }
       }
 

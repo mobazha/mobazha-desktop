@@ -288,7 +288,10 @@
                 </div>
                 <div class="infoItem">
                   <span class="label">代币类型:</span>
-                  <span class="value">{{ getTokenTypeName(rwaTokenInfo.tokenType) }}</span>
+                  <span class="value">
+                    <img :src="getTokenTypeIcon(rwaTokenInfo.code)" :alt="getTokenTypeName(rwaTokenInfo.tokenType)" class="tokenTypeIcon" />
+                    {{ getTokenTypeName(rwaTokenInfo.tokenType) }}
+                  </span>
                 </div>
                 <div class="infoItem">
                   <span class="label">当前价格:</span>
@@ -569,7 +572,7 @@ import Reviews from '../../reviews/Reviews.vue';
 import PurchaseError from '@/views/modals/listingDetail/PurchaseError.vue';
 import Purchase from '../purchase/Purchase.vue';
 import EditListing from '../editListing/EditListing.vue';
-import { findRwaTokenByCode } from '../../../data/rwaTokenMockData.js';
+import { findRwaTokenByCode, getRwaTokenIconPath } from '../../../data/rwaTokenMockData.js';
 
 export default {
   components: {
@@ -1382,6 +1385,10 @@ export default {
         return amount;
       }
     },
+
+    getTokenTypeIcon(tokenCode) {
+      return getRwaTokenIconPath(tokenCode);
+    },
   },
 };
 </script>
@@ -1457,6 +1464,14 @@ export default {
         color: #333;
         font-size: 14px;
         font-weight: 600;
+
+        .tokenTypeIcon {
+          width: 16px;
+          height: 16px;
+          border-radius: 3px;
+          margin-right: 6px;
+          vertical-align: middle;
+        }
 
         &.verified {
           color: #28a745;
