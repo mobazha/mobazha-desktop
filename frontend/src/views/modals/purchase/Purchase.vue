@@ -1780,8 +1780,21 @@ export default {
           }
         }
 
+        const requestData = {
+          orderID: this.orderID,
+          coinType: this.paymentCoin,
+          isRwaToken: true,
+        };
+
+        // 获取支付指令 - 先调用 instructions/order/payment 获取 buyer 和 seller 地址
+        const response = await myPost(app.getServerUrl('instructions/order/payment'), requestData);
+        if (!response || !response.buyerAddress || !response.vendorAddress) {
+          console.log('🔧 获取订单支付指令失败:', response);
+          throw new Error('获取订单支付指令失败');
+        }
+
         // 获取订单数据
-        const orderData = this.buildRwaTokenOrderData();
+        const orderData = this.buildRwaTokenOrderData(response);
         
         // 在创建订单前检查用户余额
         try {
@@ -1891,13 +1904,9 @@ export default {
       events.off('rwaTokenTransactionError', errorHandler);
     },
 
-    buildRwaTokenOrderData() {
+    buildRwaTokenOrderData(response = null) {
       const listing = this.oneListing;
-      const item = this.order.get('items').at(0);
-      
-      // 获取卖家地址
-      const sellerAddress = listing.get('vendorID').peerID;
-      
+
       // 获取RWA Token地址
       const rwaTokenCode = listing.get('item').get('cryptoListingCurrencyCode');
       const rwaToken = findRwaTokenByCode(rwaTokenCode);
@@ -1938,7 +1947,8 @@ export default {
 
       return {
         orderId: this.orderID,
-        seller: sellerAddress,
+        buyer: response.buyerAddress,
+        seller: response.vendorAddress,
         rwaTokenAddress,
         paymentTokenAddress,
         buyerReceiveAddress,

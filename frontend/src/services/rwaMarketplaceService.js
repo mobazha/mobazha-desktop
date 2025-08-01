@@ -152,6 +152,7 @@ export class RWAMarketplaceService {
     try {
       const {
         orderId,
+        buyer,
         seller,
         rwaTokenAddress,
         paymentTokenAddress,
@@ -174,7 +175,7 @@ export class RWAMarketplaceService {
         // ETH支付
         transaction = await this.contract.createOrderAndPay(
           txOrderId,
-          this.signer.getAddress(), // buyer
+          buyer,
           seller,
           rwaTokenAddress,
           paymentTokenAddress,
