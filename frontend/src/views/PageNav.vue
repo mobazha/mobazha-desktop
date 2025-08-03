@@ -237,6 +237,7 @@
         };
       }" @close="closeEditListingModal" />
       <ShoppingCart v-if="showShoppingCart" @close="closeShoppingCart" />
+      <ReceivingAccountsModal v-if="showReceivingAccountsModal" @close="closeReceivingAccountsModal" />
     </Teleport>
   </div>
 </template>
@@ -265,6 +266,7 @@ import Settings from '@/views/modals/settings/Settings.vue';
 import EditListing from '@/views/modals/editListing/EditListing.vue';
 import WooImporter from '@/views/modals/WooImporter.vue';
 import ShoppingCart from './ShoppingCart.vue';
+import ReceivingAccountsModal from './modals/ReceivingAccountsModal.vue';
 
 export default {
   components: {
@@ -277,6 +279,7 @@ export default {
     EditListing,
     WooImporter,
     ShoppingCart,
+    ReceivingAccountsModal,
   },
   props: {
     options: {
@@ -321,6 +324,8 @@ export default {
       editListingModel: {},
 
       showShoppingCart: false,
+
+      showReceivingAccountsModal: false,
 
       onboard: {},
     };
@@ -711,6 +716,10 @@ export default {
       this.showShoppingCart = false;
     },
 
+    closeReceivingAccountsModal() {
+      this.showReceivingAccountsModal = false;
+    },
+
     onDocClick () {
       this.closeNavMenu();
     },
@@ -824,7 +833,7 @@ export default {
 
     navPaymentMethodsClick() {
       recordEvent('NavClick', { target: 'paymentMethodsOpen' });
-      this.$router.push('/receiving-accounts');
+      this.showReceivingAccountsModal = true;
     },
 
     navDiscoverClick() {

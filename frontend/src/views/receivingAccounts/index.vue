@@ -1,6 +1,13 @@
 <template>
   <div class="pageReceivingAccounts">
-    <div class="contentContainer">
+    <!-- 自动显示弹框 -->
+    <ReceivingAccountsModal 
+      v-if="showModal" 
+      @close="closeModal"
+    />
+    
+    <!-- 备用页面内容（当弹框不可用时显示） -->
+    <div v-else class="contentContainer">
       <div class="pageHeading">
         <h1>收款账户管理</h1>
         <div class="flexExpand"></div>
@@ -73,13 +80,15 @@ import app from '../../../backbone/app.js';
 import AccountList from './AccountList.vue';
 import EditAccount from './EditAccount.vue';
 import ApplyNewAccount from './ApplyNewAccount.vue';
+import ReceivingAccountsModal from '../modals/ReceivingAccountsModal.vue';
 import { ElMessage } from 'element-plus';
 
 export default {
   components: {
     AccountList,
     EditAccount,
-    ApplyNewAccount
+    ApplyNewAccount,
+    ReceivingAccountsModal
   },
   data() {
     return {
@@ -130,6 +139,7 @@ export default {
           lastAmount: '€75.50'
         }
       },
+      showModal: false, // 控制弹框显示
     };
   },
   setup() {
@@ -160,6 +170,11 @@ export default {
       ElMessage.success('Stripe账户连接成功');
     } else if (this.$route.name === 'StripeConnectRefresh') {
       ElMessage.info('Stripe账户信息已更新');
+    }
+    
+    // 检查路由meta，决定是否显示弹框
+    if (this.$route.meta?.showModal) {
+      this.showModal = true;
     }
   },
   mounted() {
@@ -206,6 +221,15 @@ export default {
     }
   },
   methods: {
+    closeModal() {
+      this.showModal = false;
+      // 关闭弹框后返回上一页或首页
+      if (this.$router.currentRoute.value.name !== 'StripeConnectReturn' && 
+          this.$router.currentRoute.value.name !== 'StripeConnectRefresh') {
+        this.$router.go(-1);
+      }
+    },
+    
     backToList() {
       this.editingAccount = null;
       this.editingTokens = [];

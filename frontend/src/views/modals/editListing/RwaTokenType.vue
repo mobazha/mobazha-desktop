@@ -242,6 +242,7 @@ export default {
       selectedRwaToken: null,
       investmentSuggestions: [],
       currencies: [],
+      titleManuallyEdited: false, // 跟踪标题是否被用户手动编辑过
       
       // RWA区块链列表
       rwaBlockchains: [
@@ -403,6 +404,9 @@ export default {
       this.localRwaTokenAddress = this.modelValue?.item?.rwaTokenAddress || '';
       this.localRwaBlockchain = this.modelValue?.item?.rwaBlockchain || 'ETH';
       
+      // 重置标题编辑标志 - 如果标题来自后端数据，则标记为未手动编辑
+      this.titleManuallyEdited = false;
+      
       // 初始化价格字段
       const price = this.modelValue?.item?.price;
       if (price instanceof bigNumber) {
@@ -444,6 +448,9 @@ export default {
     },
 
     onTitleChange() {
+      // 标记标题已被用户手动编辑
+      this.titleManuallyEdited = true;
+      
       this.$emit('update:modelValue', {
         ...this.modelValue,
         item: {
@@ -609,8 +616,8 @@ export default {
         // 更新RWA Token类型选择
         this.localContractType = 'RWA_TOKEN';
         
-        // 更新标题（如果为空或包含默认值）
-        if (!this.localTitle || this.localTitle.includes('代币')) {
+        // 更新标题（只有在从未被手动编辑过且为空时才设置默认值）
+        if (!this.titleManuallyEdited && (!this.localTitle || this.localTitle.trim() === '')) {
           this.localTitle = `${tokenData.name} 代币`;
         }
         
@@ -631,8 +638,8 @@ export default {
         // 更新RWA Token类型选择
         this.localContractType = 'RWA_TOKEN';
         
-        // 更新标题（如果为空或包含默认值）
-        if (!this.localTitle || this.localTitle.includes('代币')) {
+        // 更新标题（只有在从未被手动编辑过且为空时才设置默认值）
+        if (!this.titleManuallyEdited && (!this.localTitle || this.localTitle.trim() === '')) {
           this.localTitle = `${tokenData.name} 代币`;
         }
         
