@@ -39,6 +39,62 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     return newMessage
   }
 
+  // 处理AI响应的公共方法
+  const processAIResponse = async (content) => {
+    if (!aiServiceManager.value) {
+      throw new Error('AI服务未配置，请在设置中配置API密钥')
+    }
+
+    const intentAnalysis = await aiServiceManager.value.analyzeIntent(content, {
+      conversationHistory: messages.value.slice(-5), // 提供最近5条对话作为上下文
+      userProfile: currentConversation.value
+    })
+    console.log('AI意图分析:', intentAnalysis)
+    
+    let response
+
+    // 检查AI是否已经通过工具调用完成了搜索
+    if (intentAnalysis.toolResult) {
+      // AI已经通过MCP工具完成搜索，直接使用结果
+      response = await handleMCPToolResult(content, intentAnalysis)
+    } else {
+      // 普通对话，使用AI生成的回复
+      response = {
+        content: intentAnalysis.aiResponse || '我明白了，有什么可以帮助您的吗？',
+        suggestions: intentAnalysis.response?.suggestions || [
+          '我想买数码产品',
+          '推荐热门商品',
+          '查看促销活动'
+        ],
+        products: []
+      }
+    }
+    
+    // 添加AI响应
+    const aiMessage = addMessage({
+      type: 'assistant',
+      content: response.content,
+      role: 'assistant',
+      suggestions: response.suggestions || [],
+      products: response.products || [],
+      searchResults: response.searchResults || null,
+      aiProvider: aiServiceManager.value?.getActiveProvider() || 'local'
+    })
+
+    return aiMessage
+  }
+
+  // 处理错误的公共方法
+  const handleError = (err) => {
+    error.value = err.message || '发送消息失败'
+    addMessage({
+      type: 'error',
+      content: '抱歉，我暂时无法回复您的消息。请稍后重试。',
+      role: 'assistant'
+    })
+    throw err
+  }
+
   const sendMessage = async (content) => {
     if (!content.trim()) return
 
@@ -46,57 +102,16 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     error.value = null
 
     try {
-      // 使用AI服务进行意图分析
-      if (!aiServiceManager.value) {
-        throw new Error('AI服务未配置，请在设置中配置API密钥')
-      }
-
-      const intentAnalysis = await aiServiceManager.value.analyzeIntent(content, {
-        conversationHistory: messages.value.slice(-5), // 提供最近5条对话作为上下文
-        userProfile: currentConversation.value
-      })
-      console.log('AI意图分析:', intentAnalysis)
-      
-            let response
-
-      // 检查AI是否已经通过工具调用完成了搜索
-      if (intentAnalysis.toolResult) {
-        // AI已经通过MCP工具完成搜索，直接使用结果
-        response = await handleMCPToolResult(content, intentAnalysis)
-      } else {
-        // 普通对话，使用AI生成的回复
-        response = {
-          content: intentAnalysis.aiResponse || '我明白了，有什么可以帮助您的吗？',
-          suggestions: intentAnalysis.response?.suggestions || [
-            '我想买数码产品',
-            '推荐热门商品',
-            '查看促销活动'
-          ],
-          products: []
-        }
-      }
-      
-      // 添加AI响应
-      const aiMessage = addMessage({
-        type: 'assistant',
-        content: response.content,
-        role: 'assistant',
-        suggestions: response.suggestions || [],
-        products: response.products || [],
-        searchResults: response.searchResults || null,
-        aiProvider: aiServiceManager.value?.getActiveProvider() || 'local'
+      // 首先添加用户消息
+      const userMessage = addMessage({
+        type: 'user',
+        content: content,
+        role: 'user'
       })
 
-      return aiMessage
+      return await processAIResponse(content)
     } catch (err) {
-      error.value = err.message || '发送消息失败'
-      // 添加错误消息
-      addMessage({
-        type: 'error',
-        content: '抱歉，我暂时无法回复您的消息。请稍后重试。',
-        role: 'assistant'
-      })
-      throw err
+      handleError(err)
     } finally {
       loading.value = false
     }
@@ -109,7 +124,7 @@ export const useAiChatStore = defineStore('ai-chat', () => {
     currentConversation.value = null
   }
 
-  const retryLastMessage = () => {
+  const retryLastMessage = async () => {
     if (messages.value.length > 0) {
       const lastUserMessage = [...messages.value]
         .reverse()
@@ -122,7 +137,17 @@ export const useAiChatStore = defineStore('ai-chat', () => {
           messages.value.splice(lastAiMessageIndex, 1)
         }
         
-        return sendMessage(lastUserMessage.content)
+        // 使用公共方法处理AI响应，不重复添加用户消息
+        loading.value = true
+        error.value = null
+
+        try {
+          return await processAIResponse(lastUserMessage.content)
+        } catch (err) {
+          handleError(err)
+        } finally {
+          loading.value = false
+        }
       }
     }
   }
