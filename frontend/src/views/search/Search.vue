@@ -23,11 +23,11 @@
           </a>
         </div>
         
-        <div v-if="hasLogin">
+        <div v-if="hasLogin && isLoggedIn">
           <div class="flexVCent gutterHSm">
             <a class="btn barBtn flexNoShrink tx6 clrP clrBr clrSh2" href="#transactions/sales">{{
               ob.polyT('search.providers.transactions') }}</a>
-            <a class="btn barBtn flexNoShrink tx6 clrP clrBr clrSh2" :href="`#${ob.peerID}`">{{
+            <a class="btn barBtn flexNoShrink tx6 clrP clrBr clrSh2" :href="`#/${userProfileId}/store`">{{
               ob.polyT('search.providers.myPage') }}</a>
           </div>
         </div>
@@ -116,6 +116,7 @@ import SortBy from './SortBy.vue'
 import Results from './Results.vue'
 
 import * as casdoor from '../../utils/casdoor';
+import { getCurrentProfileId, isUserLoggedIn } from '../../utils/profile';
 
 export default {
   name: 'Search',
@@ -159,6 +160,12 @@ export default {
   computed: {
     hasLogin() {
       return import.meta.env.VITE_APP || casdoor.isLoggedIn();
+    },
+    userProfileId() {
+      return getCurrentProfileId();
+    },
+    isLoggedIn() {
+      return isUserLoggedIn();
     },
     ob() {
       const state = this._state;

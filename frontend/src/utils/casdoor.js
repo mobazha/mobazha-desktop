@@ -1,18 +1,18 @@
 import Sdk from "casdoor-js-sdk";
 
 let sdkConfig;
-if (import.meta.env.DEV) {
+if (import.meta.env.VITE_PROD_TEST) {
+  // 生产测试环境配置
   sdkConfig = {
-    serverUrl: "http://localhost:7001",
+    serverUrl: "https://test-login.mobazha.org",
     clientId: "22649a5edc7cabcb4398",
     organizationName: "built-in",
     appName: "app-built-in",
     redirectPath: "/callback",
   };
-} else if (import.meta.env.VITE_PROD_TEST) {
-  // 生产测试环境配置
+} else if (import.meta.env.DEV) {
   sdkConfig = {
-    serverUrl: "https://test-login.mobazha.org",
+    serverUrl: "http://localhost:7001",
     clientId: "22649a5edc7cabcb4398",
     organizationName: "built-in",
     appName: "app-built-in",
