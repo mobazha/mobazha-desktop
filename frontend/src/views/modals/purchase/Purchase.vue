@@ -445,7 +445,7 @@ import { myPost, myGet } from '../../../api/api.js';
 // } from '../../../utils/inventory';
 import { startAjaxEvent, endAjaxEvent } from '../../../../backbone/utils/metrics';
 import { toStandardNotation } from '../../../../backbone/utils/number';
-import { decimalToInteger, isValidCoinDivisibility, curDefToDecimal, getCoinDivisibility } from '../../../../backbone/utils/currency';
+import { convertCurrency, decimalToInteger, integerToDecimal, isValidCoinDivisibility, curDefToDecimal, getCoinDivisibility } from '../../../../backbone/utils/currency';
 import { capitalize } from '../../../../backbone/utils/string';
 import { events as outdatedListingHashesEvents } from '../../../../backbone/utils/outdatedListingHashes';
 import Order from '../../../../backbone/models/purchase/Order';
@@ -455,7 +455,6 @@ import { openSimpleMessage } from '../../../../backbone/views/modals/SimpleMessa
 import PopInMessage, { buildRefreshAlertMessage } from '../../../../backbone/views/components/PopInMessage';
 import * as casdoor from '../../../utils/casdoor';
 import { events } from '../../../../backbone/utils/order';
-import { convertCurrency } from '../../../utils/exchangeRate';
 
 import ActionBtn from './ActionBtn.vue';
 import Complete from './Complete.vue';
@@ -1513,20 +1512,28 @@ export default {
         
         // 如果定价币种和支付币种不同，需要进行汇率转换
         if (this.paymentData.pricingCoin !== this.paymentCoin) {
-          const conversionResult = await convertCurrency(
-            this.paymentData.amount.amount,
-            this.paymentData.pricingCoin,
-            this.paymentCoin
-          );
-          
-          if (!conversionResult.success) {
-            throw new Error(`汇率转换失败: ${conversionResult.error}`);
+          try {
+            // 获取源币种和目标币种的精度
+            const fromDivisibility = getCoinDivisibility(this.paymentData.pricingCoin);
+            const toDivisibility = getCoinDivisibility(this.paymentCoin);
+            
+            // 将最小精度单位转换为标准单位
+            const amountInStandardUnit = integerToDecimal(this.paymentData.amount.amount, fromDivisibility).toNumber();
+            
+            // 使用 currency.js 中的 convertCurrency 方法进行汇率转换
+            const convertedAmountInStandardUnit = convertCurrency(
+              this.paymentData.amount.amount,
+              this.paymentData.pricingCoin,
+              this.paymentCoin
+            );
+            
+            // 转换为最小精度单位
+            convertedAmount = decimalToInteger(convertedAmountInStandardUnit, toDivisibility).toNumber();
+            
+            console.log(`汇率转换: ${amountInStandardUnit} ${this.paymentData.pricingCoin} = ${convertedAmountInStandardUnit} ${this.paymentCoin} (${convertedAmount} 最小单位)`);
+          } catch (error) {
+            throw new Error(`汇率转换失败: ${error.message}`);
           }
-          
-          // 使用最小精度单位
-          convertedAmount = conversionResult.convertedAmountInSmallestUnit;
-          console.log(`汇率转换: ${conversionResult.originalAmount} ${conversionResult.fromCurrency} (${conversionResult.originalAmountInStandardUnit} 标准单位) = ${conversionResult.convertedAmount} ${conversionResult.toCurrency} (${convertedAmount} 最小单位)`);
-          console.log(`汇率: ${conversionResult.fromCurrency}/USD: ${conversionResult.fromRate}, ${conversionResult.toCurrency}/USD: ${conversionResult.toRate}`);
         }
 
         // 4. 构建请求数据
