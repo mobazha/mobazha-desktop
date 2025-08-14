@@ -2141,6 +2141,11 @@
       "noteHelperTextRwa": "The buyer will receive RWA token transfer notification",
       "sellerReceiveAddress": "Seller Receive Address",
       "pleaseSelectReceiveAddress": "Please select a receive address",
+      "rwaFulfillmentTimeout": "RWA Token Fulfillment Timeout",
+      "rwaFulfillmentTimeRemaining": "Time remaining to fulfill RWA Token:",
+      "rwaFulfillmentExpired": "RWA Token fulfillment time has expired",
+      "rwaFulfillmentExpiredMessage": "The 15-minute fulfillment window has expired. The order will be automatically cancelled and refunded.",
+      "rwaFulfillmentUrgent": "Urgent: Complete RWA Token transfer within",
       "btnCancel": "Cancel",
       "btnSubmit": "Submit"
     },

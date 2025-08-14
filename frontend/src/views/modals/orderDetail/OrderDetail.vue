@@ -149,6 +149,7 @@
                     v-if="activeTab === 'fulfillOrder'"
                     :options="{
                       orderID: model.id,
+                      orderConfirmationTime: contract.get('orderConfirmation').timestamp,
                       contractType: model.get('contract').type,
                       isLocalPickup: model.get('contract').isLocalPickup,
                     }"

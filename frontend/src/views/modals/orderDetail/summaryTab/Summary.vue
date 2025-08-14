@@ -25,6 +25,33 @@
       />
     </div>
     <div class="js-subSections">
+      <!-- RWA Token发货倒计时显示 -->
+      <div v-if="isRwaTokenOrder && showRwaFulfillmentTimer" class="rwaFulfillmentTimerSection">
+        <div class="rwaFulfillmentTimer" :class="rwaFulfillmentStatusClass">
+          <div class="timerHeader">
+            <i class="ion-clock"></i>
+            <span v-if="!isRwaFulfillmentExpired" class="timerTitle">
+              {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentTimeRemaining`) }}
+            </span>
+            <span v-else class="timerTitle expired">
+              {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentExpired`) }}
+            </span>
+          </div>
+          
+          <div v-if="!isRwaFulfillmentExpired" class="timerDisplay">
+            <span class="timeRemaining" :key="rwaFulfillmentTimerKey">{{ rwaFulfillmentTimeRemainingFormatted }}</span>
+          </div>
+          
+          <div v-if="isRwaFulfillmentExpired" class="expiredMessage">
+            {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentExpiredMessage`) }}
+          </div>
+          
+          <div v-else-if="rwaFulfillmentStatusClass === 'urgent'" class="urgentMessage">
+            {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentUrgent`) }} {{ rwaFulfillmentTimeRemainingFormatted }}
+          </div>
+        </div>
+      </div>
+
       <CompleteOrderForm ref="completeOrderForm" v-if="showCompleteOrderForm"
         :options="{
           orderID: model.id,
@@ -189,6 +216,9 @@ export default {
 
       showProcessingError: false,
       processingErrorOptions: {},
+
+      rwaFulfillmentTimer: null, // RWA Token发货倒计时器
+      rwaFulfillmentTimerKey: 0, // 倒计时器key，用于触发响应式更新
     };
   },
   created () {
@@ -358,6 +388,77 @@ export default {
     },
     listings() {
       return this.contract.get('orderOpen').listings.map(item => item.listing);
+    },
+
+    // RWA Token发货倒计时相关计算属性
+    isRwaTokenOrder() {
+      return this.listings.length > 0 && this.listings[0].metadata.contractType === 'RWA_TOKEN';
+    },
+
+    orderConfirmationTime() {
+      // 从订单模型中获取确认时间
+      if (this.contract && this.contract.get('orderConfirmation')) {
+        return this.contract.get('orderConfirmation').timestamp;
+      }
+      return null;
+    },
+
+    isOrderFulfilled() {
+      // 检查订单是否已经完成fulfill
+      if (this.contract && this.contract.get('orderFulfillments')) {
+        return this.contract.get('orderFulfillments').length > 0;
+      }
+      return false;
+    },
+
+    rwaFulfillmentDeadline() {
+      if (!this.orderConfirmationTime) return null;
+      
+      // 15分钟 = 15 * 60 * 1000 毫秒
+      const confirmationTime = new Date(this.orderConfirmationTime).getTime();
+      return confirmationTime + (15 * 60 * 1000);
+    },
+
+    isRwaFulfillmentExpired() {
+      if (!this.rwaFulfillmentDeadline) return false;
+      return Date.now() > this.rwaFulfillmentDeadline;
+    },
+
+    rwaFulfillmentTimeRemainingFormatted() {
+      // 依赖timerKey来触发响应式更新
+      this.rwaFulfillmentTimerKey;
+      
+      if (!this.rwaFulfillmentDeadline || this.isRwaFulfillmentExpired) {
+        return null;
+      }
+
+      const remaining = this.rwaFulfillmentDeadline - Date.now();
+      const minutes = Math.floor(remaining / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    },
+
+    rwaFulfillmentStatusClass() {
+      if (this.isRwaFulfillmentExpired) {
+        return 'expired';
+      }
+      
+      const remaining = this.rwaFulfillmentDeadline - Date.now();
+      if (remaining < 5 * 60 * 1000) { // 少于5分钟
+        return 'urgent';
+      } else if (remaining < 10 * 60 * 1000) { // 少于10分钟
+        return 'warning';
+      }
+      return 'normal';
+    },
+
+    showRwaFulfillmentTimer() {
+      // 只在卖家查看且订单已确认但未完成时显示
+      return this.isRwaTokenOrder && 
+             this.orderConfirmationTime && 
+             this.vendor.id === app.profile.id &&
+             !this.isOrderFulfilled;
     }
   },
   methods: {
@@ -1017,7 +1118,8 @@ export default {
         this.disputeAcceptanceOptions.closerAvatarHashes = profile.get('avatarHashes').toJSON();
       });
 
-      if (this.shouldShowCompleteOrderForm()) this.showCompleteOrderForm = true;
+      // if (this.shouldShowCompleteOrderForm()) this.showCompleteOrderForm = true;
+      this.showCompleteOrderForm = false;
     },
 
     /**
@@ -1133,9 +1235,136 @@ export default {
       this.renderSubSections();
       this.renderProcessingError();
 
+      // 启动RWA Token发货倒计时器
+      this.startRwaFulfillmentTimer();
+
       return this;
+    },
+
+    // RWA Token发货倒计时器方法
+    startRwaFulfillmentTimer() {
+      if (!this.showRwaFulfillmentTimer) {
+        this.stopRwaFulfillmentTimer();
+        return;
+      }
+
+      this.stopRwaFulfillmentTimer(); // 先清除之前的定时器
+
+      this.rwaFulfillmentTimer = setInterval(() => {
+        // 只更新timerKey来触发倒计时显示更新，而不是整个组件
+        this.rwaFulfillmentTimerKey++;
+        
+        // 如果时间已过期、订单已完成或不再需要显示，停止定时器
+        if (this.isRwaFulfillmentExpired || this.isOrderFulfilled || !this.showRwaFulfillmentTimer) {
+          this.stopRwaFulfillmentTimer();
+          console.log('RWA Token发货时间已过期、订单已完成或不再需要显示');
+        }
+      }, 1000); // 每秒更新一次
+    },
+
+    stopRwaFulfillmentTimer() {
+      if (this.rwaFulfillmentTimer) {
+        clearInterval(this.rwaFulfillmentTimer);
+        this.rwaFulfillmentTimer = null;
+      }
+    },
+
+    remove () {
+      clearTimeout(this.disputeCountdownTimeout);
+      this.stopRwaFulfillmentTimer();
     }
   }
 }
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.rwaFulfillmentTimerSection {
+  margin-bottom: 20px;
+}
+
+.rwaFulfillmentTimer {
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &.normal {
+    background: #e8f5e8;
+    border-color: #28a745;
+    color: #155724;
+  }
+
+  &.warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+    animation: pulse 2s infinite;
+  }
+
+  &.urgent {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+    animation: pulse 1s infinite;
+  }
+
+  &.expired {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+
+  .timerHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+
+    i {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    .timerTitle {
+      font-size: 16px;
+
+      &.expired {
+        color: #dc3545;
+      }
+    }
+  }
+
+  .timerDisplay {
+    .timeRemaining {
+      font-size: 24px;
+      font-weight: bold;
+      font-family: monospace;
+    }
+  }
+
+  .expiredMessage,
+  .urgentMessage {
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .urgentMessage {
+    color: #dc3545;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>

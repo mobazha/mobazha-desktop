@@ -2123,6 +2123,11 @@
       "noteHelperTextRwa": "买家将收到RWA代币充值通知",
       "sellerReceiveAddress": "卖家收款地址",
       "pleaseSelectReceiveAddress": "请选择收款地址",
+      "rwaFulfillmentTimeout": "RWA代币发货超时",
+      "rwaFulfillmentTimeRemaining": "剩余发货时间：",
+      "rwaFulfillmentExpired": "RWA代币发货时间已过期",
+      "rwaFulfillmentExpiredMessage": "15分钟发货窗口已过期。订单将自动取消并退款。",
+      "rwaFulfillmentUrgent": "紧急：请在以下时间内完成RWA代币转移",
       "btnCancel": "取消",
       "btnSubmit": "提交"
     },

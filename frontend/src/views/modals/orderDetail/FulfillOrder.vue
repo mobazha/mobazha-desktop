@@ -82,6 +82,31 @@
 
       <!-- RWA Token发货流程 -->
       <template v-else-if="contractType === 'RWA_TOKEN'">
+        <!-- RWA Token发货倒计时 -->
+        <div v-if="shouldShowRwaFulfillmentTimer" class="rwaFulfillmentTimer" :class="rwaFulfillmentStatusClass">
+          <div class="timerHeader">
+            <i class="ion-clock"></i>
+            <span v-if="!isRwaFulfillmentExpired" class="timerTitle">
+              {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentTimeRemaining`) }}
+            </span>
+            <span v-else class="timerTitle expired">
+              {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentExpired`) }}
+            </span>
+          </div>
+          
+          <div v-if="!isRwaFulfillmentExpired" class="timerDisplay">
+            <span class="timeRemaining" :key="rwaFulfillmentTimerKey">{{ rwaFulfillmentTimeRemainingFormatted }}</span>
+          </div>
+          
+          <div v-if="isRwaFulfillmentExpired" class="expiredMessage">
+            {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentExpiredMessage`) }}
+          </div>
+          
+          <div v-else-if="rwaFulfillmentStatusClass === 'urgent'" class="urgentMessage">
+            {{ ob.polyT(`orderDetail.fulfillOrderTab.rwaFulfillmentUrgent`) }} {{ rwaFulfillmentTimeRemainingFormatted }}
+          </div>
+        </div>
+
         <!-- 买家支付信息显示 -->
         <div v-if="orderInfo" class="rwaOrderInfo">
           <h3 class="orderInfoTitle">{{ ob.polyT(`orderDetail.fulfillOrderTab.buyerPaymentInfo`) }}</h3>
@@ -252,6 +277,7 @@ export default {
         orderID: '',
         contractType: '',
         isLocalPickup: '',
+        orderConfirmationTime: null, // 订单确认时间
       },
 	  },
   },
@@ -281,6 +307,10 @@ export default {
       isRwaMarketplaceInitialized: false, // RWA Marketplace是否已初始化
       orderInfo: null, // 订单信息
       selectedSellerReceiveAddress: null,
+      rwaFulfillmentTimer: null, // RWA Token发货倒计时器
+      rwaFulfillmentTimeRemaining: null, // 剩余时间
+      rwaFulfillmentExpired: false, // 是否已过期
+      rwaFulfillmentTimerKey: 0, // 倒计时器key，用于触发响应式更新
     };
   },
   created () {
@@ -292,7 +322,15 @@ export default {
     // 如果是RWA Token订单，获取订单信息
     if (this.contractType === 'RWA_TOKEN') {
       this.loadOrderInfo();
+      // 延迟启动定时器，确保数据已加载
+      this.$nextTick(() => {
+        this.startRwaFulfillmentTimer();
+      });
     }
+  },
+
+  beforeDestroy() {
+    this.stopRwaFulfillmentTimer();
   },
   computed: {
     ob () {
@@ -316,6 +354,63 @@ export default {
       let access = this._modelKey;
 
       return this._model;
+    },
+
+    // RWA Token发货倒计时相关计算属性
+    isRwaTokenOrder() {
+      return this.contractType === 'RWA_TOKEN';
+    },
+
+    orderConfirmationTime() {
+      // 从options中获取确认时间
+      return this.options.orderConfirmationTime;
+    },
+
+    shouldShowRwaFulfillmentTimer() {
+      // 只在RWA Token订单、已确认时显示
+      return this.isRwaTokenOrder && this.orderConfirmationTime;
+    },
+
+    rwaFulfillmentDeadline() {
+      if (!this.orderConfirmationTime) return null;
+      
+      // 15分钟 = 15 * 60 * 1000 毫秒
+      const confirmationTime = new Date(this.orderConfirmationTime).getTime();
+      return confirmationTime + (15 * 60 * 1000);
+    },
+
+    isRwaFulfillmentExpired() {
+      if (!this.rwaFulfillmentDeadline) return false;
+      return Date.now() > this.rwaFulfillmentDeadline;
+    },
+
+    rwaFulfillmentTimeRemainingFormatted() {
+      // 依赖timerKey来触发响应式更新
+      this.rwaFulfillmentTimerKey;
+      
+      if (!this.rwaFulfillmentDeadline || this.isRwaFulfillmentExpired) {
+        return null;
+      }
+
+      const remaining = this.rwaFulfillmentDeadline - Date.now();
+      const minutes = Math.floor(remaining / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    },
+
+    rwaFulfillmentStatusClass() {
+      if (this.isRwaFulfillmentExpired) {
+        return 'expired';
+      }
+      
+      const remaining = this.rwaFulfillmentDeadline - Date.now();
+      if (remaining < 5 * 60 * 1000) { // 少于5分钟
+        return 'urgent';
+      } else if (remaining < 10 * 60 * 1000) { // 少于10分钟
+        return 'warning';
+      }
+      return 'normal';
     }
   },
   methods: {
@@ -647,10 +742,126 @@ export default {
 
       return '';
     },
+
+    // RWA Token发货倒计时器方法
+    startRwaFulfillmentTimer() {
+      if (!this.shouldShowRwaFulfillmentTimer) {
+        this.stopRwaFulfillmentTimer();
+        return;
+      }
+
+      this.stopRwaFulfillmentTimer(); // 先清除之前的定时器
+
+      this.rwaFulfillmentTimer = setInterval(() => {
+        // 只更新timerKey来触发倒计时显示更新，而不是整个组件
+        this.rwaFulfillmentTimerKey++;
+        
+        // 如果时间已过期，停止定时器
+        if (this.isRwaFulfillmentExpired) {
+          this.stopRwaFulfillmentTimer();
+          console.log('RWA Token发货时间已过期');
+        }
+      }, 1000); // 每秒更新一次
+    },
+
+    stopRwaFulfillmentTimer() {
+      if (this.rwaFulfillmentTimer) {
+        clearInterval(this.rwaFulfillmentTimer);
+        this.rwaFulfillmentTimer = null;
+      }
+    },
   }
 }
 </script>
 <style lang="scss" scoped>
+.rwaFulfillmentTimer {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &.normal {
+    background: #e8f5e8;
+    border-color: #28a745;
+    color: #155724;
+  }
+
+  &.warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+    animation: pulse 2s infinite;
+  }
+
+  &.urgent {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+    animation: pulse 1s infinite;
+  }
+
+  &.expired {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+
+  .timerHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+
+    i {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+
+    .timerTitle {
+      font-size: 16px;
+
+      &.expired {
+        color: #dc3545;
+      }
+    }
+  }
+
+  .timerDisplay {
+    .timeRemaining {
+      font-size: 24px;
+      font-weight: bold;
+      font-family: monospace;
+    }
+  }
+
+  .expiredMessage,
+  .urgentMessage {
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .urgentMessage {
+    color: #dc3545;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .rwaOrderInfo,
 .rwaTokenInfo {
   margin-bottom: 20px;
