@@ -557,7 +557,11 @@ export default {
         this.model.fetch();
       });
 
-      this.listenTo(this.contract, 'change:orderConfirmation', () => this.renderAcceptedView());
+      this.listenTo(this.contract, 'change:orderConfirmation', () => {
+        this.renderAcceptedView();
+        // 当订单确认信息更新时，重新启动RWA发货定时器
+        this.startRwaFulfillmentTimer();
+      });
 
       this.listenTo(orderEvents, 'fulfillOrderComplete', (e) => {
         if (e.id === this.model.id) {
