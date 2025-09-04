@@ -28,6 +28,7 @@ if (!import.meta.env.VITE_APP) {
     (error) => {
       if (error.response && error.response.status === 401) {
         // Handle unauthorized error, redirect to login page
+        casdoor.logout();
         window.location.href = casdoor.getSigninUrl();
       }
       return Promise.reject(error);
