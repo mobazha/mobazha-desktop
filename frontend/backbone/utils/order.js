@@ -87,7 +87,7 @@ function confirmStripeOrder(orderID, reject = false) {
   return post;
 }
 
-function confirmOrder(orderID, reject) {
+function confirmOrder(orderID, payoutAddress, reject) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -128,11 +128,14 @@ function confirmOrder(orderID, reject) {
 
             if (response && response.hasInstructions === false) {
               // 如果没有指令，直接调用确认接口
-              const result = await myPost(app.getServerUrl('order/confirm'), {
+              const requestData = {
                 orderID,
                 reject,
-                transactionID: ""
-              });
+                transactionID: "",
+                payoutAddress
+              };
+              
+              const result = await myPost(app.getServerUrl('order/confirm'), requestData);
               resolve(result);
             } else if (response && response.instructions) {
               let networkType;
@@ -158,11 +161,14 @@ function confirmOrder(orderID, reject) {
                   events.off('cryptoTransactionError', handleTransactionError);
                   
                   // 交易成功后，调用后端确认接口
-                  myPost(app.getServerUrl('order/confirm'), {
+                  const requestData = {
                     orderID,
                     reject,
-                    transactionID: e.result
-                  })
+                    transactionID: e.result,
+                    payoutAddress
+                  };
+                  
+                  myPost(app.getServerUrl('order/confirm'), requestData)
                   .then(resolve)
                   .catch(error => {
                     ElMessage({
@@ -260,11 +266,11 @@ export function acceptingOrder(orderID) {
   return !!acceptPosts[orderID];
 }
 
-export function acceptOrder(orderID, paymentCoin) {
+export function acceptOrder(orderID, payoutAddress, paymentCoin) {
   if (isStripeChain(paymentCoin)) {
     return confirmStripeOrder(orderID, false);
   }
-  return confirmOrder(orderID, false);
+  return confirmOrder(orderID, payoutAddress, false);
 }
 
 export function rejectingOrder(orderID) {
@@ -275,7 +281,7 @@ export function rejectOrder(orderID, paymentCoin) {
   if (isStripeChain(paymentCoin)) {
     return confirmStripeOrder(orderID, true);
   }
-  return confirmOrder(orderID, true);
+  return confirmOrder(orderID, null, true);
 }
 
 export function cancelingOrder(orderID) {

@@ -737,6 +737,7 @@ const handleLoginCallback = (loginPromise) => {
       window.location.href = redirect ? decodeURIComponent(redirect) : '/#/search';
     } else {
       console.log(`Login failed: ${res.msg}`);
+      casdoor.logout();
       window.location.href = '/#/search';
     }
   });
