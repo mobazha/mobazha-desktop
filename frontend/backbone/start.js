@@ -131,14 +131,14 @@ function fetchStartupData1() {
 
   const fetches = [
     configFetch,
-    // walletCurDefFetch,
+    walletCurDefFetch,
   ];
 
   $.whenAll(fetches.slice())
     .done((...args) => {
       fetchStartupData1Deferred.resolve({
         serverConfig: args[0][0],
-        walletCurDef: {},//args[1][0],
+        walletCurDef: args[1][0],
       });
     })
     .fail(() => {

@@ -87,14 +87,14 @@ function confirmStripeOrder(orderID, reject = false) {
   return post;
 }
 
-function confirmOrder(orderID, payoutAddress, reject) {
+function confirmOrder(orderID, payoutAddress, toReject) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
 
   let confirmRequest = acceptPosts[orderID];
 
-  if (reject) {
+  if (toReject) {
     confirmRequest = rejectPosts[orderID];
   }
 
@@ -118,9 +118,9 @@ function confirmOrder(orderID, payoutAddress, reject) {
           }
 
           try {
-            const requestData = {
+            let requestData = {
               orderID,
-              reject,
+              reject: toReject,
               initiatorAddress: walletAddress
             };
 
@@ -128,9 +128,9 @@ function confirmOrder(orderID, payoutAddress, reject) {
 
             if (response && response.hasInstructions === false) {
               // 如果没有指令，直接调用确认接口
-              const requestData = {
+              requestData = {
                 orderID,
-                reject,
+                reject: toReject,
                 transactionID: "",
                 payoutAddress
               };
@@ -152,7 +152,7 @@ function confirmOrder(orderID, payoutAddress, reject) {
                 networkType,
                 orderID,
                 transactionData: response.instructions,
-                metadata: { ...response, reject }
+                metadata: { ...response, reject: toReject }
               });
 
               const handleTransactionComplete = (e) => {
@@ -163,11 +163,11 @@ function confirmOrder(orderID, payoutAddress, reject) {
                   // 交易成功后，调用后端确认接口
                   const requestData = {
                     orderID,
-                    reject,
+                    reject: toReject,
                     transactionID: e.result,
                     payoutAddress
                   };
-                  
+
                   myPost(app.getServerUrl('order/confirm'), requestData)
                   .then(resolve)
                   .catch(error => {
@@ -214,21 +214,21 @@ function confirmOrder(orderID, payoutAddress, reject) {
     promise
       .then(result => {
         jqPromise.resolve(result);
-        events.trigger(`${reject ? 'reject' : 'accept'}OrderComplete`, {
+        events.trigger(`${toReject ? 'reject' : 'accept'}OrderComplete`, {
           id: orderID,
           xhr: jqPromise
         });
       })
       .catch(error => {
         jqPromise.reject(error);
-        events.trigger(`${reject ? 'reject' : 'accept'}OrderFail`, {
+        events.trigger(`${toReject ? 'reject' : 'accept'}OrderFail`, {
           id: orderID,
           xhr: jqPromise
         });
 
         ElMessage({
           message: {
-            header: app.polyglot.t(`orderUtil.failed${reject ? 'Reject' : 'Accept'}Heading`),
+            header: app.polyglot.t(`orderUtil.failed${toReject ? 'Reject' : 'Accept'}Heading`),
             content: error.message || ''
           },
           type: 'error',
@@ -236,20 +236,20 @@ function confirmOrder(orderID, payoutAddress, reject) {
         });
       })
       .finally(() => {
-        if (reject) {
+        if (toReject) {
           delete rejectPosts[orderID];
         } else {
           delete acceptPosts[orderID];
         }
       });
 
-    if (reject) {
+    if (toReject) {
       rejectPosts[orderID] = jqPromise;
     } else {
       acceptPosts[orderID] = jqPromise;
     }
 
-    events.trigger(`${reject ? 'rejecting' : 'accepting'}Order`, {
+    events.trigger(`${toReject ? 'rejecting' : 'accepting'}Order`, {
       id: orderID,
       xhr: jqPromise
     });

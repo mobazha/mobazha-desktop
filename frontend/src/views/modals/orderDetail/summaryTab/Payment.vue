@@ -123,7 +123,6 @@ export default {
         amountShort: bigNumber(0),
         balanceRemaining: bigNumber(0),
         payee: '',
-        userCurrency: app.settings.get('localCurrency') || 'BTC',
         showAcceptRejectButtons: false,
         showCancelButton: false,
         acceptInProgress: false,
@@ -150,6 +149,7 @@ export default {
         ...this.templateHelpers,
         ...this._state,
         ...this.model.toJSON(),
+        userCurrency: app.settings.get('localCurrency') || 'BTC',
         value: integerToDecimal(this.model.get('value'), this._state.paymentCoinDivis),
         confirmations: this.confirmations,
         abbrNum,
@@ -241,7 +241,6 @@ export default {
 
     loadData (options = {}) {
       this.baseInit({
-        ...options,
         initialState: {
           paymentNumber: 1,
           amountShort: bigNumber(0),
@@ -258,6 +257,7 @@ export default {
           paymentCoinDivis: 8,
           ...options.initialState || {},
         },
+        ...options,
       });
 
       if (!this.model) {
