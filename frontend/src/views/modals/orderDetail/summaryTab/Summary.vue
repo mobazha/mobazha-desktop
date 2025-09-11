@@ -63,8 +63,8 @@
       <DisputeAcceptance ref="disputeAcceptance" v-if="showDisputeAcceptance" :options="disputeAcceptanceOptions" />
       <DisputeStarted ref="disputeStarted" v-if="showDisputeStarted" :options="disputeStartedOptions" @clickResolveDispute="$emit('clickResolveDispute')" />
       <Fulfilled ref="fulfilled" v-if="showFulfilled" :options="fulfilledOptions" />
-      <Accepted ref="accepted" v-if="showAccepted" :options="acceptedOptions" @clickFulfillOrder="$emit('clickFulfillOrder')" />
       <Refunded ref="refunded" v-if="showRefunded" :options="refundedOptions" :model="contract.get('refunds')[0]" />
+      <Accepted ref="accepted" v-if="showAccepted" :options="acceptedOptions" @clickFulfillOrder="$emit('clickFulfillOrder')" />
     </div>
     <template v-if="!ob.isCase">
       <div ref="paymentsWrap" class="js-paymentsWrap">

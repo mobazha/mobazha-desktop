@@ -30,27 +30,6 @@ export class EthTransactionService {
       }
 
       // 构建 eth_call 参数
-      const callParams = {
-        from: this.walletAddress,
-        to: toAddress,
-        data: txData.data,
-        ...(valueHex ? { value: valueHex } : {})
-      };
-      
-      // 先用 eth_call 方式模拟交易，检查是否有错
-      try {
-        await this.walletProvider.request({
-          method: 'eth_call',
-          params: [
-            callParams,
-            'latest'
-          ]
-        });
-      } catch (callError) {
-        console.error('eth_call 预执行失败:', callError);
-        throw new Error('eth_call 预执行失败: ' + (callError && callError.message ? callError.message : callError));
-      }
-
       // 构建基础交易对象，只包含必要参数
       const transaction = {
         from: this.walletAddress,
@@ -58,6 +37,20 @@ export class EthTransactionService {
         data: txData.data,
         ...(valueHex ? { value: valueHex } : {})
       };
+      
+      // // 先用 eth_call 方式模拟交易，检查是否有错
+      // try {
+      //   await this.walletProvider.request({
+      //     method: 'eth_call',
+      //     params: [
+      //       callParams: transaction,
+      //       'latest'
+      //     ]
+      //   });
+      // } catch (callError) {
+      //   console.error('eth_call 预执行失败:', callError);
+      //   throw new Error('eth_call 预执行失败: ' + (callError && callError.message ? callError.message : callError));
+      // }
 
       console.log('发送交易参数:', {
         from: transaction.from,

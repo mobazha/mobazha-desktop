@@ -28,6 +28,176 @@ function isStripeChain(paymentCoin) {
   return paymentCoin && paymentCoin.toUpperCase().startsWith('STRIPE');
 }
 
+/**
+ * 通用的钱包连接检查函数
+ * @param {Function} callback - 回调函数，参数为 (isConnected, walletAddress)
+ * @returns {Promise} Promise对象
+ */
+function checkWalletConnection(callback) {
+  return new Promise((resolve, reject) => {
+    events.trigger('checkWalletConnection', {
+      callback: async (isConnected, walletAddress) => {
+        if (!isConnected) {
+          events.trigger('showWalletConnectMessage', {
+            message: '请先连接钱包',
+            type: 'warning'
+          });
+          reject(new Error('Please connect your wallet first'));
+          return;
+        }
+
+        if (!walletAddress) {
+          reject(new Error('Wallet address not found'));
+          return;
+        }
+
+        try {
+          await callback(isConnected, walletAddress);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      }
+    });
+  });
+}
+
+/**
+ * 获取网络类型
+ * @param {string} paymentChain - 支付链类型
+ * @returns {string} 网络类型
+ */
+function getNetworkType(paymentChain) {
+  if (paymentChain === 'ETH') {
+    return 'ethereum';
+  } else if (paymentChain === 'SOL' || paymentChain === 'SOLUSDT') {
+    return 'solana';
+  } else {
+    throw new Error('暂不支持该链支付: ' + paymentChain);
+  }
+}
+
+/**
+ * 通用的加密货币交易处理函数
+ * @param {Object} params - 参数对象
+ * @param {string} params.orderID - 订单ID
+ * @param {string} params.networkType - 网络类型
+ * @param {Object} params.instructions - 交易指令
+ * @param {Object} params.metadata - 元数据
+ * @param {Function} params.onSuccess - 成功回调
+ * @param {Function} params.onError - 错误回调
+ */
+function handleCryptoTransaction({ orderID, networkType, instructions, metadata, onSuccess, onError }) {
+  events.trigger('executeCryptoTransaction', {
+    networkType,
+    orderID,
+    transactionData: instructions,
+    metadata
+  });
+
+  const handleTransactionComplete = (e) => {
+    if (e.orderID === orderID && e.networkType === networkType) {
+      events.off('cryptoTransactionComplete', handleTransactionComplete);
+      events.off('cryptoTransactionError', handleTransactionError);
+      onSuccess(e.result);
+    }
+  };
+
+  const handleTransactionError = (e) => {
+    if (e.orderID === orderID && e.networkType === networkType) {
+      events.off('cryptoTransactionComplete', handleTransactionComplete);
+      events.off('cryptoTransactionError', handleTransactionError);
+      let errorMessage = e.error?.message || '交易失败';
+      if (errorMessage.includes('Error Number: 3012')) {
+        errorMessage = 'Insufficient balance or token not found';
+      }
+      ElMessage({
+        message: errorMessage,
+        type: 'error',
+        duration: 3000
+      });
+      onError(e.error);
+    }
+  };
+
+  // 绑定事件监听器
+  events.on('cryptoTransactionComplete', handleTransactionComplete);
+  events.on('cryptoTransactionError', handleTransactionError);
+}
+
+/**
+ * 高级通用函数：处理完整的订单操作流程
+ * @param {Object} params - 参数对象
+ * @param {string} params.orderID - 订单ID
+ * @param {string} params.instructionsUrl - 指令接口URL
+ * @param {string} params.actionUrl - 执行接口URL
+ * @param {Object} params.instructionData - 指令请求数据
+ * @param {Object} params.actionData - 执行请求数据
+ * @param {Function} params.onSuccess - 成功回调
+ * @param {Function} params.onError - 错误回调
+ * @returns {Promise} Promise对象
+ */
+async function handleOrderOperation({ 
+  orderID, 
+  instructionsUrl, 
+  actionUrl, 
+  instructionData = {}, 
+  actionData = {},
+  onSuccess,
+  onError
+}) {
+  try {
+    await checkWalletConnection(async (isConnected, walletAddress) => {
+      // 构建指令请求数据
+      const requestData = {
+        orderID,
+        initiatorAddress: walletAddress,
+        ...instructionData
+      };
+
+      // 调用指令接口
+      const response = await myPost(app.getServerUrl(instructionsUrl), requestData);
+
+      if (response && response.hasInstructions === false) {
+        // 没有指令，直接调用执行接口
+        const result = await myPost(app.getServerUrl(actionUrl), actionData);
+        onSuccess(result);
+      } else if (response && response.instructions) {
+        // 有指令，执行加密货币交易
+        const networkType = getNetworkType(response.paymentChain);
+        
+        handleCryptoTransaction({
+          orderID,
+          networkType,
+          instructions: response.instructions,
+          metadata: response,
+          onSuccess: (transactionResult) => {
+            // 交易成功后，调用actionUrl
+            const finalActionData = {
+              ...actionData,
+              transactionID: transactionResult
+            };
+            
+            myPost(app.getServerUrl(actionUrl), finalActionData)
+              .then(onSuccess)
+              .catch(error => {
+                ElMessage({
+                  message: error?.message || '操作失败',
+                  type: 'error',
+                  duration: 3000
+                });
+                onError(error);
+              });
+          },
+          onError: onError
+        });
+      }
+    });
+  } catch (error) {
+    onError(error);
+  }
+}
+
 function confirmStripeOrder(orderID, reject = false) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
@@ -93,118 +263,25 @@ function confirmOrder(orderID, payoutAddress, toReject) {
   }
 
   let confirmRequest = acceptPosts[orderID];
-
   if (toReject) {
     confirmRequest = rejectPosts[orderID];
   }
 
   if (!confirmRequest) {
     const promise = new Promise(async (resolve, reject) => {
-      // 触发检查钱包连接状态的事件
-      events.trigger('checkWalletConnection', {
-        callback: async (isConnected, walletAddress) => {
-          if (!isConnected) {
-            events.trigger('showWalletConnectMessage', {
-              message: '请先连接钱包',
-              type: 'warning'
-            });
-            reject(new Error('Please connect your wallet first'));
-            return;
-          }
-
-          if (!walletAddress) {
-            reject(new Error('Wallet address not found'));
-            return;
-          }
-
-          try {
-            let requestData = {
-              orderID,
-              reject: toReject,
-              initiatorAddress: walletAddress
-            };
-
-            const response = await myPost(app.getServerUrl('instructions/order/confirm'), requestData);
-            if (response && response.hasInstructions === false) {
-              // 如果没有指令，直接调用确认接口
-              requestData = {
-                orderID,
-                reject: toReject,
-                txID: "",
-                payoutAddress
-              };
-              
-              const result = await myPost(app.getServerUrl('order/confirm'), requestData);
-              resolve(result);
-            } else if (response && response.instructions) {
-              let networkType;
-              if (response.paymentChain === 'ETH') {
-                networkType = 'ethereum';
-              } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-                networkType = 'solana';
-              } else {
-                reject(new Error('暂不支持该链支付: ' + response.paymentChain));
-                return;
-              }
-
-              events.trigger('executeCryptoTransaction', {
-                networkType,
-                orderID,
-                transactionData: response.instructions,
-                metadata: { ...response, reject: toReject }
-              });
-
-              const handleTransactionComplete = (e) => {
-                if (e.orderID === orderID && e.networkType === networkType) {
-                  events.off('cryptoTransactionComplete', handleTransactionComplete);
-                  events.off('cryptoTransactionError', handleTransactionError);
-                  
-                  // 交易成功后，调用后端确认接口
-                  const requestData = {
-                    orderID,
-                    reject: toReject,
-                    txID: e.result,
-                    payoutAddress
-                  };
-
-                  myPost(app.getServerUrl('order/confirm'), requestData)
-                  .then(resolve)
-                  .catch(error => {
-                    ElMessage({
-                      message: error?.message || '发送确认信息失败',
-                      type: 'error',
-                      duration: 3000
-                    });
-                    reject(error);
-                  });
-                }
-              };
-
-              const handleTransactionError = (e) => {
-                if (e.orderID === orderID && e.networkType === networkType) {
-                  events.off('cryptoTransactionComplete', handleTransactionComplete);
-                  events.off('cryptoTransactionError', handleTransactionError);
-                  let errorMessage = e.error?.message || '交易失败';
-                  if (errorMessage.includes('Error Number: 3012')) {
-                    errorMessage = 'Insufficient balance or token not found';
-                  }
-                  ElMessage({
-                    message: errorMessage,
-                    type: 'error',
-                    duration: 3000
-                  });
-                  reject(e.error);
-                }
-              };
-
-              // 绑定事件监听器
-              events.on('cryptoTransactionComplete', handleTransactionComplete);
-              events.on('cryptoTransactionError', handleTransactionError);
-            }
-          } catch (error) {
-            reject(error);
-          }
-        }
+      await handleOrderOperation({
+        orderID,
+        instructionsUrl: 'instructions/order/confirm',
+        actionUrl: 'order/confirm',
+        instructionData: { reject: toReject },
+        actionData: {
+          orderID,
+          reject: toReject,
+          transactionID: "",
+          payoutAddress
+        },
+        onSuccess: resolve,
+        onError: reject
       });
     });
 
@@ -398,43 +475,61 @@ export function refundOrder(orderID) {
     throw new Error('Please provide an orderID');
   }
 
-  let post = refundPosts[orderID];
-
-  if (!post) {
-    post = myPost(app.getServerUrl('order/refund'), {
-      orderID,
-    }).always(() => {
-      delete refundPosts[orderID];
-    }).done(() => {
-      events.trigger('refundOrderComplete', {
-        id: orderID,
-        xhr: post,
-      });
-    })
-      .fail((xhr) => {
-        events.trigger('refundOrderFail', {
-          id: orderID,
-          xhr: post,
-        });
-
-        ElMessage({
-          message: {
-            header: app.polyglot.t('orderUtil.failedRefundHeading'),
-            content: xhr.responseJSON && xhr.responseJSON.reason || ''
-          },
-          type: 'error',
-          duration: 3000
-        });
-      });
-
-    refundPosts[orderID] = post;
-    events.trigger('refundingOrder', {
-      id: orderID,
-      xhr: post,
-    });
+  if (refundPosts[orderID]) {
+    return refundPosts[orderID].xhr;
   }
 
-  return post;
+  // 创建一个新的Promise来处理整个流程
+  const promise = new Promise(async (resolve, reject) => {
+    await handleOrderOperation({
+      orderID,
+      instructionsUrl: 'instructions/order/refund',
+      actionUrl: 'order/refund',
+      instructionData: {},
+      actionData: { orderID },
+      onSuccess: resolve,
+      onError: reject
+    });
+  });
+
+  // 将Promise包装成jQuery的Promise对象
+  const jqPromise = $.Deferred();
+  promise
+    .then(result => {
+      jqPromise.resolve(result);
+      events.trigger('refundOrderComplete', {
+        id: orderID,
+        xhr: jqPromise
+      });
+    })
+    .catch(error => {
+      jqPromise.reject(error);
+      events.trigger('refundOrderFail', {
+        id: orderID,
+        xhr: jqPromise
+      });
+
+      ElMessage({
+        message: {
+          header: app.polyglot.t('orderUtil.failedRefundHeading'),
+          content: error.message || ''
+        },
+        type: 'error',
+        duration: 3000
+      });
+    })
+    .finally(() => {
+      delete refundPosts[orderID];
+    });
+
+  refundPosts[orderID] = { xhr: jqPromise };
+
+  events.trigger('refundingOrder', {
+    id: orderID,
+    xhr: jqPromise
+  });
+
+  return jqPromise;
 }
 
 /**
@@ -531,110 +626,19 @@ function completeCryptoOrder(orderID, data = {}) {
     throw new Error('Invalid ratings data');
   }
 
-  const promise = new Promise((resolve, reject) => {
-    // 触发检查钱包连接状态的事件
-    events.trigger('checkWalletConnection', {
-      callback: async (isConnected, walletAddress) => {
-        if (!isConnected) {
-          events.trigger('showWalletConnectMessage', {
-            message: '请先连接钱包',
-            type: 'warning'
-          });
-          reject(new Error('Please connect your wallet first'));
-          return;
-        }
-
-        if (!walletAddress) {
-          reject(new Error('Wallet address not found'));
-          return;
-        }
-
-        try {
-          // 先请求 instructions/order/complete
-          const requestData = {
-            orderID,
-            initiatorAddress: walletAddress,
-            ...data
-          };
-
-          const response = await myPost(app.getServerUrl('instructions/order/complete'), requestData);
-
-          if (response && response.hasInstructions === false) {
-            // 没有链上指令，直接调用order/complete
-            const result = await myPost(app.getServerUrl('order/complete'), {
-              orderID,
-              ...data,
-              transactionID: ""
-            });
-            resolve(result);
-          } else if (response && response.instructions) {
-            // 确定网络类型
-            let networkType;
-            if (response.paymentChain === 'ETH') {
-              networkType = 'ethereum';
-            } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-              networkType = 'solana';
-            } else {
-              reject(new Error('暂不支持该链支付: ' + response.paymentChain));
-              return;
-            }
-
-            events.trigger('executeCryptoTransaction', {
-              networkType,
-              orderID,
-              transactionData: response.instructions,
-              metadata: response
-            });
-
-            // 等待交易完成
-            const handleTransactionComplete = (e) => {
-              if (e.orderID === orderID && e.networkType === networkType) {
-                events.off('cryptoTransactionComplete', handleTransactionComplete);
-                events.off('cryptoTransactionError', handleTransactionError);
-                
-                // 交易成功后，调用后端完成接口
-                myPost(app.getServerUrl('order/complete'), {
-                  orderID,
-                  ...data,
-                  transactionID: e.result
-                })
-                .then(resolve)
-                .catch(error => {
-                  ElMessage({
-                    message: error?.message || '发送完成信息失败',
-                    type: 'error',
-                    duration: 3000
-                  });
-                  reject(error);
-                });
-              }
-            };
-
-            const handleTransactionError = (e) => {
-              if (e.orderID === orderID && e.networkType === networkType) {
-                events.off('cryptoTransactionComplete', handleTransactionComplete);
-                events.off('cryptoTransactionError', handleTransactionError);
-                let errorMessage = e.error?.message || '交易失败';
-                if (errorMessage.includes('Error Number: 3012')) {
-                  errorMessage = 'Insufficient balance or token not found';
-                }
-                ElMessage({
-                  message: errorMessage,
-                  type: 'error',
-                  duration: 3000
-                });
-                reject(e.error);
-              }
-            };
-
-            // 绑定事件监听器
-            events.on('cryptoTransactionComplete', handleTransactionComplete);
-            events.on('cryptoTransactionError', handleTransactionError);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      }
+  const promise = new Promise(async (resolve, reject) => {
+    await handleOrderOperation({
+      orderID,
+      instructionsUrl: 'instructions/order/complete',
+      actionUrl: 'order/complete',
+      instructionData: data,
+      actionData: {
+        orderID,
+        ...data,
+        transactionID: ""
+      },
+      onSuccess: resolve,
+      onError: reject
     });
   });
 
@@ -823,104 +827,15 @@ export function acceptPayout(orderID) {
   }
 
   // 创建一个新的Promise来处理整个流程
-  const promise = new Promise((resolve, reject) => {
-    // 触发检查钱包连接状态的事件
-    events.trigger('checkWalletConnection', {
-      callback: async (isConnected, walletAddress) => {
-        if (!isConnected) {
-          events.trigger('showWalletConnectMessage', {
-            message: '请先连接钱包',
-            type: 'warning'
-          });
-          reject(new Error('Please connect your wallet first'));
-          return;
-        }
-
-        if (!walletAddress) {
-          reject(new Error('Wallet address not found'));
-          return;
-        }
-
-        try {
-          const requestData = {
-            orderID,
-            initiatorAddress: walletAddress
-          };
-          
-          const response = await myPost(app.getServerUrl('instructions/dispute/release'), requestData);
-          
-          if (response && response.hasInstructions === false) {
-            const result = await myPost(app.getServerUrl('dispute/release'), {
-              orderID
-            });
-            resolve(result);
-          } else if (response && response.instructions) {
-            // 确定网络类型
-            let networkType;
-            if (response.paymentChain === 'ETH') {
-              networkType = 'ethereum';
-            } else if (response.paymentChain === 'SOL' || response.paymentChain === 'SOLUSDT') {
-              networkType = 'solana';
-            } else {
-              reject(new Error('暂不支持该链支付: ' + response.paymentChain));
-              return;
-            }
-
-            events.trigger('executeCryptoTransaction', {
-              networkType,
-              orderID,
-              transactionData: response.instructions,
-              metadata: response
-            });
-
-            // 等待交易完成
-            const handleTransactionComplete = (e) => {
-              if (e.orderID === orderID && e.networkType === networkType) {
-                events.off('cryptoTransactionComplete', handleTransactionComplete);
-                events.off('cryptoTransactionError', handleTransactionError);
-                
-                // 交易成功后，调用dispute/release
-                myPost(app.getServerUrl('dispute/release'), {
-                  orderID,
-                  transactionID: e.result
-                })
-                .then(resolve)
-                .catch(error => {
-                  ElMessage({
-                    message: error?.message || '发送支付信息失败',
-                    type: 'error',
-                    duration: 3000
-                  });
-                  reject(error);
-                });
-              }
-            };
-
-            const handleTransactionError = (e) => {
-              if (e.orderID === orderID && e.networkType === networkType) {
-                events.off('cryptoTransactionComplete', handleTransactionComplete);
-                events.off('cryptoTransactionError', handleTransactionError);
-                let errorMessage = e.error?.message || '交易失败';
-                if (errorMessage.includes('Error Number: 3012')) {
-                  errorMessage = 'Insufficient balance or token not found';
-                }
-                ElMessage({
-                  message: errorMessage,
-                  type: 'error',
-                  duration: 3000
-                });
-                reject(e.error);
-              }
-            };
-
-            // 绑定事件监听器
-            events.on('cryptoTransactionComplete', handleTransactionComplete);
-            events.on('cryptoTransactionError', handleTransactionError);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      }
+  const promise = new Promise(async (resolve, reject) => {
+    await handleOrderOperation({
+      orderID,
+      instructionsUrl: 'instructions/dispute/release',
+      actionUrl: 'dispute/release',
+      instructionData: {},
+      actionData: { orderID },
+      onSuccess: resolve,
+      onError: reject
     });
   });
 
