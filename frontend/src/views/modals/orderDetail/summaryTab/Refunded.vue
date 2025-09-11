@@ -50,7 +50,10 @@ export default {
         blockChainTxUrl: '',
       },
     },
-    bb: Function,
+    model: {
+      type: Object,
+      default: {},
+    },
   },
   data () {
     return {

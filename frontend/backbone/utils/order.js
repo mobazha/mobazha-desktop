@@ -43,7 +43,7 @@ function confirmStripeOrder(orderID, reject = false) {
     post = myPost(app.getServerUrl('order/confirm'), {
       orderID,
       reject,
-      transactionID: ""
+      txID: ""
     }).always(() => {
       if (reject) {
         delete rejectPosts[orderID];
@@ -99,7 +99,7 @@ function confirmOrder(orderID, payoutAddress, toReject) {
   }
 
   if (!confirmRequest) {
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise(async (resolve, reject) => {
       // 触发检查钱包连接状态的事件
       events.trigger('checkWalletConnection', {
         callback: async (isConnected, walletAddress) => {
@@ -125,13 +125,12 @@ function confirmOrder(orderID, payoutAddress, toReject) {
             };
 
             const response = await myPost(app.getServerUrl('instructions/order/confirm'), requestData);
-
             if (response && response.hasInstructions === false) {
               // 如果没有指令，直接调用确认接口
               requestData = {
                 orderID,
                 reject: toReject,
-                transactionID: "",
+                txID: "",
                 payoutAddress
               };
               
@@ -164,7 +163,7 @@ function confirmOrder(orderID, payoutAddress, toReject) {
                   const requestData = {
                     orderID,
                     reject: toReject,
-                    transactionID: e.result,
+                    txID: e.result,
                     payoutAddress
                   };
 
