@@ -213,7 +213,7 @@ function confirmStripeOrder(orderID, reject = false) {
     post = myPost(app.getServerUrl('order/confirm'), {
       orderID,
       reject,
-      txID: ""
+      transactionID: ""
     }).always(() => {
       if (reject) {
         delete rejectPosts[orderID];
@@ -273,7 +273,7 @@ function confirmOrder(orderID, payoutAddress, toReject) {
         orderID,
         instructionsUrl: 'instructions/order/confirm',
         actionUrl: 'order/confirm',
-        instructionData: { reject: toReject },
+        instructionData: { reject: toReject, payoutAddress },
         actionData: {
           orderID,
           reject: toReject,
@@ -369,43 +369,58 @@ export function cancelOrder(orderID, paymentCoin) {
     throw new Error('Please provide an orderID');
   }
 
-  let post = cancelPosts[orderID];
-
-  if (!post) {
-    post = myPost(app.getServerUrl('ob/ordercancel'), {
-      orderID,
-    }).always(() => {
-      delete cancelPosts[orderID];
-    }).done(() => {
-      events.trigger('cancelOrderComplete', {
-        id: orderID,
-        xhr: post,
-      });
-    })
-      .fail((xhr) => {
-        events.trigger('cancelOrderFail', {
-          id: orderID,
-          xhr: post,
-        });
-
-        ElMessage({
-          message: {
-            header: app.polyglot.t('orderUtil.failedCancelHeading'),
-            content: xhr.responseJSON && xhr.responseJSON.reason || ''
-          },
-          type: 'error',
-          duration: 3000
-        });
-      });
-
-    cancelPosts[orderID] = post;
-    events.trigger('cancelingOrder', {
-      id: orderID,
-      xhr: post,
-    });
+  if (cancelPosts[orderID]) {
+    return cancelPosts[orderID];
   }
 
-  return post;
+  const promise = new Promise(async (resolve, reject) => {
+    await handleOrderOperation({
+      orderID,
+      instructionsUrl: 'instructions/order/cancel',
+      actionUrl: 'order/cancel',
+      instructionData: {},
+      actionData: { orderID },
+      onSuccess: resolve,
+      onError: reject
+    });
+  });
+
+  const jqPromise = $.Deferred();
+  promise
+    .then(result => {
+      jqPromise.resolve(result);
+      events.trigger('cancelOrderComplete', {
+        id: orderID,
+        xhr: jqPromise,
+      });
+    })
+    .catch(error => {
+      jqPromise.reject(error);
+      events.trigger('cancelOrderFail', {
+        id: orderID,
+        xhr: jqPromise,
+      });
+
+      ElMessage({
+        message: {
+          header: app.polyglot.t('orderUtil.failedCancelHeading'),
+          content: error?.message || ''
+        },
+        type: 'error',
+        duration: 3000
+      });
+    })
+    .finally(() => {
+      delete cancelPosts[orderID];
+    });
+
+  cancelPosts[orderID] = jqPromise;
+  events.trigger('cancelingOrder', {
+    id: orderID,
+    xhr: jqPromise,
+  });
+
+  return jqPromise;
 }
 
 export function fulfillingOrder(orderID) {

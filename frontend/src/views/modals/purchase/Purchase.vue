@@ -1516,17 +1516,17 @@ export default {
             // 获取源币种和目标币种的精度
             const fromDivisibility = getCoinDivisibility(this.paymentData.pricingCoin);
             const toDivisibility = getCoinDivisibility(this.paymentCoin);
-            
+        
             // 将最小精度单位转换为标准单位
             const amountInStandardUnit = integerToDecimal(this.paymentData.amount.amount, fromDivisibility).toNumber();
-            
+  
             // 使用 currency.js 中的 convertCurrency 方法进行汇率转换
             const convertedAmountInStandardUnit = convertCurrency(
-              this.paymentData.amount.amount,
+              amountInStandardUnit,
               this.paymentData.pricingCoin,
               this.paymentCoin
             );
-            
+
             // 转换为最小精度单位
             convertedAmount = decimalToInteger(convertedAmountInStandardUnit, toDivisibility).toNumber();
             

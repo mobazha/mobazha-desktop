@@ -633,6 +633,13 @@ export function getExchangeRate(currency) {
     throw new Error('Please provide a currency.');
   }
 
+  if (currency.includes('USDT')) {
+    currency = 'USDT';
+  }
+  if (currency.includes('USDC')) {
+    currency = 'USDC';
+  }
+
   let isWalletCur = false;
 
   try {
@@ -670,9 +677,21 @@ export function convertCurrency(amount, fromCur, toCur) {
   if (typeof fromCur !== 'string') {
     throw new Error('Please provide a fromCur as a string');
   }
+  if (fromCur.includes('USDT')) {
+    fromCur = 'USDT';
+  }
+  if (fromCur.includes('USDC')) {
+    fromCur = 'USDC';
+  }
 
   if (typeof toCur !== 'string') {
     throw new Error('Please provide a toCur as a string');
+  }
+  if (toCur.includes('USDT')) {
+    toCur = 'USDT';
+  }
+  if (toCur.includes('USDC')) {
+    toCur = 'USDC';
   }
 
   const fromCurCode = ensureMainnetCode(fromCur.toUpperCase());
