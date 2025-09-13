@@ -8,6 +8,7 @@ import OrderDispute from '../models/order/OrderDispute.js';
 import ResolveDispute from '../models/order/ResolveDispute.js';
 import { ElMessage } from 'element-plus';
 import Rating from '../models/order/orderCompletion/Rating';
+import { getNetworkTypeByTokenId } from '../../src/config/token.js';
 
 const events = {
   ...Events,
@@ -30,13 +31,16 @@ function isStripeChain(paymentCoin) {
 
 /**
  * 通用的钱包连接检查函数
- * @param {Function} callback - 回调函数，参数为 (isConnected, walletAddress)
+ * @param {Function} callback - 回调函数，参数为 (isConnected, walletAddress, networkType)
+ * @param {string} requiredNetworkType - 需要的网络类型 ('ethereum', 'solana', 等)
  * @returns {Promise} Promise对象
  */
-function checkWalletConnection(callback) {
+function checkWalletConnection(resultCallback, paymentCoin = null) {
+  // 根据支付币种确定需要的网络类型
+  const requiredNetworkType = getNetworkTypeByTokenId(paymentCoin);
   return new Promise((resolve, reject) => {
     events.trigger('checkWalletConnection', {
-      callback: async (isConnected, walletAddress) => {
+      callback: async (isConnected, walletAddress, currentNetworkType) => {
         if (!isConnected) {
           events.trigger('showWalletConnectMessage', {
             message: '请先连接钱包',
@@ -51,30 +55,26 @@ function checkWalletConnection(callback) {
           return;
         }
 
+        // 检查网络类型是否匹配
+        if (requiredNetworkType && currentNetworkType !== requiredNetworkType) {
+          events.trigger('showWalletConnectMessage', {
+            message: `请切换到${requiredNetworkType}网络，当前网络为${currentNetworkType}`,
+            type: 'warning'
+          });
+          reject(new Error(`Please switch to ${requiredNetworkType} network, current network is ${currentNetworkType}`));
+          return;
+        }
+
         try {
-          await callback(isConnected, walletAddress);
+          await resultCallback(isConnected, walletAddress, currentNetworkType);
           resolve();
         } catch (error) {
           reject(error);
         }
-      }
+      },
+      requiredNetworkType
     });
   });
-}
-
-/**
- * 获取网络类型
- * @param {string} paymentChain - 支付链类型
- * @returns {string} 网络类型
- */
-function getNetworkType(paymentChain) {
-  if (paymentChain === 'ETH') {
-    return 'ethereum';
-  } else if (paymentChain === 'SOL' || paymentChain === 'SOLUSDT') {
-    return 'solana';
-  } else {
-    throw new Error('暂不支持该链支付: ' + paymentChain);
-  }
 }
 
 /**
@@ -129,6 +129,7 @@ function handleCryptoTransaction({ orderID, networkType, instructions, metadata,
  * 高级通用函数：处理完整的订单操作流程
  * @param {Object} params - 参数对象
  * @param {string} params.orderID - 订单ID
+ * @param {string} params.paymentCoin - 支付币种
  * @param {string} params.instructionsUrl - 指令接口URL
  * @param {string} params.actionUrl - 执行接口URL
  * @param {Object} params.instructionData - 指令请求数据
@@ -139,6 +140,7 @@ function handleCryptoTransaction({ orderID, networkType, instructions, metadata,
  */
 async function handleOrderOperation({ 
   orderID, 
+  paymentCoin = null,
   instructionsUrl, 
   actionUrl, 
   instructionData = {}, 
@@ -147,7 +149,7 @@ async function handleOrderOperation({
   onError
 }) {
   try {
-    await checkWalletConnection(async (isConnected, walletAddress) => {
+    await checkWalletConnection(async (isConnected, walletAddress, currentNetworkType) => {
       // 构建指令请求数据
       const requestData = {
         orderID,
@@ -164,7 +166,7 @@ async function handleOrderOperation({
         onSuccess(result);
       } else if (response && response.instructions) {
         // 有指令，执行加密货币交易
-        const networkType = getNetworkType(response.paymentChain);
+        const networkType = getNetworkTypeByTokenId(response.paymentChain);
         
         handleCryptoTransaction({
           orderID,
@@ -192,7 +194,7 @@ async function handleOrderOperation({
           onError: onError
         });
       }
-    });
+    }, paymentCoin);
   } catch (error) {
     onError(error);
   }
@@ -257,7 +259,7 @@ function confirmStripeOrder(orderID, reject = false) {
   return post;
 }
 
-function confirmOrder(orderID, payoutAddress, toReject) {
+function confirmOrder(orderID, payoutAddress, toReject, paymentCoin = null) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -271,6 +273,7 @@ function confirmOrder(orderID, payoutAddress, toReject) {
     const promise = new Promise(async (resolve, reject) => {
       await handleOrderOperation({
         orderID,
+        paymentCoin,
         instructionsUrl: 'instructions/order/confirm',
         actionUrl: 'order/confirm',
         instructionData: { reject: toReject, payoutAddress },
@@ -346,7 +349,7 @@ export function acceptOrder(orderID, payoutAddress, paymentCoin) {
   if (isStripeChain(paymentCoin)) {
     return confirmStripeOrder(orderID, false);
   }
-  return confirmOrder(orderID, payoutAddress, false);
+  return confirmOrder(orderID, payoutAddress, false, paymentCoin);
 }
 
 export function rejectingOrder(orderID) {
@@ -357,7 +360,7 @@ export function rejectOrder(orderID, paymentCoin) {
   if (isStripeChain(paymentCoin)) {
     return confirmStripeOrder(orderID, true);
   }
-  return confirmOrder(orderID, null, true);
+  return confirmOrder(orderID, null, true, paymentCoin);
 }
 
 export function cancelingOrder(orderID) {
@@ -376,6 +379,7 @@ export function cancelOrder(orderID, paymentCoin) {
   const promise = new Promise(async (resolve, reject) => {
     await handleOrderOperation({
       orderID,
+      paymentCoin,
       instructionsUrl: 'instructions/order/cancel',
       actionUrl: 'order/cancel',
       instructionData: {},
@@ -485,7 +489,7 @@ export function refundingOrder(orderID) {
   return !!refundPosts[orderID];
 }
 
-export function refundOrder(orderID) {
+export function refundOrder(orderID, paymentCoin = null) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -498,6 +502,7 @@ export function refundOrder(orderID) {
   const promise = new Promise(async (resolve, reject) => {
     await handleOrderOperation({
       orderID,
+      paymentCoin,
       instructionsUrl: 'instructions/order/refund',
       actionUrl: 'order/refund',
       instructionData: {},
@@ -644,6 +649,7 @@ function completeCryptoOrder(orderID, data = {}) {
   const promise = new Promise(async (resolve, reject) => {
     await handleOrderOperation({
       orderID,
+      paymentCoin: data.paymentCoin,
       instructionsUrl: 'instructions/order/complete',
       actionUrl: 'order/complete',
       instructionData: data,
@@ -832,7 +838,7 @@ export function acceptingPayout(orderID) {
   return !!acceptPayoutPosts[orderID];
 }
 
-export function acceptPayout(orderID) {
+export function acceptPayout(orderID, paymentCoin = null) {
   if (!orderID) {
     throw new Error('Please provide an orderID');
   }
@@ -845,6 +851,7 @@ export function acceptPayout(orderID) {
   const promise = new Promise(async (resolve, reject) => {
     await handleOrderOperation({
       orderID,
+      paymentCoin,
       instructionsUrl: 'instructions/dispute/release',
       actionUrl: 'dispute/release',
       instructionData: {},

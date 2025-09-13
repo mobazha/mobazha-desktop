@@ -140,4 +140,17 @@ export function parseTokenAmount(amount, tokenId) {
   const decimals = token.decimals;
   const multiplier = Math.pow(10, decimals);
   return Math.floor(parseFloat(amount) * multiplier);
-} 
+}
+
+// 根据代币ID获取对应的网络类型
+export function getNetworkTypeByTokenId(tokenId) {
+  const token = getTokenById(tokenId);
+  if (!token) return null;
+  
+  if (['ETH', 'BSC', 'BASE', 'MATIC'].includes(token.chain)) {
+    return 'ethereum';
+  } else if (token.chain === 'SOL') {
+    return 'solana';
+  }
+  return null;
+}

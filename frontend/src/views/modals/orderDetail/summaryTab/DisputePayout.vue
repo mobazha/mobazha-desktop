@@ -88,6 +88,7 @@ export default {
         vendorAvatarHashes: '',
         moderatorName: '',
         moderatorAvatarHashes: '',
+        paymentCoin: '',
       },
     },
   },
@@ -189,7 +190,7 @@ export default {
     onClickAcceptPayoutConfirmed () {
       recordEvent('OrderDetails_DisputeAcceptConfirm');
       this.acceptConfirmOn = false;
-      acceptPayout(this.orderID);
+      acceptPayout(this.orderID, this.options.paymentCoin);
     },
 
   }

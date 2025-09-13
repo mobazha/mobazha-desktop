@@ -164,7 +164,7 @@ export default {
     onClickRefundConfirmed () {
       recordEvent('OrderDetails_RefundConfirm');
       this.refundConfirmOn = false;
-      refundOrder(this.orderID);
+      refundOrder(this.orderID, this.options.paymentCoin);
     },
 
     onClickFulfillOrder () {

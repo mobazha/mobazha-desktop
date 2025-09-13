@@ -36,8 +36,17 @@ export const useWalletStore = defineStore('wallet', () => {
     error.value = null
   }
 
-  const checkWalletConnection = async () => {
-    return isConnected.value
+  const checkWalletConnection = async (requiredNetworkType = null) => {
+    if (!isConnected.value) {
+      return false
+    }
+    
+    // 如果指定了需要的网络类型，检查当前网络类型是否匹配
+    if (requiredNetworkType && networkType.value !== requiredNetworkType) {
+      return false
+    }
+    
+    return true
   }
 
   const connectWallet = async (provider) => {

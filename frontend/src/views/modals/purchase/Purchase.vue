@@ -471,7 +471,7 @@ import PaymentMethodSelector from './PaymentMethodSelector.vue';
 import Moderators from '../../../components/global/moderators/Moderators.vue';
 import { loadStripe } from '@stripe/stripe-js'
 import { useWalletStore } from '@/stores/wallet';
-import { tokens } from '@/config/token.js';
+import { tokens, getNetworkTypeByTokenId } from '@/config/token.js';
 import { findRwaTokenByCode } from '@/data/rwaTokenMockData.js';
 import { rwaMarketplaceService } from '@/services/rwaMarketplaceService.js';
 import { getContractAddress, getTokenConfig } from '@/config/rwaMarketplaceConfig.js';
@@ -1453,11 +1453,20 @@ export default {
       }).format(amount)
     },
 
-    async checkWalletConnectionWithPrompt() {
-      const isConnected = await this.walletStore.checkWalletConnection();
+    async checkWalletConnectionWithPrompt(requiredNetworkType = null) {
+      const isConnected = await this.walletStore.checkWalletConnection(requiredNetworkType);
       if (!isConnected) {
+        let message = '请先连接钱包';
+        if (requiredNetworkType) {
+          if (this.walletStore.isConnected && this.currentNetworkType !== requiredNetworkType) {
+            message = `请切换到${requiredNetworkType}网络，当前网络为${this.currentNetworkType}`;
+          } else {
+            message = `请连接${requiredNetworkType}钱包`;
+          }
+        }
+        
         const confirmed = await ElMessageBox.confirm(
-          '请先连接钱包',
+          message,
           '提示',
           {
             confirmButtonText: '连接钱包',
@@ -1500,8 +1509,9 @@ export default {
      */
     async processCryptoPayment(paymentType) {
       try {
-        // 1. 检查钱包连接
-        const isWalletConnected = await this.checkWalletConnectionWithPrompt();
+        // 1. 检查钱包连接和网络类型
+        const requiredNetworkType = getNetworkTypeByTokenId(this.paymentCoin);
+        const isWalletConnected = await this.checkWalletConnectionWithPrompt(requiredNetworkType);
         if (!isWalletConnected) return;
 
         // 2. 获取仲裁人

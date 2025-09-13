@@ -264,8 +264,8 @@ export default {
       });
     },
 
-    checkWalletConnection() {
-      return this.walletStore.checkWalletConnection();
+    checkWalletConnection(requiredNetworkType = null) {
+      return this.walletStore.checkWalletConnection(requiredNetworkType);
     },
 
     initAppKit() {
@@ -447,13 +447,13 @@ export default {
 
     setupOrderEvents() {
       // 监听钱包连接检查事件
-      events.on('checkWalletConnection', async ({ callback }) => {
+      events.on('checkWalletConnection', async ({ callback, requiredNetworkType }) => {
         try {
-          const isConnected = await this.checkWalletConnection();
-          callback(isConnected, this.walletAddress);
+          const isConnected = await this.checkWalletConnection(requiredNetworkType);
+          callback(isConnected, this.walletAddress, this.currentNetworkType);
         } catch (error) {
           console.error('检查钱包连接失败:', error);
-          callback(false, null);
+          callback(false, null, null);
         }
       });
 
