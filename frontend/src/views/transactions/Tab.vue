@@ -64,6 +64,9 @@ export default {
   data() {
     return {
       filterKey: 0,
+      
+      // 用于触发 collection 相关计算属性更新的 key
+      collectionUpdateKey: 0,
 
       defaultFilter: {
         search: '',
@@ -83,11 +86,21 @@ export default {
     this.initEventChain();
 
     this.loadData(this.options);
+    
+    // 监听 collection 变化事件
+    if (this.collection) {
+      this.listenTo(this.collection, 'add remove reset update', this.onCollectionChange);
+    }
   },
   mounted() {
   },
   unmounted() {
     clearTimeout(this.searchKeyUpTimer);
+    
+    // 清理 Backbone 事件监听器
+    if (this.stopListening) {
+      this.stopListening();
+    }
   },
   computed: {
     ob () {
@@ -112,6 +125,9 @@ export default {
       };
     },
     queryTotalLine() {
+      // 依赖 collectionUpdateKey 来触发重新计算
+      this.collectionUpdateKey;
+      
       const count = app.polyglot.t(`transactions.${this.type}.countTransactions`, { smart_count: this.collection.length });
       const countInfo = `<span class="txB">${count}</span>`;
       return app.polyglot.t(`transactions.${this.type}.countTransactionsFound`, { smart_count: countInfo });
@@ -123,9 +139,23 @@ export default {
         this.filterKey += 1;
       },
       deep: true,
+    },
+    // 监听 options 变化，当父组件传递新的配置时重新加载数据
+    options: {
+      handler(newOptions, oldOptions) {
+        if (newOptions && newOptions !== oldOptions) {
+          this.loadData(newOptions);
+        }
+      },
+      deep: true,
     }
   },
   methods: {
+    onCollectionChange() {
+      // 更新 key 来触发 collection 相关计算属性重新计算
+      this.collectionUpdateKey += 1;
+    },
+
     loadData(options = {}) {
       const opts = {
         defaultFilter: {

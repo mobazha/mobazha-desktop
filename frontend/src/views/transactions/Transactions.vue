@@ -110,6 +110,14 @@ export default {
   mounted() {
     this.render();
   },
+  watch: {
+    // 监听路由变化，当 tab 参数改变时重新加载数据
+    '$route.params.tab'(newTab, oldTab) {
+      if (newTab !== oldTab) {
+        this.loadData();
+      }
+    }
+  },
   computed: {
     ownProfile() {
       return app.profile;
@@ -239,6 +247,9 @@ export default {
       }
 
       this._tab = tab || 'sales';
+      
+      // 更新 tabKey 以强制重新渲染 Tab 组件
+      this.tabKey += 1;
 
       this.tabViewCache = {};
       this.profileDeferreds = {};

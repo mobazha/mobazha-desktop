@@ -160,6 +160,9 @@ export default {
       selectedOrderBlockchain: 'ETH',
       selectedReceivingAccount: null,
       pendingOrderAction: null, // 存储待处理的订单操作
+      
+      // 用于触发 transToRender 更新的 key
+      collectionUpdateKey: 0,
     };
   },
   created() {
@@ -172,6 +175,11 @@ export default {
   unmounted() {
     if (this.avatarPost) this.avatarPost.abort();
     if (this.transactionsFetch) this.transactionsFetch.abort();
+    
+    // 清理 Backbone 事件监听器
+    if (this.stopListening) {
+      this.stopListening();
+    }
   },
   computed: {
     ob() {
@@ -195,6 +203,9 @@ export default {
       return end;
     },
     transToRender() {
+      // 依赖 collectionUpdateKey 来触发重新计算
+      this.collectionUpdateKey;
+      
       if (!this.collection || this.collection.length == 0) {
         return [];
       }
@@ -299,6 +310,8 @@ export default {
       this.listenTo(orderEvents, 'cancelingOrder', this.onCancelingOrder);
       this.listenTo(orderEvents, 'cancelOrderComplete, cancelOrderFail', this.onCancelOrderAlways);
       this.listenTo(orderEvents, 'cancelOrderComplete', this.onCancelOrderComplete);
+
+      this.listenTo(this.collection, 'add remove reset update', this.onCollectionChange);
     },
 
     onSocketMessage(e) {
@@ -315,6 +328,11 @@ export default {
           });
         }
       }
+    },
+
+    onCollectionChange() {
+      // 更新 key 来触发 transToRender 计算属性重新计算
+      this.collectionUpdateKey += 1;
     },
 
     onClickRetryFetch() {
