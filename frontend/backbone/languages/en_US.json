@@ -280,6 +280,42 @@
     }
   },
   "chat": {
+    "title": "Chat",
+    "userInfo": {
+      "idLabel": "ID:",
+      "locationPrefix": "📍"
+    },
+    "conversations": {
+      "searchPlaceholder": "Search by user ID or name...",
+      "noConversations": "No conversations",
+      "noMatchingConversations": "No matching conversations found",
+      "loading": "Loading conversations...",
+      "error": "Failed to load conversations",
+      "selectConversation": "Select a conversation to start chatting"
+    },
+    "messages": {
+      "inputPlaceholder": "Type a message...",
+      "sendButton": "Send",
+      "uploadingImage": "Uploading image...",
+      "cancelUpload": "Cancel",
+      "noMessages": "No messages yet",
+      "loadingMessages": "Loading messages...",
+      "downloadFile": "Download",
+      "sendImage": "Send Image",
+      "emoji": "Emoji",
+      "me": "Me"
+    },
+    "errors": {
+      "sendMessageFailed": "Failed to send message",
+      "imageUploadFailed": "Image upload failed",
+      "fileReadFailed": "Failed to read file",
+      "imageSizeExceeded": "Image size cannot exceed 5MB",
+      "invalidFileType": "Please select an image file"
+    },
+    "status": {
+      "read": "Read",
+      "unread": "Unread"
+    },
     "fetchingConversations": "Retrieving your chat conversations…",
     "errorFetching": "There was an error retrieving your chat conversations.",
     "errorFetchingWithMessage": "There was an error retrieving your chat conversations: %{msg}",

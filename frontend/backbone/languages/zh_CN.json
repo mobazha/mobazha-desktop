@@ -273,6 +273,42 @@
     }
   },
   "chat": {
+    "title": "聊天",
+    "userInfo": {
+      "idLabel": "ID:",
+      "locationPrefix": "📍"
+    },
+    "conversations": {
+      "searchPlaceholder": "搜索用户ID或名称...",
+      "noConversations": "暂无会话",
+      "noMatchingConversations": "未找到匹配的会话",
+      "loading": "加载会话中...",
+      "error": "加载会话失败",
+      "selectConversation": "选择一个会话开始聊天"
+    },
+    "messages": {
+      "inputPlaceholder": "输入消息...",
+      "sendButton": "发送",
+      "uploadingImage": "正在上传图片...",
+      "cancelUpload": "取消",
+      "noMessages": "暂无消息",
+      "loadingMessages": "加载消息中...",
+      "downloadFile": "下载",
+      "sendImage": "发送图片",
+      "emoji": "表情",
+      "me": "我"
+    },
+    "errors": {
+      "sendMessageFailed": "发送消息失败",
+      "imageUploadFailed": "图片上传失败",
+      "fileReadFailed": "读取文件失败",
+      "imageSizeExceeded": "图片大小不能超过5MB",
+      "invalidFileType": "请选择图片文件"
+    },
+    "status": {
+      "read": "已读",
+      "unread": "未读"
+    },
     "fetchingConversations": "检索您的聊天对话...",
     "errorFetching": "检索您的聊天对话时出错。",
     "errorFetchingWithMessage": "检索您的聊天对话时出错 : %{msg}",

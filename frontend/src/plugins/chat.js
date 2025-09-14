@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import ChatContainer from '../components/chat/ChatContainer.vue';
 import { getSocket } from '../../backbone/utils/serverConnect';
+import i18n from '../i18n';
 
 export default {
   install(app, options = {}) {
@@ -12,8 +13,9 @@ export default {
     // 创建聊天应用实例
     const chatApp = createApp(ChatContainer);
     
-    // 使用相同的store
+    // 使用相同的store和i18n
     chatApp.use(app.config.globalProperties.$store);
+    chatApp.use(i18n);
     
     // 挂载聊天应用
     const chatInstance = chatApp.mount(chatContainer);

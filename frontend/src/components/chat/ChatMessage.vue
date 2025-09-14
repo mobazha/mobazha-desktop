@@ -34,7 +34,7 @@
               size="small" 
               @click="downloadFile(message.file)"
             >
-              下载
+              {{ $t('chat.messages.downloadFile') }}
             </el-button>
           </div>
         </div>
@@ -43,10 +43,10 @@
           <span class="message-time">{{ formatTime(message.timestamp) }}</span>
           
           <div v-if="message.outgoing" class="message-status">
-            <el-icon v-if="message.read" class="read-icon" title="已读">
+            <el-icon v-if="message.read" class="read-icon" :title="$t('chat.status.read')">
               <Check />
             </el-icon>
-            <el-icon v-else class="unread-icon" title="未读">
+            <el-icon v-else class="unread-icon" :title="$t('chat.status.unread')">
               <Clock />
             </el-icon>
           </div>
@@ -56,9 +56,10 @@
   </template>
   
   <script>
-  import { ElImage, ElButton, ElIcon } from 'element-plus';
-  import { Document, Check, Clock } from '@element-plus/icons-vue';
-  import moment from 'moment';
+import { ElImage, ElButton, ElIcon } from 'element-plus';
+import { Document, Check, Clock } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
+import moment from 'moment';
   
   export default {
     name: 'ChatMessage',
@@ -77,6 +78,8 @@
       }
     },
     setup(props) {
+      const { t } = useI18n();
+      
       const formatTime = (timestamp) => {
         if (!timestamp) return '';
         return moment(timestamp).format('HH:mm');
@@ -102,6 +105,7 @@
       };
       
       return {
+        t,
         formatTime,
         formatFileSize,
         downloadFile
