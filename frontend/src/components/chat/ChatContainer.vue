@@ -22,8 +22,14 @@
               <div class="user-name">
                 {{ getUserDisplayName(currentConversation) }}
               </div>
-              <div class="user-location" v-if="currentConversation.profile?.location">
-                {{ currentConversation.profile.location }}
+              <div class="user-location">
+                {{ currentConversation.profile?.location || $t('userPage.noLocation') }}
+                <a class="ratingStrip clickable" 
+                   v-if="currentConversation.profile?.stats"
+                   @click="goToUserRating(currentConversation.peerID)"
+                   :title="$t('chat.userInfo.viewRating')"
+                   v-html="formatRating(currentConversation.profile.stats.averageRating, currentConversation.profile.stats.ratingCount)">
+                </a>
               </div>
               <div class="user-id">
                 <span class="id-label">{{ $t('chat.userInfo.idLabel') }}</span>
@@ -143,6 +149,7 @@ import { ChatDotRound, Close, Search } from '@element-plus/icons-vue';
 import ChatMessages from './ChatMessages.vue';
 import moment from 'moment';
 import { getAvatarBgImage } from '../../../backbone/utils/responsive';
+import { formatRating } from '../../../backbone/utils/templateHelpers';
 
 export default {
   name: 'ChatContainer',
@@ -264,6 +271,18 @@ export default {
       }
     };
     
+    // 跳转到用户评价页面
+    const goToUserRating = (peerID) => {
+      // 使用backbone路由系统导航到用户评价页面
+      if (window.app && window.app.router) {
+        window.app.router.navigate(`ob://${peerID}/reputation`, { trigger: true });
+      } else {
+        // 备用方案：直接修改hash
+        window.location.hash = `#ob://${peerID}/reputation`;
+      }
+    };
+    
+    
     // 生命周期
     onMounted(async () => {
       await chatStore.fetchConversations();
@@ -295,7 +314,9 @@ export default {
       getInitials,
       formatTime,
       getUserDisplayName,
-      goToUserStore
+      goToUserStore,
+      goToUserRating,
+      formatRating
     };
   }
 };
@@ -487,7 +508,8 @@ export default {
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .chat-container .chat-main-container .chat-header .user-info-section .user-details .user-location::before {

@@ -276,7 +276,8 @@
     "title": "聊天",
     "userInfo": {
       "idLabel": "ID:",
-      "locationPrefix": "📍"
+      "locationPrefix": "📍",
+      "viewRating": "查看用户评价"
     },
     "loading": "加载中...",
     "conversations": {

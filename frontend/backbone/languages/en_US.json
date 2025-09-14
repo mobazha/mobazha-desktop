@@ -283,7 +283,8 @@
     "title": "Chat",
     "userInfo": {
       "idLabel": "ID:",
-      "locationPrefix": "📍"
+      "locationPrefix": "📍",
+      "viewRating": "View user rating"
     },
     "loading": "Loading...",
     "conversations": {
