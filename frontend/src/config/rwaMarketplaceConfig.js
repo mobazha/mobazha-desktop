@@ -18,7 +18,7 @@ const MAINNET_CONFIG = {
 };
 
 // 当前使用的网络配置
-const CURRENT_NETWORK = 'sepolia'; // 或 'mainnet'
+let CURRENT_NETWORK = 'sepolia'; // 或 'mainnet'
 
 /**
  * 获取合约地址

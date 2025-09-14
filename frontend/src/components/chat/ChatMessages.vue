@@ -10,7 +10,7 @@
     <!-- 消息列表 -->
     <div class="messages-list" ref="messagesList">
       <div v-if="loading" class="loading-messages">
-        <div class="loading-spinner">加载中...</div>
+        <div class="loading-spinner">{{ $t('chat.loading') }}</div>
       </div>
       
       <div 
@@ -207,6 +207,10 @@ export default {
     messages: {
       type: Array,
       default: () => []
+    },
+    debug: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['send-message'],

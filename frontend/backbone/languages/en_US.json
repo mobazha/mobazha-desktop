@@ -285,6 +285,7 @@
       "idLabel": "ID:",
       "locationPrefix": "📍"
     },
+    "loading": "Loading...",
     "conversations": {
       "searchPlaceholder": "Search by user ID or name...",
       "noConversations": "No conversations",

@@ -96,8 +96,10 @@
               </div>
             </div>
             
-            <div v-if="loading" class="loading-container">
-              <el-loading />
+            <div v-if="loading" class="loading-container" v-loading="loading">
+              <div class="loading-content">
+                <div class="loading-text">{{ $t('chat.loading') }}</div>
+              </div>
             </div>
             
             <div v-if="error" class="error-container">
@@ -136,7 +138,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatStore } from '@/stores/chat';
-import { ElButton, ElIcon, ElAvatar, ElBadge, ElLoading, ElAlert, ElEmpty, ElInput } from 'element-plus';
+import { ElButton, ElIcon, ElAvatar, ElBadge, ElAlert, ElEmpty, ElInput } from 'element-plus';
 import { ChatDotRound, Close, Search } from '@element-plus/icons-vue';
 import ChatMessages from './ChatMessages.vue';
 import moment from 'moment';
@@ -149,7 +151,6 @@ export default {
     ElIcon,
     ElAvatar,
     ElBadge,
-    ElLoading,
     ElAlert,
     ElEmpty,
     ElInput,

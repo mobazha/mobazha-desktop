@@ -278,6 +278,7 @@
       "idLabel": "ID:",
       "locationPrefix": "📍"
     },
+    "loading": "加载中...",
     "conversations": {
       "searchPlaceholder": "搜索用户ID或名称...",
       "noConversations": "暂无会话",
