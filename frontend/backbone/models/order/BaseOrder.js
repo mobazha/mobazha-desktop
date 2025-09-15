@@ -114,6 +114,14 @@ export default class extends BaseModel {
     return paymentCoin;
   }
 
+  static getPaymentSent(attrs = {}) {
+    return this.getContract(attrs).paymentSent;
+  }
+
+  get paymentSent() {
+    return this.constructor.getPaymentSent(this.toJSON());
+  }
+
   get paymentCoin() {
     return this.constructor.getPaymentCoin(this.toJSON());
   }

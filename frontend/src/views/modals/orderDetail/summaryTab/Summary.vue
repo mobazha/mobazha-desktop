@@ -136,6 +136,7 @@ import {
 } from '../../../../../backbone/utils/order.js';
 import { getCurrencyByCode as getWalletCurByCode } from '../../../../../backbone/data/walletCurrencies.js';
 import { checkValidParticipantObject } from '../../../../utils/utils';
+import { getCurrentTimestamp } from '../../../../api/systemInfo.js';
 
 import StateProgressBar from './StateProgressBar.vue';
 import TimeoutInfo from './TimeoutInfo.vue';
@@ -692,7 +693,7 @@ export default {
     },
 
 
-    renderTimeoutInfoView () {
+    async renderTimeoutInfoView () {
       const paymentCurData = this.model.paymentCoinData;
       const orderState = this.model.get('state');
       const prevMomentDaysThreshold = moment.relativeTimeThreshold('d');
@@ -726,26 +727,40 @@ export default {
         dataUnavailable: false,
       };
       let showResolveDisputeBtn = false;
+      const paymentSent = this.contract.get('paymentSent');
 
       if (orderState === 'PAYMENT_FINALIZED') {
         state.isPaymentFinalized = true;
       } else {
         let disputeStartTime;
         let escrowTimeoutHours;
-        let curHeight;
+        let currentTimestamp;
 
         try {
-          escrowTimeoutHours = this.contract.escrowTimeoutHours;
+          escrowTimeoutHours = paymentSent.escrowTimeoutHours;
         } catch (e) {
           // pass - will be handled below
         }
 
         try {
-          curHeight = app.walletBalances
-            .get(this.model.paymentCoin)
-            .get('height');
+          // 获取服务器当前时间戳
+          currentTimestamp = await getCurrentTimestamp();
         } catch (e) {
-          // pass
+          // 如果获取服务器时间失败，显示数据不可用
+          state = {
+            ...state,
+            dataUnavailable: true,
+          };
+          moment.relativeTimeThreshold('d', prevMomentDaysThreshold);
+          this.timeoutInfoOptions = {
+            orderID: this.model.id,
+            ...state,
+            initialState: {
+              showResolveDisputeBtn,
+            },
+          };
+          this.showTimeoutInfo = true;
+          return;
         }
 
         if (orderState === 'DISPUTED' || isCase) {
@@ -773,10 +788,8 @@ export default {
             showDisputeBtn: this.model.isOrderStateDisputable,
           };
           showResolveDisputeBtn = isCase;
-        } else if (!paymentCurData || !curHeight) {
-          // The order was paid in a coin not supported by this client or we don't have
-          // the current height of the paymentCoin, which means we don't know the
-          // blocktime and can't display timeout info.
+        } else if (!paymentCurData) {
+          // The order was paid in a coin not supported by this client
           state = {
             dataUnavailable: true,
           };
@@ -833,23 +846,34 @@ export default {
               isPaymentClaimable: hasDisputeEscrowExpired,
             };
           } else {
-            const fundedHeight = this.model.fundedBlockHeight;
-            const blocksPerTimeout = (timeoutHours * 60 * 60 * 1000) / paymentCurData.blockTime;
-            const blocksRemaining = fundedHeight
-              ? blocksPerTimeout - (curHeight - fundedHeight)
-              : blocksPerTimeout;
-            const msRemaining = blocksRemaining * paymentCurData.blockTime;
+            // 使用基于时间戳的计算替代基于区块高度的计算
+            if (!paymentSent || !paymentSent.timestamp) {
+              state = {
+                ...state,
+                dataUnavailable: true,
+              };
+            } else {
+              const paymentTimestamp = new Date(paymentSent.timestamp).getTime();
+              const currentTime = currentTimestamp * 1000; // 转换为毫秒
+              const totalTimeoutMs = timeoutHours * 60 * 60 * 1000;
+              const timeoutDeadline = paymentTimestamp + totalTimeoutMs;
+              const msRemaining = timeoutDeadline - currentTime;
+              const blocksRemaining = Math.max(0, Math.floor(msRemaining / paymentCurData.blockTime)); // 简化为分钟
 
-            const timeRemaining = moment(Date.now()).from(moment(Date.now() + msRemaining), true);
+              const timeRemaining = moment(Date.now()).from(moment(Date.now() + msRemaining), true);
 
-            state = {
-              ...state,
-              isFundingConfirmed: !!fundedHeight,
-              blocksRemaining,
-              timeRemaining,
-              showDisputeBtn: this.model.isOrderDisputable && blocksRemaining > 0,
-              isPaymentClaimable: orderState === 'FULFILLED' && blocksRemaining <= 0,
-            };
+              // 检查资金是否已确认（基于订单是否已资助）
+              const isFundingConfirmed = this.model.isFunded;
+
+              state = {
+                ...state,
+                isFundingConfirmed,
+                blocksRemaining,
+                timeRemaining,
+                showDisputeBtn: this.model.isOrderDisputable && msRemaining > 0,
+                isPaymentClaimable: orderState === 'FULFILLED' && msRemaining <= 0,
+              };
+            }
           }
         }
       }
