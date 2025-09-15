@@ -25,29 +25,27 @@
         <i class="ion-alert-circled"></i>
         <span>{{ $t('receivingAccountSelector.noAccountText') }}</span>
       </div>
+    </div>
+
+    <div class="addAccountSection">
       <el-button 
         type="primary" 
         size="small" 
         @click="navigateToReceivingAccounts"
         class="addAccountBtn"
       >
+        <i class="ion-plus-round"></i>
         {{ $t('receivingAccountSelector.addAccountText') }}
       </el-button>
     </div>
     
-    <div v-if="selectedAccount" class="selectedAccountInfo">
-      <p class="paymentAddress">{{ selectedAccount.address }}</p>
-      <p class="accountName clrT2">{{ selectedAccount.name }}</p>
-    </div>
-    <div v-else-if="availableReceivingAccounts.length > 0" class="noAccountSelected">
-      <p class="clrT2">{{ $t('receivingAccountSelector.noSelectionText') }}</p>
-    </div>
   </div>
 </template>
 
 <script>
 import { ElMessage } from 'element-plus';
 import { myGet } from '@/api/api.js';
+import app from '../../backbone/app.js';
 
 export default {
   name: 'ReceivingAccountSelector',
@@ -147,6 +145,11 @@ export default {
       // 直接在这里处理导航逻辑
       this.$emit('navigate-to-accounts');
     },
+    
+    // 外部调用刷新账户列表的方法
+    refreshAccounts() {
+      this.fetchAvailableReceivingAccounts();
+    },
 
     // 格式化地址
     formatAddress(address) {
@@ -201,40 +204,27 @@ export default {
         font-size: 16px;
       }
     }
-
-    .addAccountBtn {
-      margin-top: 8px;
-    }
   }
 
-  .selectedAccountInfo {
+  .addAccountSection {
     margin-top: 12px;
     padding: 12px;
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 6px;
+    text-align: center;
 
-    .paymentAddress {
-      margin: 0 0 4px 0;
-      font-family: monospace;
-      font-size: 14px;
-      color: #166534;
-      word-break: break-all;
+    .addAccountBtn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      
+      i {
+        font-size: 14px;
+      }
     }
-
-    .accountName {
-      margin: 0;
-      font-size: 12px;
-    }
-  }
-
-  .noAccountSelected {
-    margin-top: 8px;
-    padding: 8px 12px;
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 4px;
-    color: #991b1b;
   }
 }
 </style> 

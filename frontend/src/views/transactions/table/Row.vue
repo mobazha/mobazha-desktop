@@ -49,12 +49,12 @@
             <a class="txU tx6 invisible">{{ ob.polyT('transactions.transactionsTable.btnReject') }}</a>
             <SpinnerSVG className="spinnerSm center" />
           </span>
-          <a v-else class="txU tx6" @click="onClickRejectOrder" :disabled="ob.acceptOrderInProgress">{{ ob.polyT('transactions.transactionsTable.btnReject') }}</a>
+          <a v-else class="txU tx6" @click.stop="onClickRejectOrder" :disabled="ob.acceptOrderInProgress">{{ ob.polyT('transactions.transactionsTable.btnReject') }}</a>
 
           <ProcessingButton
             :className="`js-acceptOrder btnAcceptOrder btn clrBAttGrad clrBrDec1 clrTOnEmph ${ob.acceptOrderInProgress ? 'processing' : ''}`"
             :disabled="ob.rejectOrderInProgress"
-            @click="onClickAcceptOrder"
+            @click.stop="onClickAcceptOrder"
             :btnText= "ob.polyT('transactions.transactionsTable.btnAccept')"
           />
         </template>
@@ -228,17 +228,17 @@ export default {
     },
 
     onClickAcceptOrder (e) {
-      this.$emit('clickAcceptOrder', { view: this });
+      this.$emit('clickAcceptOrder', this.ob.orderID, this.ob.paymentCoin);
       recordEvent('Transactions_AcceptOrder');
     },
 
     onClickRejectOrder (e) {
-      this.$emit('clickRejectOrder', { view: this });
+      this.$emit('clickRejectOrder', this.ob.orderID, this.ob.paymentCoin);
       recordEvent('Transactions_RejectOrder');
     },
 
     onClickCancelOrder (e) {
-      this.$emit('clickCancelOrder', { view: this });
+      this.$emit('clickCancelOrder', this.ob.orderID, this.ob.paymentCoin);
       recordEvent('Transactions_CancelOrder');
     },
 

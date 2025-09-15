@@ -14,7 +14,7 @@
     </template>
 
     <!-- 收款账户选择器弹窗 -->
-    <div v-if="showReceivingAccountModal" class="modal-overlay">
+    <div v-if="showAccountSelectModal" class="modal-overlay">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
           <h3>{{ $t('receivingAccountSelector.placeholder') }}</h3>
@@ -24,6 +24,7 @@
         </div>
         <div class="modal-content">
           <ReceivingAccountSelector
+            ref="receivingAccountSelector"
             :blockchain="selectedOrderBlockchain"
             @account-selected="onReceivingAccountSelected"
             @navigate-to-accounts="navigateToReceivingAccounts"
@@ -48,6 +49,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 收款账户管理弹窗 -->
+    <ReceivingAccountsModal v-if="showAccountsModal"  @close="closeAccountsModal" />
   </div>
 </template>
   
@@ -68,6 +72,7 @@ import { getCurrencyByCode as getWalletCurByCode } from '../../../../../backbone
 import { checkValidParticipantObject } from '../../../../utils/utils';
 import ReceivingAccountSelector from '../../../../components/ReceivingAccountSelector.vue';
 import { getTokenById } from '../../../../config/token.js';
+import ReceivingAccountsModal from '../../ReceivingAccountsModal.vue';
 
 import Payment from './Payment.vue';
 
@@ -75,6 +80,7 @@ export default {
   components: {
     Payment,
     ReceivingAccountSelector,
+    ReceivingAccountsModal,
   },
   props: {
     options: {
@@ -91,10 +97,12 @@ export default {
       _options: {},
 
       // 收款账户选择器相关状态
-      showReceivingAccountModal: false,
+      showAccountSelectModal: false,
       selectedOrderBlockchain: 'ETH',
       selectedReceivingAccount: null,
       pendingOrderAction: null, // 存储待处理的订单操作
+
+      showAccountsModal: false,
     };
   },
   created () {
@@ -192,7 +200,7 @@ export default {
       this.listenTo(this.collection, 'update', () => this.collectionKey += 1);
 
       this.listenTo(orderEvents, 'cancelingOrder', this.onCancelingOrder);
-      this.listenTo(orderEvents, 'cancelOrderComplete, cancelOrderFail', this.onCancelOrderAlways);
+      this.listenTo(orderEvents, 'cancelOrderComplete cancelOrderFail', this.onCancelOrderAlways);
       this.listenTo(orderEvents, 'cancelOrderComplete', this.onAcceptOrderComplete);
       this.listenTo(orderEvents, 'acceptingOrder', this.onAcceptingOrder);
       this.listenTo(orderEvents, 'acceptOrderComplete acceptOrderFail', this.onAcceptOrderAlways);
@@ -241,7 +249,7 @@ export default {
       if (this.needsReceivingAccountSelection(this.paymentCoin)) {
         this.pendingOrderAction = { action: 'accept', orderID: this.orderID, paymentCoin: this.paymentCoin };
         this.selectedOrderBlockchain = this.getBlockchainFromPaymentCoin(this.paymentCoin);
-        this.showReceivingAccountModal = true;
+        this.showAccountSelectModal = true;
       } else {
         acceptOrder(this.orderID, this.selectedReceivingAccount?.address, this.paymentCoin);
       }
@@ -348,14 +356,32 @@ export default {
 
     // 关闭收款账户选择器弹窗
     closeReceivingAccountModal() {
-      this.showReceivingAccountModal = false;
+      this.showAccountSelectModal = false;
       this.pendingOrderAction = null;
     },
 
     // 导航到收款账户管理页面
     navigateToReceivingAccounts() {
-      // 这里可以触发导航事件或直接跳转
-      this.$emit('navigate-to-accounts');
+      // 关闭当前选择器弹窗，打开收款账户管理弹窗
+      this.showAccountSelectModal = false;
+      this.showAccountsModal = true;
+    },
+    
+    // 关闭收款账户管理弹窗
+    closeAccountsModal() {
+      this.showAccountsModal = false;
+      // 重新获取收款账户列表
+      this.refreshReceivingAccounts();
+    },
+    
+    // 刷新收款账户列表（当用户添加新账户后）
+    refreshReceivingAccounts() {
+      // 通过ref直接调用ReceivingAccountSelector的刷新方法
+      this.$nextTick(() => {
+        if (this.$refs.receivingAccountSelector) {
+          this.$refs.receivingAccountSelector.refreshAccounts();
+        }
+      });
     },
 
     // 确认收款账户选择

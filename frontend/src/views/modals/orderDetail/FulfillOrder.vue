@@ -441,7 +441,7 @@ export default {
 
       this.processing = fulfillingOrder(this._model.id);
       this.listenTo(orderEvents, 'fulfillingOrder', this.onFulfillingOrder);
-      this.listenTo(orderEvents, 'fulfillOrderComplete, fulfillOrderFail', this.onFulfillOrderAlways);
+      this.listenTo(orderEvents, 'fulfillOrderComplete fulfillOrderFail', this.onFulfillOrderAlways);
     },
 
     onClickBackToSummary () {
