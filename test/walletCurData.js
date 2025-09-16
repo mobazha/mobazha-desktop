@@ -1,7 +1,7 @@
 // Multiple test depend on this data. If you modify this file, please ensure
 // you're not breaking other tests.
 
-export const walletCurs = ['BCH', 'BTC', 'ETH', 'LTC', 'ZEC', 'CFX', 'BNB', 'BNBUSDT', 'BNBUSDC'];
+export const walletCurs = ['BCH', 'BTC', 'ETH', 'LTC', 'ZEC', 'CFX', 'BNB', 'BSCUSDT', 'BSCUSDC'];
 
 export const walletCurDef = {
   AED: {
@@ -74,19 +74,19 @@ export const walletCurDef = {
     name: 'Binance Coin',
     testnetCode: 'BNB',
   },
-  BNBUSDT: {
-    code: 'BNBUSDT',
+  BSCUSDT: {
+    code: 'BSCUSDT',
     currencyType: 'crypto',
     divisibility: 6,
     name: 'Tether',
-    testnetCode: 'BNBUSDT',
+    testnetCode: 'BSCUSDT',
   },
-  BNBUSDC: {
-    code: 'BNBUSDC',
+  BSCUSDC: {
+    code: 'BSCUSDC',
     currencyType: 'crypto',
     divisibility: 6,
     name: 'USD Coin',
-    testnetCode: 'BNBUSDC',
+    testnetCode: 'BSCUSDC',
   },
   MATIC: {
     code: 'MATIC',
@@ -96,17 +96,17 @@ export const walletCurDef = {
     testnetCode: 'MATIC',
   },
   MATICUSDT: {
-    code: 'BNBUSDT',
+    code: 'MATICUSDT',
     currencyType: 'crypto',
     divisibility: 6,
     name: 'Tether',
-    testnetCode: 'BNBUSDT',
+    testnetCode: 'MATICUSDT',
   },
   MATICUSDC: {
-    code: 'BNBUSDC',
+    code: 'MATICUSDC',
     currencyType: 'crypto',
     divisibility: 6,
     name: 'USD Coin',
-    testnetCode: 'BNBUSDC',
+    testnetCode: 'MATICUSDC',
   },
 };

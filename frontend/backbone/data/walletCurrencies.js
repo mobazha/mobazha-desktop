@@ -116,9 +116,9 @@ let _currencies = [
     externallyFundableOrders: true,
   },
   {
-    code: 'BNBUSDT',
-    testnetCode: 'BNBUSDT',
-    mainChain: 'BNB',
+    code: 'BSCUSDT',
+    testnetCode: 'BSCUSDT',
+    mainChain: 'BSC',
     feeBumpTransactionSize: 154,
     qrCodeText: (address) => {
       return address;
@@ -140,9 +140,9 @@ let _currencies = [
     externallyFundableOrders: true,
   },
   {
-    code: 'BNBUSDC',
-    testnetCode: 'BNBUSDC',
-    mainChain: 'BNB',
+    code: 'BSCUSDC',
+    testnetCode: 'BSCUSDC',
+    mainChain: 'BSC',
     feeBumpTransactionSize: 154,
     qrCodeText: (address) => {
       return address;
@@ -164,9 +164,9 @@ let _currencies = [
     externallyFundableOrders: true,
   },
   {
-    code: 'BNBMBZ',
-    testnetCode: 'BNBMBZ',
-    mainChain: 'BNB',
+    code: 'BSCMBZ',
+    testnetCode: 'BSCMBZ',
+    mainChain: 'BSC',
     feeBumpTransactionSize: 154,
     qrCodeText: (address) => {
       return address;
