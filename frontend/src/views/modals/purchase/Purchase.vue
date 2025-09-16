@@ -291,7 +291,7 @@
                 <div class="stripe-payment-form">
                   <div id="stripe-payment-element"></div>
                   <div class="payment-summary">
-                    <h3>支付金额</h3>
+                    <h3>{{ $t('purchase.paymentAmount') }}</h3>
                     <p class="amount">{{ formatCurrency(totalAmount) }}</p>
                   </div>
                   <el-button 
@@ -300,7 +300,7 @@
                     @click="handleStripePayment"
                     class="payment-button"
                   >
-                    确认支付
+                    {{ $t('purchase.confirmPaymentButton') }}
                   </el-button>
                 </div>
               </section>
@@ -1415,7 +1415,7 @@ export default {
           // 支付成功，更新订单状态
           await this.updateStripeOrderStatus(paymentIntent);
           this.setState({ phase: 'complete' });
-          ElMessage.success('支付成功');
+          ElMessage.success(this.$t('purchase.paymentSuccess'));
         }
       } catch (error) {
         console.error('支付处理失败:', error);
@@ -1456,7 +1456,7 @@ export default {
     async checkWalletConnectionWithPrompt(requiredNetworkType = null) {
       const isConnected = await this.walletStore.checkWalletConnection(requiredNetworkType);
       if (!isConnected) {
-        let message = '请先连接钱包';
+        let message = this.$t('purchase.pleaseConnectWallet');
         if (requiredNetworkType) {
           if (this.walletStore.isConnected && this.currentNetworkType !== requiredNetworkType) {
             message = `请切换到${requiredNetworkType}网络，当前网络为${this.currentNetworkType}`;
@@ -1731,7 +1731,7 @@ export default {
     async initializeRwaMarketplace() {
       try {
         if (!this.isWalletConnected) {
-          throw new Error('请先连接钱包');
+          throw new Error(this.$t('purchase.pleaseConnectWallet'));
         }
 
         // 获取合约地址（这里应该从配置或后端获取）
@@ -1786,7 +1786,7 @@ export default {
       try {
         // 检查钱包连接
         if (!this.isWalletConnected) {
-          throw new Error('请先连接钱包');
+          throw new Error(this.$t('purchase.pleaseConnectWallet'));
         }
 
         // 检查RWA Marketplace是否已初始化

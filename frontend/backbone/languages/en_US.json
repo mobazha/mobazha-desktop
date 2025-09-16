@@ -1784,15 +1784,28 @@
       "userRejected": "User Rejected Transaction",
       "contractError": "Contract Call Failed",
       "orderIdExists": "Order ID Already Exists",
+      "paymentNotice": {
+        "title": "RWA Token Payment",
+        "description": "This RWA Token is based on %{blockchain} blockchain and only supports stablecoin payments on this chain"
+      },
       "notAuthorized": "Not Authorized",
       "invalidStatus": "Invalid Order Status",
       "zeroAddress": "Zero Address Not Allowed",
       "invalidAmount": "Amount Must Be Greater Than 0"
     },
     "otherPaymentMethods": "Other Payment Methods",
+    "temporarilyUnavailable": "Temporarily Unavailable",
+    "paymentAmount": "Payment Amount",
+    "confirmPaymentButton": "Confirm Payment",
     "noTokens": "No available tokens on this chain",
     "collapse": "Collapse",
-    "more": "More"
+    "more": "More",
+    "orderCompleted": "Order Completed",
+    "transferringRwaToken": "Transferring RWA Token",
+    "transferringRwaTokenMessage": "Calling smart contract to transfer tokens to buyer...",
+    "pleaseConnectWallet": "Please connect wallet first",
+    "paymentSuccess": "Payment successful",
+    "pleaseConnectWalletForAddress": "Please connect wallet to get address"
   },
   "moderators": {
     "moderatorsLoading": "Loading moderators…",

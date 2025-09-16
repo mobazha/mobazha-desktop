@@ -23,10 +23,10 @@
     <div v-if="isRwaTokenPurchase" class="rwaPaymentNotice">
       <div class="noticeHeader">
         <i class="ion-information-circled"></i>
-        <span>RWA Token 支付</span>
+        <span>{{ $t('purchase.rwaToken.paymentNotice.title') }}</span>
       </div>
       <div class="noticeContent">
-        此 RWA Token 基于 {{ rwaBlockchain }} 区块链，仅支持该链上的稳定币支付
+        {{ $t('purchase.rwaToken.paymentNotice.description', { blockchain: rwaBlockchain }) }}
       </div>
     </div>
     
@@ -85,7 +85,10 @@
           <div class="methodIconWrapper">
             <CryptoIcon :code="method.id.toUpperCase()" />
           </div>
-          <span class="methodName">{{ method.name }}</span>
+          <div class="methodInfo">
+            <span class="methodName">{{ method.name }}</span>
+            <span v-if="method.disabled" class="unavailableText">{{ $t('purchase.temporarilyUnavailable') }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -239,6 +242,9 @@ export default {
         this.selectedToken = methodId;
         this.$emit('update:modelValue', methodId);
         this.$emit('methodClicked', methodId);
+      } else if (method && method.disabled) {
+        // 显示不可用的提示信息
+        this.$emit('methodUnavailable', methodId, method.name);
       }
     }
   }
@@ -394,12 +400,36 @@ export default {
       }
       
       &.disabled {
-        opacity: 0.5;
+        opacity: 0.6;
         cursor: not-allowed;
+        background-color: #f5f5f5;
+        border-color: #e0e0e0;
+        position: relative;
         
         &:hover {
           transform: none;
           box-shadow: none;
+        }
+        
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+          pointer-events: none;
+        }
+        
+        .methodIconWrapper {
+          opacity: 0.7;
+        }
+        
+        .methodInfo {
+          .methodName {
+            color: #999;
+          }
         }
       }
       
@@ -454,6 +484,19 @@ export default {
       .methodName, .moreText {
         font-weight: 500;
         font-size: 0.9em;
+      }
+      
+      .methodInfo {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        
+        .unavailableText {
+          font-size: 0.75em;
+          color: #ff6b6b;
+          font-weight: 400;
+          margin-top: 2px;
+        }
       }
     }
     

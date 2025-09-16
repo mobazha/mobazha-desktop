@@ -1766,15 +1766,28 @@
       "userRejected": "用户拒绝交易",
       "contractError": "合约调用失败",
       "orderIdExists": "订单ID已存在",
+      "paymentNotice": {
+        "title": "RWA Token 支付",
+        "description": "此 RWA Token 基于 %{blockchain} 区块链，仅支持该链上的稳定币支付"
+      },
       "notAuthorized": "权限不足",
       "invalidStatus": "订单状态无效",
       "zeroAddress": "零地址不允许",
       "invalidAmount": "金额必须大于0"
     },
     "otherPaymentMethods": "其他支付方式",
+    "temporarilyUnavailable": "暂时不可用",
+    "paymentAmount": "支付金额",
+    "confirmPaymentButton": "确认支付",
     "noTokens": "该链上暂无可用代币",
     "collapse": "收起",
-    "more": "更多"
+    "more": "更多",
+    "orderCompleted": "订单已完成",
+    "transferringRwaToken": "正在转移RWA Token",
+    "transferringRwaTokenMessage": "正在调用智能合约转移代币给买家...",
+    "pleaseConnectWallet": "请先连接钱包",
+    "paymentSuccess": "支付成功",
+    "pleaseConnectWalletForAddress": "请先连接钱包获取地址"
   },
   "moderators": {
     "moderatorsLoading": "加载仲裁人...",

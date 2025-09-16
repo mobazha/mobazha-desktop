@@ -248,7 +248,7 @@
       <div v-if="contractType === 'RWA_TOKEN' && rwaTokenRechargeStatus && rwaTokenRechargeStatus.status === 'success'" 
            class="fulfillmentComplete">
         <i class="ion-checkmark-circled"></i>
-        <span>订单已完成</span>
+        <span>{{ $t('purchase.orderCompleted') }}</span>
       </div>
     </div>
   </div>
@@ -460,8 +460,8 @@ export default {
       this.isRecharging = true;
       this.rwaTokenRechargeStatus = {
         status: 'pending',
-        title: '正在转移RWA Token',
-        message: '正在调用智能合约转移代币给买家...'
+        title: this.$t('purchase.transferringRwaToken'),
+        message: this.$t('purchase.transferringRwaTokenMessage')
       };
 
       try {

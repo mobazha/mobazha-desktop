@@ -16,11 +16,12 @@ export const tokens = [
   
   // BSC代币
   { id: 'BNB', token: 'BNB', chain: 'BSC', isNative: true, decimals: 18, disabled: false },
-  { id: 'BUSD', token: 'BUSD', chain: 'BSC', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
   { id: 'BSCUSDT', token: 'USDT', chain: 'BSC', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
+  { id: 'BSCUSDC', token: 'USDC', chain: 'BSC', type: 'BEP20', isNative: false, decimals: 18, disabled: false },
   
   // Base代币
   { id: 'BASEETH', token: 'ETH', chain: 'BASE', isNative: false, decimals: 18, disabled: false },
+  { id: 'BASEUSDT', token: 'USDT', chain: 'BASE', type: 'Base', isNative: false, decimals: 6, disabled: false },
   { id: 'BASEUSDC', token: 'USDC', chain: 'BASE', type: 'Base', isNative: false, decimals: 6, disabled: false },
   
   // Polygon代币
@@ -35,12 +36,12 @@ export const tokens = [
 
 // 链配置 - 参考后端 cointype.go 中的 ChainType 定义
 export const chains = [
-  { id: 'all', name: '全部', icon: 'ion-android-list', count: 0 },
+  { id: 'all', name: 'All', icon: 'ion-android-list', count: 0 },
   // { id: 'BTC', name: 'Bitcoin', iconCode: 'BTC', count: 0 },
   // { id: 'BCH', name: 'Bitcoin Cash', iconCode: 'BCH', count: 0 },
   // { id: 'LTC', name: 'Litecoin', iconCode: 'LTC', count: 0 },
   // { id: 'ZEC', name: 'ZCash', iconCode: 'ZEC', count: 0 },
-  { id: 'ETH', name: '以太坊', iconCode: 'ETH', count: 0 },
+  // { id: 'ETH', name: 'Ethereum', iconCode: 'ETH', count: 0 },
   { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
   { id: 'BASE', name: 'Base', iconCode: 'BASE', count: 0 },
   { id: 'BSC', name: 'Binance Smart Chain', iconCode: 'BSC', count: 0 },
@@ -49,7 +50,7 @@ export const chains = [
   
   // { id: 'XMR', name: 'Monero', iconCode: 'XMR', count: 0 },
   // { id: 'DASH', name: 'Dash', iconCode: 'DASH', count: 0 },
-  // { id: 'privacy', name: '隐私币', icon: 'ion-ios-locked', count: 0 }
+  // { id: 'privacy', name: 'Privacy Coins', icon: 'ion-ios-locked', count: 0 }
 ];
 
 // 法币支付方式
@@ -58,7 +59,7 @@ export const fiatMethods = [
     id: 'stripe', 
     name: 'Stripe', 
     icon: 'ion-card',
-    disabled: false
+    disabled: true
   },
   // { 
   //   id: 'paypal', 

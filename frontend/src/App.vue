@@ -403,7 +403,7 @@ export default {
         try {
           // 检查钱包连接
           if (!this.accountData.isConnected) {
-            throw new Error('请先连接钱包');
+            throw new Error(this.$t('purchase.pleaseConnectWallet'));
           }
 
           // 检查RWA Marketplace服务是否可用

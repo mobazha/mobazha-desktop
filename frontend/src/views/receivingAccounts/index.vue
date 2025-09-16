@@ -410,7 +410,7 @@ export default {
         
         // 确保区块链账户有地址
         if (this.editingAccount.chainType && !this.editingAccount.address) {
-          alert('请先连接钱包获取地址');
+          alert(this.$t('purchase.pleaseConnectWalletForAddress'));
           this.isSaving = false;
           return;
         }
