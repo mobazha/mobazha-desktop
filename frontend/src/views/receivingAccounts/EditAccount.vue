@@ -1,18 +1,18 @@
 <template>
   <div class="contentBox padMd clrP clrBr">
-    <h2 class="tx3 txB">设置 {{ account.chainType || getPaymentMethodName(account.name) }} 收款账户</h2>
+    <h2 class="tx3 txB">{{ $t('receivingAccounts.setupAccount', { chainType: account.chainType || getPaymentMethodName(account.name) }) }}</h2>
     
     <!-- 账户名称输入 -->
     <div class="formGroup">
-      <label class="formLabel">账户名称</label>
+      <label class="formLabel">{{ $t('receivingAccounts.accountName') }}</label>
       <input 
         type="text" 
         v-model="account.name" 
         class="formInput"
-        placeholder="请输入账户名称"
+        :placeholder="$t('receivingAccounts.enterAccountName')"
         :disabled="!!account.id"
       />
-      <div class="formHint" v-if="account.id">账户名称创建后不可修改</div>
+      <div class="formHint" v-if="account.id">{{ $t('receivingAccounts.accountNameCannotChange') }}</div>
     </div>
     
     <!-- 区块链账户设置 -->
@@ -43,12 +43,12 @@
       <button v-if="account.id" 
               @click="$emit('delete', account)" 
               class="btn deleteBtn">
-        删除账户
+        {{ $t('receivingAccounts.deleteAccount') }}
       </button>
       <div class="flexExpand"></div>
-      <button @click="$emit('cancel')" class="btn cancelBtn">取消</button>
+      <button @click="$emit('cancel')" class="btn cancelBtn">{{ $t('receivingAccounts.cancel') }}</button>
       <button @click="$emit('save')" class="btn saveBtn" :disabled="isSaving">
-        {{ isSaving ? '保存中...' : '保存' }}
+        {{ isSaving ? $t('receivingAccounts.saving') : $t('receivingAccounts.save') }}
       </button>
     </div>
   </div>

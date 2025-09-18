@@ -42,10 +42,10 @@ export const chains = [
   // { id: 'LTC', name: 'Litecoin', iconCode: 'LTC', count: 0 },
   // { id: 'ZEC', name: 'ZCash', iconCode: 'ZEC', count: 0 },
   // { id: 'ETH', name: 'Ethereum', iconCode: 'ETH', count: 0 },
-  { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
+  // { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
   { id: 'BASE', name: 'Base', iconCode: 'BASE', count: 0 },
   { id: 'BSC', name: 'Binance Smart Chain', iconCode: 'BSC', count: 0 },
-  { id: 'MATIC', name: 'Polygon', iconCode: 'MATIC', count: 0 },
+  // { id: 'MATIC', name: 'Polygon', iconCode: 'MATIC', count: 0 },
   // { id: 'CFX', name: 'Conflux', iconCode: 'CFX', count: 0 },
   
   // { id: 'XMR', name: 'Monero', iconCode: 'XMR', count: 0 },

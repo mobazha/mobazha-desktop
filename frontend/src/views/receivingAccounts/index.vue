@@ -9,12 +9,12 @@
     <!-- 备用页面内容（当弹框不可用时显示） -->
     <div v-else class="contentContainer">
       <div class="pageHeading">
-        <h1>收款账户管理</h1>
+        <h1>{{ $t('receivingAccounts.title') }}</h1>
         <div class="flexExpand"></div>
         <div class="backLink" v-if="showApplyNewAccount || editingAccount || applyingAccount">
           <a class="btn clrP clrBr btnFlx" @click="backToList">
             <i class="ion-arrow-left-c"></i>
-            <span>返回列表</span>
+            <span>{{ $t('receivingAccounts.backToList') }}</span>
           </a>
         </div>
       </div>
@@ -24,12 +24,12 @@
         <div class="emptyStateIcon">
           <i class="ion-ios-circle-outline"></i>
         </div>
-        <h2 class="tx3 txB txC">暂无任何收款账户</h2>
-        <p class="tx5 txC">收款账户开通后，您即可从电商平台进行收款。</p>
+        <h2 class="tx3 txB txC">{{ $t('receivingAccounts.noAccounts') }}</h2>
+        <p class="tx5 txC">{{ $t('receivingAccounts.noAccounts') }}</p>
         <div class="flexHCenter rowMd">
           <a class="btn clrP clrBr btnFlx btnLg" @click="showApplyNewAccount = true">
             <i class="ion-plus-round"></i>
-            <span>申请收款账户</span>
+            <span>{{ $t('receivingAccounts.addNewAccount') }}</span>
           </a>
         </div>
       </div>
@@ -98,15 +98,13 @@ export default {
       applyingAccount: null,
       isSaving: false,
       supportedChainTypes: [
-        { id: 'BTC', name: '比特币' },
-        { id: 'ETH', name: '以太坊' },
-        { id: 'SOL', name: 'Solana' },
-        { id: 'BSC', name: '币安智能链' },
-        { id: 'Base', name: 'Base' }
+        { id: 'BASE', name: 'Base', disabled: false },
+        { id: 'BSC', name: 'Binance Smart Chain', disabled: false },
+        // { id: 'ETH', name: 'Ethereum', disabled: false },
+        { id: 'SOL', name: 'Solana', disabled: true, comingSoon: true }
       ],
       supportedPaymentMethods: [
-        { id: 'paypal', name: 'PayPal' },
-        { id: 'stripe', name: 'Stripe' }
+        { id: 'stripe', name: 'Stripe', disabled: true, comingSoon: true }
       ],
       editingTokens: [],
       isConnecting: false,
@@ -167,9 +165,9 @@ export default {
 
     // 检查是否是Stripe回调
     if (this.$route.name === 'StripeConnectReturn') {
-      ElMessage.success('Stripe账户连接成功');
+      ElMessage.success(this.$t('receivingAccounts.stripeConnectSuccess'));
     } else if (this.$route.name === 'StripeConnectRefresh') {
-      ElMessage.info('Stripe账户信息已更新');
+      ElMessage.info(this.$t('receivingAccounts.stripeInfoUpdated'));
     }
     
     // 检查路由meta，决定是否显示弹框
@@ -284,9 +282,9 @@ export default {
           stripeAccountId: 'acct_1N3ABCKjGLOD4E8T',
           verificationStatus: 'pending',
           requirements: [
-            '需要提供营业执照',
-            '需要提供银行账户信息',
-            '需要完成身份验证'
+            'Business license required',
+            'Bank account information required',
+            'Identity verification required'
           ],
           isActive: false,
           lastTransactionTime: '2024-03-14 10:20',
@@ -300,9 +298,9 @@ export default {
           stripeAccountId: 'acct_1N4DEFKjGLOD4E8U',
           verificationStatus: 'unverified',
           requirements: [
-            '需要完成账户设置',
-            '需要提供基本信息',
-            '需要完成身份验证'
+            'Account setup required',
+            'Basic information required',
+            'Identity verification required'
           ],
           isActive: false,
           lastTransactionTime: '2024-03-13 09:15',
@@ -368,7 +366,7 @@ export default {
         }
       } catch (error) {
         console.error('获取收款账户失败:', error);
-        ElMessage.error('获取收款账户失败，请重试');
+        ElMessage.error(this.$t('receivingAccounts.fetchAccountsFailed'));
       }
     },
     
@@ -417,7 +415,7 @@ export default {
         
         // 验证账户名称
         if (!this.editingAccount.name) {
-          alert('请输入账户名称');
+          alert(this.$t('receivingAccounts.enterAccountName'));
           this.isSaving = false;
           return;
         }
@@ -528,14 +526,14 @@ export default {
             namespace = 'eip155';
             break;
           default:
-            throw new Error('不支持的链类型');
+            throw new Error(this.$t('receivingAccounts.unsupportedChainType'));
         }
         
         this.appKit.open({ view: 'Connect', namespace});
         
       } catch (error) {
         console.error('连接钱包失败:', error);
-        alert('连接钱包失败，请重试');
+        alert(this.$t('receivingAccounts.connectWalletFailed'));
         this.isConnecting = false;
       }
     },
@@ -545,7 +543,7 @@ export default {
         // 获取Stripe连接URL
         const response = await myGet('/v1/stripe/connect-url');
         if (!response.url) {
-          throw new Error('获取Stripe连接URL失败');
+          throw new Error('Failed to get Stripe connection URL');
         }
 
         // 直接跳转到Stripe入驻页面
@@ -553,7 +551,7 @@ export default {
 
       } catch (error) {
         console.error('连接Stripe失败:', error.responseJSON?.error);
-        ElMessage.error('连接Stripe失败: ' + error.responseJSON?.error);
+        ElMessage.error(this.$t('receivingAccounts.stripeConnectFailed') + ': ' + error.responseJSON?.error);
       }
     },
 
@@ -562,7 +560,7 @@ export default {
         // 获取Stripe重新验证URL
         const response = await myPost('/v1/stripe/reverify-url');
         if (!response.url) {
-          throw new Error('获取Stripe重新验证URL失败');
+          throw new Error('Failed to get Stripe reverification URL');
         }
 
         // 在新窗口打开Stripe验证页面
@@ -575,13 +573,13 @@ export default {
             // 重新获取账户信息
             this.fetchReceivingAccounts();
             // 显示成功提示
-            ElMessage.success('Stripe账户验证已更新');
+            ElMessage.success(this.$t('receivingAccounts.stripeVerificationUpdated'));
           }
         }, 1000);
 
       } catch (error) {
         console.error('重新验证Stripe账户失败:', error);
-        ElMessage.error('重新验证失败，请重试');
+        ElMessage.error(this.$t('receivingAccounts.stripeReverifyFailed'));
       }
     },
 
@@ -692,7 +690,7 @@ export default {
     },
     
     deleteAccount(account) {
-      if (confirm('确定要删除此收款账户吗？')) {
+      if (confirm(this.$t('receivingAccounts.deleteAccountConfirm'))) {
         const index = this.receivingAccounts.findIndex(a => 
           (a.address && a.address === account.address) || 
           (a.name && a.name === account.name)

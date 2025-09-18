@@ -10,7 +10,7 @@
     
     <!-- Stripe说明 -->
     <div class="stripeDescription">
-      通过Stripe接收信用卡付款，支持全球多种货币和支付方式。
+      {{ $t('receivingAccounts.stripeDescription') }}
     </div>
     
     <!-- Stripe账户状态 -->
@@ -26,14 +26,14 @@
       </div>
       
       <div class="accountIdContainer">
-        <label>Stripe账户ID</label>
+        <label>{{ $t('receivingAccounts.stripeAccountId') }}</label>
         <div class="accountIdWrapper">
           <input type="text" :value="account.stripeAccountId" readonly class="accountIdInput" />
           <el-button
             type="primary"
             link
             @click="copyAccountId"
-            title="复制账户ID"
+            :title="$t('receivingAccounts.copyAccountId')"
           >
             <el-icon><Document /></el-icon>
           </el-button>
@@ -50,7 +50,7 @@
         class="connectStripeBtn"
       >
         <el-icon><Link /></el-icon>
-        <span>连接Stripe账户</span>
+        <span>{{ $t('receivingAccounts.connectStripe') }}</span>
       </el-button>
       <el-button
         v-else-if="account.status !== 'approved'"
@@ -59,7 +59,7 @@
         class="reverifyStripeBtn"
       >
         <el-icon><Refresh /></el-icon>
-        <span>重新验证Stripe账户</span>
+        <span>{{ $t('receivingAccounts.reverifyStripe') }}</span>
       </el-button>
       <p class="connectHint">
         {{ getConnectHint() }}
@@ -68,7 +68,7 @@
     
     <!-- 启用开关 -->
     <div class="enableSwitchContainer">
-      <label>启用此收款方式</label>
+      <label>{{ $t('receivingAccounts.enablePaymentMethod') }}</label>
       <ToggleSwitch 
         v-model="account.isActive" 
         id="enableStripeSwitch_unique"
@@ -118,30 +118,30 @@ export default {
     getStatusText(status) {
       switch (status) {
         case 'approved':
-          return '已验证'
+          return this.$t('receivingAccounts.verified')
         case 'pending':
-          return '验证中'
+          return this.$t('receivingAccounts.verifying')
         default:
-          return '未验证'
+          return this.$t('receivingAccounts.unverified')
       }
     },
     
     getConnectHint() {
       if (!this.account.stripeAccountId) {
-        return '点击按钮连接您的Stripe账户，或创建新账户'
+        return this.$t('receivingAccounts.connectHint')
       } else if (this.account.status !== 'approved') {
-        return '您的Stripe账户需要完成验证才能接收付款'
+        return this.$t('receivingAccounts.verificationHint')
       }
-      return '您的Stripe账户已验证，可以接收付款'
+      return this.$t('receivingAccounts.verifiedHint')
     },
     
     getEnableHint() {
       if (!this.account.stripeAccountId) {
-        return '请先连接Stripe账户'
+        return this.$t('receivingAccounts.enableHintConnect')
       } else if (this.account.status !== 'approved') {
-        return '请先完成Stripe账户验证'
+        return this.$t('receivingAccounts.enableHintVerify')
       }
-      return '启用后，买家可以通过Stripe向您付款'
+      return this.$t('receivingAccounts.enableHintStripe')
     },
     
     copyAccountId() {
@@ -149,11 +149,11 @@ export default {
       
       navigator.clipboard.writeText(this.account.stripeAccountId)
         .then(() => {
-          ElMessage.success('账户ID已复制到剪贴板')
+          ElMessage.success(this.$t('receivingAccounts.accountIdCopied'))
         })
         .catch(err => {
           console.error('复制失败:', err)
-          ElMessage.error('复制失败，请手动复制')
+          ElMessage.error(this.$t('receivingAccounts.copyFailedManual'))
         })
     }
   }

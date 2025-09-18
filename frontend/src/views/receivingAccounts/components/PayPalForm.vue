@@ -10,24 +10,24 @@
     
     <!-- PayPal说明 -->
     <div class="paypalDescription">
-      通过PayPal接收付款，买家可以使用信用卡、借记卡或PayPal余额向您付款。
+      {{ $t('receivingAccounts.paypalDescription') }}
     </div>
     
     <!-- PayPal邮箱输入 -->
     <div class="paypalEmailContainer">
-      <label>PayPal邮箱地址</label>
-      <input type="email" v-model="account.email" class="paypalEmailInput" placeholder="例如：your-email@example.com" />
-      <p class="emailHint">请输入您的PayPal账户关联的邮箱地址</p>
+      <label>{{ $t('receivingAccounts.paypalEmail') }}</label>
+      <input type="email" v-model="account.email" class="paypalEmailInput" :placeholder="$t('receivingAccounts.paypalEmailPlaceholder')" />
+      <p class="emailHint">{{ $t('receivingAccounts.paypalEmailHint') }}</p>
     </div>
     
     <!-- 启用开关 -->
     <div class="enableSwitchContainer">
-      <label>启用此收款方式</label>
+      <label>{{ $t('receivingAccounts.enablePaymentMethod') }}</label>
       <ToggleSwitch 
         v-model="account.isActive" 
         id="enablePaypalSwitch_unique" 
       />
-      <p class="enableHint">启用后，买家可以通过PayPal向您付款</p>
+      <p class="enableHint">{{ $t('receivingAccounts.paypalEnableHint') }}</p>
     </div>
   </div>
 </template>

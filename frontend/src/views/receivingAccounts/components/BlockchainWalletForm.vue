@@ -10,13 +10,13 @@
     
     <!-- 钱包说明 -->
     <div class="walletDescription">
-      通过{{ account.chainType }}钱包接收 
-      <span v-if="account.chainType === 'BTC'">BTC 支付。</span>
-      <span v-if="account.chainType === 'ETH'">ETH 和 ERC-20 代币支付。</span>
-      <span v-else-if="account.chainType === 'SOL'">SOL 及相关代币支付。</span>
-      <span v-else-if="account.chainType === 'BSC'">BNB、BUSD等代币支付。</span>
-      <span v-else-if="account.chainType === 'Base'">Base链上的代币支付。</span>
-      <span v-else>加密货币支付。</span>
+      {{ $t('receivingAccounts.walletDescription', { chainType: account.chainType }) }} 
+      <span v-if="account.chainType === 'BTC'">{{ $t('receivingAccounts.btcPayments') }}</span>
+      <span v-if="account.chainType === 'ETH'">{{ $t('receivingAccounts.ethPayments') }}</span>
+      <span v-else-if="account.chainType === 'SOL'">{{ $t('receivingAccounts.solPayments') }}</span>
+      <span v-else-if="account.chainType === 'BSC'">{{ $t('receivingAccounts.bscPayments') }}</span>
+      <span v-else-if="account.chainType === 'Base'">{{ $t('receivingAccounts.basePayments') }}</span>
+      <span v-else>{{ $t('receivingAccounts.cryptoPayments') }}</span>
     </div>
     
     <!-- 步骤指引 -->
@@ -24,14 +24,14 @@
       <div class="setupStep">
         <div class="stepNumber">1</div>
         <div class="stepContent">
-          <h4>准备{{ account.chainType }}钱包</h4>
-          <p>确保您已安装 
-            <span v-if="account.chainType === 'BTC'">Bitcoin Core 或其他比特币钱包</span>
-            <span v-if="account.chainType === 'ETH'">MetaMask 或其他支持以太坊的钱包</span>
-            <span v-else-if="account.chainType === 'SOL'">Phantom 或其他支持Solana的钱包</span>
-            <span v-else-if="account.chainType === 'BSC'">MetaMask 或其他支持BSC的钱包</span>
-            <span v-else-if="account.chainType === 'Base'">MetaMask 或其他支持Base的钱包</span>
-            <span v-else>相关钱包</span>
+          <h4>{{ $t('receivingAccounts.prepareWallet', { chainType: account.chainType }) }}</h4>
+          <p>{{ $t('receivingAccounts.installWallet') }} 
+            <span v-if="account.chainType === 'BTC'">{{ $t('receivingAccounts.btcWallet') }}</span>
+            <span v-if="account.chainType === 'ETH'">{{ $t('receivingAccounts.ethWallet') }}</span>
+            <span v-else-if="account.chainType === 'SOL'">{{ $t('receivingAccounts.solWallet') }}</span>
+            <span v-else-if="account.chainType === 'BSC'">{{ $t('receivingAccounts.bscWallet') }}</span>
+            <span v-else-if="account.chainType === 'Base'">{{ $t('receivingAccounts.baseWallet') }}</span>
+            <span v-else>{{ $t('receivingAccounts.relatedWallet') }}</span>
           </p>
         </div>
       </div>
@@ -39,8 +39,8 @@
       <div class="setupStep">
         <div class="stepNumber">2</div>
         <div class="stepContent">
-          <h4>连接钱包</h4>
-          <p>点击下方按钮连接您的钱包，获取收款地址</p>
+          <h4>{{ $t('receivingAccounts.connectWallet') }}</h4>
+          <p>{{ $t('receivingAccounts.connectWalletDescription') }}</p>
         </div>
       </div>
     </div>
@@ -49,20 +49,20 @@
     <div class="connectWalletBtnContainer">
       <button @click="$emit('connect-wallet', account.chainType)" class="btn connectWalletBtn" :disabled="isConnecting">
         <i class="ion-link"></i>
-        <span>{{ isConnecting ? '连接中...' : '连接钱包' }}</span>
+        <span>{{ isConnecting ? $t('receivingAccounts.connecting') : $t('receivingAccounts.connectWallet') }}</span>
       </button>
     </div>
     
     <!-- 钱包地址输入 -->
     <div v-if="account.address" class="walletAddressContainer">
-      <label>钱包地址</label>
+      <label>{{ $t('receivingAccounts.walletAddress') }}</label>
       <input type="text" v-model="account.address" readonly class="walletAddressInput" @click="copyAddress" />
-      <p class="addressHint">这是您的{{ account.chainType }}钱包地址，买家将向此地址付款</p>
+      <p class="addressHint">{{ $t('receivingAccounts.walletAddressHint', { chainType: account.chainType }) }}</p>
     </div>
     
     <!-- 代币选择 -->
     <div v-if="account.chainType === 'ETH' || account.chainType === 'SOL' || account.chainType === 'BSC' || account.chainType === 'Base'" class="tokenSelectionContainer">
-      <label>接收代币</label>
+      <label>{{ $t('receivingAccounts.receiveTokens') }}</label>
       <div class="tokenList">
         <div v-for="token in getAvailableTokens(account.chainType)" :key="token.id" class="tokenItem">
           <input type="checkbox" 
@@ -77,9 +77,9 @@
     
     <!-- 启用开关 -->
     <div class="enableSwitchContainer">
-      <label>启用此收款方式</label>
+      <label>{{ $t('receivingAccounts.enablePaymentMethod') }}</label>
       <ToggleSwitch v-model="account.isActive" :id="'enableSwitch_' + account.chainType" />
-      <p class="enableHint">启用后，买家可以通过此方式向您付款</p>
+      <p class="enableHint">{{ $t('receivingAccounts.enableHint') }}</p>
     </div>
   </div>
 </template>
@@ -136,7 +136,7 @@ export default {
       if (this.account.address) {
         navigator.clipboard.writeText(this.account.address)
           .then(() => {
-            alert('地址已复制到剪贴板');
+            alert(this.$t('receivingAccounts.addressCopied'));
           })
           .catch(err => {
             console.error('复制失败:', err);

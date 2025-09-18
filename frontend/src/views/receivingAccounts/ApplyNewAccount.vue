@@ -1,32 +1,40 @@
 <template>
   <div class="contentBox padMd clrP clrBr applyNewAccountView">
-    <h2 class="tx3 txB">申请新收款账户</h2>
+    <h2 class="tx3 txB">{{ $t('receivingAccounts.applyNewAccount') }}</h2>
     
     <div class="paymentMethodGrid">
       <!-- 区块链钱包选项 -->
       <div class="methodCategory">
-        <h3 class="categoryTitle">区块链钱包</h3>
+        <h3 class="categoryTitle">{{ $t('receivingAccounts.blockchainCategories') }}</h3>
         <div class="methodCards">
           <div v-for="chainType in supportedChainTypes" :key="chainType.id" 
-               class="methodCard" @click="$emit('apply-account', chainType.id)">
+               :class="['methodCard', { disabled: chainType.disabled }]"
+               @click="handleChainTypeClick(chainType)">
             <div class="methodIcon" :class="chainType.id.toLowerCase()">
-              <i :class="getChainIcon(chainType.id)"></i>
+              <CryptoIcon :token="chainType.id" />
             </div>
-            <div class="methodName">{{ chainType.id }}</div>
+            <div class="methodInfo">
+              <div class="methodName">{{ chainType.name }}</div>
+              <div v-if="chainType.comingSoon" class="comingSoonText">{{ $t('purchase.comingSoon') }}</div>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- 其他支付方式选项 -->
       <div class="methodCategory">
-        <h3 class="categoryTitle">其他支付方式</h3>
+        <h3 class="categoryTitle">{{ $t('receivingAccounts.otherPaymentMethods') }}</h3>
         <div class="methodCards">
           <div v-for="method in supportedPaymentMethods" :key="method.id" 
-               class="methodCard" @click="$emit('apply-payment-method', method.id)">
+               :class="['methodCard', { disabled: method.disabled }]"
+               @click="handlePaymentMethodClick(method)">
             <div class="methodIcon" :class="method.id.toLowerCase()">
-              <i :class="getPaymentMethodIcon(method.id)"></i>
+              <CryptoIcon :code="method.id.toUpperCase()" />
             </div>
-            <div class="methodName">{{ method.name }}</div>
+            <div class="methodInfo">
+              <div class="methodName">{{ method.name }}</div>
+              <div v-if="method.comingSoon" class="comingSoonText">{{ $t('purchase.comingSoon') }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -47,29 +55,15 @@ export default {
     }
   },
   methods: {
-    getChainIcon(chainType) {
-      switch (chainType) {
-        case 'ETH':
-          return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'SOL':
-          return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'BSC':
-          return 'ion-social-bitcoin'; // 使用适当的图标
-        case 'Base':
-          return 'ion-social-bitcoin'; // 使用适当的图标
-        default:
-          return 'ion-social-bitcoin';
+    handleChainTypeClick(chainType) {
+      if (!chainType.disabled) {
+        this.$emit('apply-account', chainType.id);
       }
     },
     
-    getPaymentMethodIcon(methodId) {
-      switch (methodId) {
-        case 'paypal':
-          return 'ion-card'; // PayPal图标
-        case 'stripe':
-          return 'ion-social-usd-outline'; // Stripe图标
-        default:
-          return 'ion-card';
+    handlePaymentMethodClick(method) {
+      if (!method.disabled) {
+        this.$emit('apply-payment-method', method.id);
       }
     }
   }
@@ -115,33 +109,58 @@ export default {
             border-color: #2196F3;
           }
           
-          .methodIcon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            color: #2196F3;
+          &.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+            border-color: #e0e0e0;
             
-            &.ethereum { color: #627EEA; }
-            &.solana { color: #9945FF; }
-            &.bsc { color: #F3BA2F; }
-            &.base { color: #0052FF; }
-            &.paypal { color: #003087; }
-            &.stripe { color: #635BFF; }
-            &.bitcoin { color: #F7931A; }
+            &:hover {
+              transform: none;
+              box-shadow: none;
+              border-color: #e0e0e0;
+            }
             
-            i {
-              display: inline-block;
-              width: 60px;
-              height: 60px;
-              line-height: 60px;
-              border-radius: 50%;
-              background-color: rgba(33, 150, 243, 0.1);
+            .methodIcon {
+              opacity: 0.7;
+            }
+            
+            .methodInfo {
+              .methodName {
+                color: #999;
+              }
             }
           }
           
-          .methodName {
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 16px;
+          .methodIcon {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            .cryptoIcon {
+              width: 60px;
+              height: 60px;
+            }
+          }
+          
+          .methodInfo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            
+            .methodName {
+              font-weight: bold;
+              margin-top: 10px;
+              font-size: 16px;
+            }
+            
+            .comingSoonText {
+              font-size: 12px;
+              color: #ff6b6b;
+              font-weight: 400;
+              margin-top: 4px;
+            }
           }
         }
       }

@@ -79,14 +79,6 @@ const constantRouterMap = [
     component: () => import('@/views/ConnectedPeersPage.vue')
   },
   {
-    path: '/receiving-accounts',
-    name: 'ReceivingAccounts',
-    component: () => import('@/views/receivingAccounts/index.vue'),
-    meta: {
-      showModal: true // 标记这个路由应该显示弹框
-    }
-  },
-  {
     path: '/stripe-connect/return',
     name: 'StripeConnectReturn',
     component: () => import('@/views/receivingAccounts/index.vue')

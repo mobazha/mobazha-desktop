@@ -38,6 +38,7 @@
 
 <script>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import app from '../../backbone/app';
 
 export default {
@@ -62,6 +63,8 @@ export default {
   },
   emits: ['click'],
   setup(props, { emit }) {
+    const { t } = useI18n();
+    
     const hasUnread = computed(() => {
       return props.conversation.unread && props.conversation.unread > 0;
     });
@@ -121,7 +124,7 @@ export default {
     
     const getLastMessage = () => {
       if (!props.conversation.lastMessage) {
-        return '暂无消息';
+        return t('receivingAccounts.noMessage');
       }
       
       // 处理图片消息

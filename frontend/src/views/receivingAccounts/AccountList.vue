@@ -1,11 +1,11 @@
 <template>
   <div class="contentBox padMd clrP clrBr">
     <div class="listHeader">
-      <h2 class="tx3 txB">收款账户列表</h2>
+      <h2 class="tx3 txB">{{ $t('receivingAccounts.title') }}</h2>
       <div class="flexExpand"></div>
       <el-button type="primary" @click="$emit('add-new')">
         <el-icon><Plus /></el-icon>
-        <span>添加收款账户</span>
+        <span>{{ $t('receivingAccounts.addNewAccount') }}</span>
       </el-button>
     </div>
     
@@ -16,7 +16,7 @@
       row-key="id"
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
-      <el-table-column prop="type" label="收款账户类型" min-width="200">
+      <el-table-column prop="type" :label="$t('receivingAccounts.accountType')" min-width="200">
         <template #default="{ row }">
           <div v-if="row.isToken" class="tokenTypeCell">
             <div class="tokenIcon">
@@ -39,7 +39,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="address" label="收款账户" min-width="200">
+      <el-table-column prop="address" :label="$t('receivingAccounts.receivingAccount')" min-width="200">
         <template #default="{ row }">
           <div v-if="row.address" class="addressWrapper">
             <span class="accountAddress" :title="row.address">
@@ -60,19 +60,19 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="lastTransactionTime" label="最近入账时间" min-width="150">
+      <el-table-column prop="lastTransactionTime" :label="$t('receivingAccounts.lastTransactionTime')" min-width="150">
         <template #default="{ row }">
-          {{ row.lastTransactionTime || '暂无' }}
+          {{ row.lastTransactionTime || $t('receivingAccounts.noData') }}
         </template>
       </el-table-column>
 
-      <el-table-column prop="lastTransactionAmount" label="最近入账金额" min-width="150">
+      <el-table-column prop="lastTransactionAmount" :label="$t('receivingAccounts.lastTransactionAmount')" min-width="150">
         <template #default="{ row }">
-          {{ row.lastTransactionAmount || '暂无' }}
+          {{ row.lastTransactionAmount || $t('receivingAccounts.noData') }}
         </template>
       </el-table-column>
 
-      <el-table-column prop="isActive" label="状态" width="150">
+      <el-table-column prop="isActive" :label="$t('receivingAccounts.status')" width="150">
         <template #default="{ row }">
           <div v-if="row.chainType === 'Stripe'" class="stripe-status">
             <el-tag
@@ -87,19 +87,19 @@
             :type="row.isActive ? 'success' : 'info'"
             size="small"
           >
-            {{ row.isActive ? '已启用' : '已禁用' }}
+            {{ row.isActive ? $t('receivingAccounts.enabled') : $t('receivingAccounts.disabled') }}
           </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column :label="$t('receivingAccounts.actions')" width="180" fixed="right">
         <template #default="{ row }">
           <div class="actionButtons" v-if="!row.isToken">
             <el-button
               type="primary"
               link
               @click="$emit('edit', row)"
-              title="编辑"
+              :title="$t('receivingAccounts.edit')"
             >
               <el-icon><Edit /></el-icon>
             </el-button>
@@ -108,7 +108,7 @@
               type="danger"
               link
               @click="$emit('disable', row)"
-              title="禁用"
+              :title="$t('receivingAccounts.disable')"
             >
               <el-icon><Close /></el-icon>
             </el-button>
@@ -117,7 +117,7 @@
               type="success"
               link
               @click="$emit('enable', row)"
-              title="启用"
+              :title="$t('receivingAccounts.enable')"
             >
               <el-icon><Check /></el-icon>
             </el-button>
@@ -127,7 +127,7 @@
                 type="primary"
                 link
                 @click="$emit('connect-stripe', row)"
-                title="连接Stripe账户"
+                :title="$t('receivingAccounts.connectStripeAccount')"
               >
                 <el-icon><Link /></el-icon>
               </el-button>
@@ -136,7 +136,7 @@
                 type="warning"
                 link
                 @click="$emit('reverify-stripe', row)"
-                title="重新验证Stripe账户"
+                :title="$t('receivingAccounts.reverifyStripeAccount')"
               >
                 <el-icon><Refresh /></el-icon>
               </el-button>
@@ -149,13 +149,14 @@
     <!-- 空状态 -->
     <el-empty
       v-if="!receivingAccounts || receivingAccounts.length === 0"
-      description="暂无收款账户，请点击'添加收款账户'按钮添加。"
+      :description="$t('receivingAccounts.noAccounts')"
     />
   </div>
 </template>
 
 <script>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Plus,
   Document,
@@ -193,6 +194,8 @@ export default {
     }
   },
   setup(props) {
+    const { t } = useI18n()
+    
     const tableData = computed(() => {
       const blockchainAccounts = props.receivingAccounts
         .filter(account => account.chainType)
@@ -203,8 +206,8 @@ export default {
             isToken: true,
             token,
             id: `${account.id}-${token}`,
-            lastTransactionTime: account.tokenTransactions?.[token]?.time || '暂无',
-            lastTransactionAmount: account.tokenTransactions?.[token]?.amount || '暂无',
+            lastTransactionTime: account.tokenTransactions?.[token]?.time || t('receivingAccounts.noData'),
+            lastTransactionAmount: account.tokenTransactions?.[token]?.amount || t('receivingAccounts.noData'),
             enabled: true
           }))
         }))
@@ -243,11 +246,11 @@ export default {
       
       navigator.clipboard.writeText(address)
         .then(() => {
-          ElMessage.success('地址已复制到剪贴板')
+          ElMessage.success(t('receivingAccounts.addressCopied'))
         })
         .catch(err => {
           console.error('复制失败:', err)
-          ElMessage.error('复制失败，请手动复制')
+          ElMessage.error(t('receivingAccounts.copyFailed'))
         })
     }
 
@@ -260,7 +263,7 @@ export default {
         Stripe: 'Stripe',
         PayPal: 'PayPal',
       }
-      return walletNames[chainType] || '区块链钱包'
+      return walletNames[chainType] || t('receivingAccounts.blockchainWallet')
     }
 
     const getWalletIcon = (chainType) => {
@@ -318,11 +321,11 @@ export default {
     const getStripeStatusText = (status) => {
       switch (status) {
         case 'approved':
-          return '已验证';
+          return t('receivingAccounts.verified');
         case 'pending':
-          return '验证中';
+          return t('receivingAccounts.verifying');
         default:
-          return '未验证';
+          return t('receivingAccounts.unverified');
       }
     }
 
