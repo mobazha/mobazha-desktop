@@ -1,3 +1,28 @@
+Business Source License 1.1
+
+License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
+"Business Source License" is a trademark of MariaDB Corporation Ab.
+
+-----------------------------------------------------------------------------
+
+Parameters
+
+Licensor:             Copyright (c) 2021 fengzie <526567244@qq.com>
+
+Licensed Work:        Mobazha Desktop and Web
+                      The Licensed Work is (c) 2021 fengzie <526567244@qq.com>
+
+Change Dates:
+
+- All commits prior to commit f724cf15684d0930468d9a1dbb01cb9b0a0b9825
+have a change date of 2021-04-28 (Apr 28, 2021)
+- All commits at or after f724cf15684d0930468d9a1dbb01cb9b0a0b9825 (i.e. committed to this
+repository after Apr 28, 2021) have a change date of 2027-09-06 (September 6th, 2027)
+
+Change License:       MIT
+
+-----------------------------------------------------------------------------
+
 The MIT License (MIT)
 
 Copyright (c) 2018 OpenBazaar
@@ -20,21 +45,34 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
---------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
-Copyright (c) 2021 fengzie <526567244@qq.com>
+Covenants of Licensor
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+In consideration of the right to use this License’s text and the "Business
+Source License" name and trademark, Licensor covenants to MariaDB, and to all
+other recipients of the licensed work to be provided by Licensor:
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+1. To specify as the Change License the GPL Version 2.0 or any later version,
+   or a license that is compatible with GPL Version 2.0 or a later version,
+   where "compatible" means that software provided under the Change License can
+   be included in a program with software provided under GPL Version 2.0 or a
+   later version. Licensor may specify additional Change Licenses without
+   limitation.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+2. To either: (a) specify an additional grant of rights to use that does not
+   impose any additional restriction on the right granted in this License, as
+   the Additional Use Grant; or (b) insert the text "None".
 
-Note: This project is licensed under the terms of the GNU General Public License version 3, with the addition of the original MIT license to preserve the copyright of the original authors. The GPLv3 license is intended to guarantee your freedoms as a user of this program.
+3. To specify a Change Date.
+
+4. Not to modify this License in any other way.
+
+-----------------------------------------------------------------------------
+
+Notice
+
+The Business Source License (this document, or the "License") is not an Open
+Source license. However, the Licensed Work will eventually be made available
+under an Open Source License, as stated in this License.
+
