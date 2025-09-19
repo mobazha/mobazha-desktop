@@ -40,17 +40,11 @@ To build the application for different platforms, use the following commands:
 
 ## Demo
 
-### Bitcoin
-[![Bitcoin](https://img.youtube.com/vi/WSvLQRjqdX4/0.jpg)](https://www.youtube.com/watch?v=WSvLQRjqdX4)
+### Mobazha RWA OTC
+[![Mobazha RWA OTC](https://img.youtube.com/vi/fk223sVXzV0/0.jpg)](https://youtu.be/fk223sVXzV0)
 
-### Bitcoin Cash
-[![Bitcoin Cash](https://img.youtube.com/vi/Abo7YJYJgrE/0.jpg)](https://www.youtube.com/watch?v=Abo7YJYJgrE)
-
-### ZCash
-[![ZCash](https://img.youtube.com/vi/dWXfLLdqUEI/0.jpg)](https://www.youtube.com/watch?v=dWXfLLdqUEI)
-
-### Litecoin
-[![Litecoin](https://img.youtube.com/vi/9do7zQ8ey90/0.jpg)](https://www.youtube.com/watch?v=9do7zQ8ey90)
+### Mobazha Telegram Miniapp with MetaMask
+[![Mobazha Telegram Miniapp with MetaMask](https://img.youtube.com/vi/1JSVs9htRnE/0.jpg)](https://youtu.be/1JSVs9htRnE)
 
 ### Web and Moderation
 [![Web and Moderation](https://img.youtube.com/vi/_PUywMOV8nk/0.jpg)](https://www.youtube.com/watch?v=_PUywMOV8nk)
