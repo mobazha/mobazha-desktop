@@ -97,11 +97,14 @@ export default {
       editingAccount: null,
       applyingAccount: null,
       isSaving: false,
-      supportedChainTypes: [
+      supportedChainTypes: import.meta.env.VITE_PROD_TEST ? [
         { id: 'BASE', name: 'Base', disabled: false },
         { id: 'BSC', name: 'Binance Smart Chain', disabled: false },
-        // { id: 'ETH', name: 'Ethereum', disabled: false },
-        { id: 'SOL', name: 'Solana', disabled: true, comingSoon: true }
+        { id: 'ETH', name: 'Ethereum', disabled: false },
+        { id: 'SOL', name: 'Solana', disabled: false }
+      ] : [
+        { id: 'BASE', name: 'Base', disabled: false },
+        { id: 'BSC', name: 'Binance Smart Chain', disabled: false },
       ],
       supportedPaymentMethods: [
         { id: 'stripe', name: 'Stripe', disabled: true, comingSoon: true }

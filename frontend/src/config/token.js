@@ -35,14 +35,14 @@ export const tokens = [
 ];
 
 // 链配置 - 参考后端 cointype.go 中的 ChainType 定义
-export const chains = [
+export const chains = import.meta.env.VITE_PROD_TEST ? [
   { id: 'all', name: 'All', icon: 'ion-android-list', count: 0 },
   // { id: 'BTC', name: 'Bitcoin', iconCode: 'BTC', count: 0 },
   // { id: 'BCH', name: 'Bitcoin Cash', iconCode: 'BCH', count: 0 },
   // { id: 'LTC', name: 'Litecoin', iconCode: 'LTC', count: 0 },
   // { id: 'ZEC', name: 'ZCash', iconCode: 'ZEC', count: 0 },
-  // { id: 'ETH', name: 'Ethereum', iconCode: 'ETH', count: 0 },
-  // { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
+  { id: 'ETH', name: 'Ethereum', iconCode: 'ETH', count: 0 },
+  { id: 'SOL', name: 'Solana', iconCode: 'SOL', count: 0 },
   { id: 'BASE', name: 'Base', iconCode: 'BASE', count: 0 },
   { id: 'BSC', name: 'Binance Smart Chain', iconCode: 'BSC', count: 0 },
   // { id: 'MATIC', name: 'Polygon', iconCode: 'MATIC', count: 0 },
@@ -51,6 +51,10 @@ export const chains = [
   // { id: 'XMR', name: 'Monero', iconCode: 'XMR', count: 0 },
   // { id: 'DASH', name: 'Dash', iconCode: 'DASH', count: 0 },
   // { id: 'privacy', name: 'Privacy Coins', icon: 'ion-ios-locked', count: 0 }
+] : [
+  { id: 'all', name: 'All', icon: 'ion-android-list', count: 0 },
+  { id: 'BASE', name: 'Base', iconCode: 'BASE', count: 0 },
+  { id: 'BSC', name: 'Binance Smart Chain', iconCode: 'BSC', count: 0 },
 ];
 
 // 法币支付方式
