@@ -1,0 +1,25 @@
+.about {
+  .contributorList li {
+    padding-left: $padLg;
+    padding-bottom: $padSm;
+  }
+
+  .singleLine {
+    white-space: pre;
+  }
+
+  .aboutDonations{
+    margin-top: -0.5em;
+
+    .flexBtnWrapper .btnFlx {
+
+      &:first-child {
+        border-left: none;
+      }
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+}
+

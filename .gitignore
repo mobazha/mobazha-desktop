@@ -1,0 +1,17 @@
+node_modules
+out/
+logs/
+run/
+.idea/
+dist/
+package-lock.json
+/data/
+public/electron/
+pnpm-lock.yaml
+
+build/extraResources/mobazha/
+MOBAZHA_TEMP/
+
+.env
+.tmp/
+/public/

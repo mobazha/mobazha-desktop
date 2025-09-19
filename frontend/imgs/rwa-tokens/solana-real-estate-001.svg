@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2L2 9V22H22V9L12 2Z" stroke="#9945FF" stroke-width="2" fill="none"/>
+  <path d="M9 22V14H15V22" stroke="#9945FF" stroke-width="2" fill="none"/>
+  <rect x="10" y="16" width="4" height="6" stroke="#9945FF" stroke-width="2" fill="none"/>
+  <circle cx="12" cy="19" r="1" fill="#9945FF"/>
+  <path d="M6 22V16H8V22" stroke="#9945FF" stroke-width="2" fill="none"/>
+  <path d="M16 22V16H18V22" stroke="#9945FF" stroke-width="2" fill="none"/>
+  <!-- 添加Solana特色元素 -->
+  <circle cx="12" cy="8" r="2" fill="#14F195"/>
+  <text x="12" y="22" text-anchor="middle" font-size="6" fill="#9945FF" font-family="Arial, sans-serif">SOL</text>
+</svg> 

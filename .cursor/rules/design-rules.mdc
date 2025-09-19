@@ -1,0 +1,119 @@
+---
+description: Design system guidelines for frontend styling and components
+alwaysApply: false
+---
+
+你是Web3电商平台界面设计专家，深刻理解现代前端设计系统和用户体验原则。
+
+## 🎨 核心设计原则
+
+### Web3现代化风格
+- **毛玻璃美学**：使用 `backdrop-filter: blur(8px)` 营造层次感
+- **半透明背景**：优先使用 `rgba(255, 255, 255, 0.8)` 而非纯色
+- **科技感配色**：主色调 `hsl(220, 15%, 97%)`，强调色 `hsl(230, 70%, 50%)`
+- **渐变过渡**：使用柔和的渐变替代硬性的颜色变化
+
+### 统一背景系统
+```scss
+// 页面背景 - 所有页面统一使用
+background: linear-gradient(180deg, #fafbfc 0%, #f4f6f8 100%);
+
+// 卡片/容器背景 - 所有contentBox统一使用
+background: rgba(255, 255, 255, 0.8);
+backdrop-filter: blur(8px);
+border: 1px solid rgba(220, 225, 230, 0.4);
+```
+
+## 🧩 组件设计规范
+
+### 按钮组件
+```scss
+.btn {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+  }
+}
+```
+
+### 导航按钮
+- 尺寸：32x32px，圆角8px
+- 悬停效果：渐变背景淡入 + 轻微上浮
+- 过渡：`cubic-bezier(0.4, 0, 0.2, 1)` 缓动
+
+### 卡片组件
+- 统一使用半透明背景和毛玻璃效果
+- 边框：`rgba(220, 225, 230, 0.4)`
+- 圆角：12px
+- 悬停提升：`transform: translateY(-1px)`
+
+## 📐 布局规范
+
+### 现代化布局原则
+1. **Flexbox优先**：使用 `display: flex` + `gap` 替代 `float` + `margin`
+2. **标准间距**：优先使用 `gap: 12px`
+3. **避免浮动**：移除 `float` 属性，使用flex布局
+4. **层级管理**：合理设置z-index值
+
+### 响应式断点
+```scss
+$mobile: 480px;   // 移动端
+$tablet: 768px;   // 平板
+$desktop: 1024px; // 桌面端
+```
+
+## ⚡ 交互效果规范
+
+### 标准过渡效果
+```scss
+// 所有交互元素统一使用
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+```
+
+### 悬停动画
+- **轻微上浮**：`transform: translateY(-1px)` 或 `translateY(-2px)`
+- **阴影增强**：`box-shadow: 0 4px 16px rgba(100, 115, 135, 0.15)`
+- **性能优化**：使用 `transform` 而非 `position` 变化
+
+## 🚫 避免使用的模式
+
+1. **纯白色背景** → 改用半透明+毛玻璃效果
+2. **Float布局** → 改用flexbox + gap
+3. **硬性阴影** → 使用柔和的 box-shadow
+4. **突兀颜色变化** → 使用渐变过渡
+5. **Position动画** → 使用transform动画
+
+## ✅ 代码检查清单
+
+在创建或修改前端文件时，确保：
+
+- [ ] 页面使用统一的渐变背景
+- [ ] 卡片/容器使用半透明+毛玻璃效果
+- [ ] 布局使用flex+gap，移除float
+- [ ] 按钮有hover动画和适当的过渡效果
+- [ ] 导航元素符合32px尺寸规范
+- [ ] 设置了合理的z-index层级
+- [ ] 考虑了移动端响应式适配
+- [ ] 使用transform进行动画优化
+
+## 📱 响应式适配原则
+
+### 移动端优化
+- 按钮组改为垂直布局：`flex-direction: column`
+- 间距缩小：`gap: 8px`
+- 导航按钮尺寸调整：28x28px
+
+### 桌面端增强
+- 增强悬停效果
+- 更明显的阴影和动画
+- 更大的交互区域
+
+---
+
+**重要提醒**：始终优先考虑用户体验和性能，确保设计既美观又实用。在Web3电商平台中，界面的现代化和专业性直接影响用户对平台的信任度。

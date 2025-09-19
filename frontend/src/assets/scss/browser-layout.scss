@@ -1,0 +1,102 @@
+// 浏览器风格布局样式
+// 确保新布局的样式优先级和兼容性
+
+// 重置一些可能冲突的样式
+#appFrame {
+  .app-container {
+    height: 100vh;
+    overflow: hidden;
+    
+    .content-frame {
+      #pageContainer {
+        // 确保内容区域正确显示
+        width: 100%;
+      }
+    }
+  }
+}
+
+// 确保浏览器工具栏样式正确应用
+.browser-toolbar {
+  // 确保工具栏中的元素正确对齐
+  .nav-buttons-left,
+  .nav-buttons-right {
+    flex-shrink: 0;
+  }
+  
+  .address-bar-container {
+    min-width: 200px;
+    
+    @media (max-width: 768px) {
+      min-width: 150px;
+    }
+    
+    @media (max-width: 480px) {
+      min-width: 100px;
+    }
+  }
+}
+
+// 确保下拉菜单在小屏幕上正确显示
+@media (max-width: 768px) {
+  .notification-dropdown,
+  .user-menu-dropdown {
+    right: 0;
+    left: auto;
+    width: 90vw;
+    max-width: 320px;
+  }
+  
+  .server-menu-dropdown,
+  .tools-menu-dropdown {
+    right: 0;
+    left: auto;
+    width: 80vw;
+    max-width: 280px;
+  }
+}
+
+// 确保状态栏在小屏幕上正确显示
+@media (max-width: 480px) {
+  .status-bar {
+    height: 20px;
+    font-size: 11px;
+    padding: 0 8px;
+  }
+}
+
+// 确保窗口控制按钮正确显示
+.window-controls {
+  .window-control {
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+// 确保地址栏指示器正确显示
+.address-bar-indicators {
+  pointer-events: none;
+  
+  > * {
+    pointer-events: auto;
+  }
+}
+
+// 确保导航按钮在焦点状态下正确显示
+.nav-btn:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.3);
+  outline-offset: 2px;
+}
+
+// 确保用户菜单按钮在焦点状态下正确显示
+.user-menu-btn:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.3);
+  outline-offset: 2px;
+} 

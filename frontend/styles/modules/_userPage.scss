@@ -1,0 +1,465 @@
+@use "sass:math";
+@use "sass:color";
+
+.userPage {
+  height: 100%;
+  position: relative;
+  background: linear-gradient(180deg, $primary 0%, color.adjust($primary, $lightness: -3%) 100%); // 统一为柔和的白色到淡灰色渐变
+
+      // 添加微妙的动画背景
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 20%, color.adjust($emphasis1, $alpha: -0.985) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, color.adjust($emphasis1, $lightness: -10%, $alpha: -0.985) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+  .header {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain; // 改为contain，保持图片完整显示和比例
+    position: absolute;
+    width: 100%;
+    height: 355px; // 进一步调整到375px，确保底部刚好对齐搜索框顶部
+    top: $barLg; // 从PageTabBar下方开始，避免被导航栏遮挡 (55px)
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    border-radius: 0 0 24px 24px;
+    overflow: hidden;
+
+    // 添加背景色，以防图片无法完全填满容器时有良好的视觉效果
+    background-color: color.adjust($primary, $alpha: -0.05);
+
+    // 添加现代化的遮罩渐变
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+          color.adjust($emphasis1, $alpha: -0.9) 0%,
+          color.adjust($emphasis1, $lightness: -10%, $alpha: -0.95) 50%,
+          transparent 100%);
+      z-index: 1;
+    }
+
+    .blockedOverlay {
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      position: absolute;
+      display: none;
+      z-index: 2;
+
+      &>* {
+        height: 100%;
+      }
+    }
+  }
+
+  &.isBlocked {
+    .blockedOverlay {
+      display: block;
+    }
+  }
+
+  // 确保所有子容器的背景与页面背景协调
+  .pageContent {
+    position: relative;
+    z-index: 1;
+    background: transparent; // 确保pageContent透明，使用父容器的背景
+
+    // 统一所有contentBox的背景
+    .contentBox {
+      background: $overlayP !important;
+      backdrop-filter: blur(8px);
+      border: 1px solid color.adjust($border, $alpha: -0.6);
+    }
+
+    // 统一tabContent背景
+    .tabContent {
+      background: transparent;
+    }
+  }
+
+  // 全局覆盖UserPage内所有白色背景元素
+  &.userPage {
+
+    .clrP,
+    .contentBox,
+    .flex .contentBox,
+    .userPageSearchBar .searchInput,
+    .storeFilters .contentBox,
+    .userPageStore .contentBox {
+      background: $overlayP !important;
+      backdrop-filter: blur(8px);
+      border: 1px solid color.adjust($border, $alpha: -0.6);
+    }
+
+    // 特殊处理一些可能需要完全透明的元素
+    .tabContent,
+    .userPageStore,
+    .storeListings,
+    .listingsGrid {
+      background: transparent !important;
+    }
+  }
+
+  .pageControls {
+    padding: 290px 0 40px 0; // 调整padding-top：268px + 55px = 323px，适配header下移
+    position: relative;
+
+    .tabTitle {
+      color: $textOnEmph;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      font-weight: 700;
+    }
+
+    .storeWelcomeCallout {
+      transform: translateY(-100%);
+      top: -10px;
+      left: -160px;
+      width: 400px;
+      background: color.adjust($overlayP, $alpha: -0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid color.adjust($border, $alpha: -0.4);
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(100, 115, 135, 0.15);
+
+      &::before {
+        left: auto;
+        right: 20px;
+      }
+    }
+
+    // 为按钮添加现代化样式
+    .modern-btn-strip {
+      position: relative;
+      z-index: 10; // 确保按钮在header上方
+      display: flex;
+      gap: 12px; // 按钮之间的间距
+
+      // 重置btnStrip的默认样式
+      overflow: visible;
+
+      &>* {
+        float: none; // 移除浮动
+      }
+
+      .btn {
+        background: color.adjust($overlayP, $alpha: -0.1);
+        backdrop-filter: blur(12px);
+        border: 1px solid color.adjust($textOnEmph, $alpha: -0.7);
+        border-radius: 10px !important; // 强制覆盖btnStrip的border-radius: 0
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        padding: 8px 16px;
+        box-shadow: 0 2px 8px rgba(100, 115, 135, 0.1);
+
+        &:hover {
+          transform: translateY(-2px);
+          background: color.adjust($overlayP, $alpha: -0.05);
+          box-shadow: 0 8px 24px rgba(100, 115, 135, 0.2);
+          border-color: color.adjust($emphasis1, $alpha: -0.7);
+        }
+
+        &:active {
+          transform: translateY(-1px);
+        }
+
+        // 移除btnStrip的边框合并效果
+        &:not(:last-child):not(:hover) {
+          border-right-color: color.adjust($textOnEmph, $alpha: -0.7);
+        }
+      }
+    }
+  }
+
+  .informationList {
+
+    .informationHeader {
+      font-size: $tx5;
+    }
+
+    .listItem>* {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .termsDisplay {
+    position: absolute;
+    top: $pad;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: 0; //don't overlap other absolute elements on the page
+
+    &.open {
+      display: block;
+    }
+  }
+
+  .userPageHome {
+
+    .aboutBox img {
+      max-width: 100%;
+    }
+
+    .userCard {
+
+      .contentBox {
+
+        .content {
+          height: auto;
+
+          .contentTop {
+            height: auto;
+            margin-bottom: 10px;
+
+            .userDescription {
+              max-height: none;
+              -webkit-line-clamp: unset;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .userPageFollow {
+    .userCardsContainer {
+      flex-wrap: wrap;
+      width: auto;
+      margin: 0 -#{math.div($padMd, 2)};
+
+      .userCard {
+        width: 33.33333333333333%;
+        flex: 0 0 auto;
+        padding: 0 calc($padMd / 2) $padMd calc($padMd / 2);
+        box-sizing: border-box;
+      }
+    }
+
+    .followLoadingContainer {
+      padding: $padHg;
+      width: 100%;
+    }
+
+    &.noResults {
+      min-height: 235px;
+      position: relative;
+
+      .followLoadingContainer {
+        @include center();
+      }
+    }
+  }
+
+  .userPageStore {
+    background: transparent; // 确保Store页面背景透明
+
+    .userPageSearchBar {
+      margin-bottom: $padMd;
+      height: $barSm;
+      background: transparent; // 搜索栏背景透明
+
+      .ctrl,
+      .btn {
+        height: $barSm;
+        line-height: $barSm;
+      }
+
+      .btnLayoutFullWidth {
+        display: none;
+      }
+
+      // 优化搜索输入框背景
+      .searchInput {
+        background: color.adjust($overlayP, $alpha: -0.1) !important;
+        backdrop-filter: blur(8px);
+        border: 1px solid color.adjust($border, $alpha: -0.6);
+      }
+    }
+
+    .storeFilters {
+      flex-basis: 228px;
+      margin-right: $padMd;
+
+      .contentBox {
+        font-size: $tx5b;
+        background: $overlayP !important;
+        backdrop-filter: blur(8px);
+        border: 1px solid color.adjust($border, $alpha: -0.6);
+
+        input[type="radio"]+label {
+          font-size: $tx5b;
+          line-height: 1.3em;
+          min-height: 1.3em;
+          padding: 0.3em 0px;
+        }
+      }
+
+      &>* {
+        margin-bottom: $pad;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      .categoryOrTypeFilter {
+        max-height: 250px;
+        overflow: auto;
+
+        .moreCatsWrap {
+
+          .moreCats,
+          .showLess {
+            display: none;
+          }
+
+          &.expanded {
+
+            .moreCats,
+            .showLess {
+              display: block;
+            }
+
+            .showMore {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+
+    .storeListings {
+      flex-shrink: 1;
+      width: 100%;
+      background: transparent; // 确保listings区域背景透明
+
+      .listingsGrid {
+        background: transparent;
+      }
+
+      .listingsHeaderRow {
+        .listingsCount {
+          flex-grow: 1;
+        }
+      }
+    }
+
+    .listViewIcon {
+      display: none;
+    }
+
+    &.listView {
+      .listViewIcon {
+        display: block;
+      }
+
+      .gridViewIcon {
+        display: none;
+      }
+
+      .btnLayoutStandard,
+      .btnLayoutFullWidth {
+        @include disabled;
+      }
+    }
+
+    .popInMessageHolder {
+      z-index: 2; // so it's above the listing card overlays
+    }
+  }
+
+  .userPageReputation {
+
+    .repBg {
+      font-size: 38px;
+      display: inline-flex;
+
+      &>.emoji {
+        margin-right: 0.2em;
+      }
+    }
+
+    .statsBox {
+      min-height: 150px;
+    }
+
+    .reviews {
+      .title {
+        display: none;
+      }
+
+      .noReviews {
+        text-align: center;
+      }
+
+      .loadMore {
+        padding-top: $padLg;
+        margin-top: $padLg;
+        border-top-style: solid;
+        border-top-width: 1px;
+      }
+    }
+  }
+}
+
+// 添加页面整体层级修复
+#pageTabBar {
+  position: relative;
+  z-index: 5; // 确保tab导航在header之上
+  background: color.adjust($overlayP, $alpha: -0.05); // 添加半透明背景
+  backdrop-filter: blur(8px); // 添加毛玻璃效果
+  border-bottom: 1px solid color.adjust($border, $alpha: -0.6); // 添加底部边框
+}
+
+// 修复MiniProfile在tab导航中的层级
+.pageTabs {
+  .miniProfile {
+    position: relative;
+    z-index: 6; // 确保mini profile在最顶层
+  }
+}
+
+.userLoadingModal {
+  padding-bottom: 0;
+
+  header {
+    height: 80px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .contentWrap {
+    // minimize the size of the form jumping as we transition from loading to
+    // error states
+    min-height: 45px;
+  }
+
+  .socialIcons {
+    margin-bottom: 55px;
+    font-size: $tx3;
+
+    .non-ionic-icon {
+      width: 15px;
+      height: 15px;
+      position: relative;
+      top: -2px;
+    }
+  }
+}

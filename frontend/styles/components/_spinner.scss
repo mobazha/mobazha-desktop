@@ -1,0 +1,21 @@
+.spinner {
+  &.spinnerLg {
+    width: $spinnerLg;
+    height: $spinnerLg;
+  }
+
+  &.spinnerMd {
+    width: $spinnerMd;
+    height: $spinnerMd;
+  }
+
+  &.spinnerSm {
+    width: $spinnerSm;
+    height: $spinnerSm;
+  }
+
+  &.spinnerTxt {
+    width: 1em;
+    height: 1em;
+  }
+}

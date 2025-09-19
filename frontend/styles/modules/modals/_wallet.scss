@@ -1,0 +1,314 @@
+.wallet {
+  .walletIconWrap {
+    display: inline-flex;
+    width: auto;
+
+    .iconWallet {
+      width: 18px;
+    }
+  }
+
+  .tickerContainer {
+    margin-right: 40px;
+
+    .cryptoTicker {
+      height: 100%;
+    }
+  }
+
+  .zeroSupportedCurs {
+    min-height: 250px;
+    text-align: center;
+    padding: $padMd;
+    font-size: $tx4;
+  }
+
+  .coinNav {
+    .coinNavItem {
+      cursor: pointer;
+
+      .coinName {
+        // in case the name and/or balance are really long, don't let
+        // the name column get too small
+        min-width: 80px;
+        word-wrap: break-word;
+      }
+
+      .balanceText {
+        word-wrap: break-word;
+        max-width: 100px;
+      }
+
+      &.active {
+        cursor: default;
+        font-weight: bold;
+        outline: {
+          style: solid;
+          width: 1px;
+        }
+
+        .activeBalanceIcon {
+          font-size: 22px;
+          line-height: 1;
+          position: absolute;
+        }
+      }
+
+      &.clientUnsupported {
+        cursor: default;
+
+        .cryptoIcon, .coinName {
+          @include disabled();
+        }
+      }
+    }
+  }
+
+  .coinStats {
+    height: 102px;
+    padding: 20px;
+
+    .coinIcon {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      transform: translateY(calc(-50% + 1px));
+      text-align: center;
+
+      .cryptoIcon  {
+        width: 34px;
+        height: 34px;
+      }
+    }
+
+    .colWrap {
+      height: 100%;
+
+      .statCol {
+        padding-top: 25px;
+        word-break: break-word;
+
+        &.displayCurCol {
+          .displayCurColContent {
+            border-right-width: 1px;
+            border-right-style: solid;
+            border-left-width: 1px;
+            border-left-style: solid;
+            justify-content: flex-start;
+            height: 100%;
+            min-height: 62px;
+          }
+        }
+      }
+    }
+  }
+
+  .sendReceiveNav {
+    .active, .btnFlx:hover, .btnFlx:focus {
+      font-weight: bold;
+    }
+  }
+
+  .sendReceiveContainer {
+    // So there's no jump when toggling between send / receive mode. If the larger
+    // size changes, this may need to be updated.
+    min-height: 320px;
+
+    .receiveMoney {
+      text-align: center;
+      position: relative;
+
+      .addressText {
+        max-width: 350px;
+        display: inline-block;
+        vertical-align: top;
+      }
+
+      .receiveQrCodeWrap {
+        // needed so space is allocated when the qr code is not displayed
+        // during fetching
+        height: 228px;
+      }
+
+      .copyTextWrap {
+        padding-left: 8px;
+
+        .copyAddress, .copiedText {
+          position: absolute;
+          max-width: 90px;
+          display: inline-block;
+          text-align: left;
+          word-wrap: break-word;
+        }
+
+        .copiedText {
+          left: 8px;
+        }
+      }
+
+      .spinnerWrap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        .spinner {
+          width: 100px;
+          @include center();
+        }
+      }
+    }
+  }
+
+  .walletTransactions {
+    padding: $padLg;
+    min-height: 335px;
+    position: relative;
+
+    .transaction {
+      position: relative;
+      font-size: $tx5;
+      padding: {
+        right: 0;
+        left: 0;
+      }
+
+      .btn {
+        font-size: $tx5b;
+        font-weight: bold;
+        padding: {
+          right: 10px;
+          left: 10px;
+        }
+      }
+
+      &:last-child {
+        border-bottom: {
+          style: solid;
+          width: 1px;
+          color: inherit;
+        }
+      }
+
+      .statusIconCol {
+        width: 15px;
+        text-align: right;
+        flex-shrink: 0;
+
+        .ion-ios-checkmark-empty {
+          font-size: $tx1;
+          position: relative;
+          top: -7px;
+          height: 0px;
+        }
+
+        .ion-android-time {
+          position: relative;
+          top: -2px;
+        }
+
+        .ion-alert-circled {
+          position: relative;
+          top: -3px;
+        }
+
+        .ion-ios-close-empty {
+          position: relative;
+          top: -7px;
+        }
+      }
+
+      .toAddress {
+        font-weight: bold;
+        display: inline-block;
+        vertical-align: bottom;
+      }
+
+      &.confirmedTransaction {
+        .statusIconCol {
+          height: 0; // making the .ion-ios-checkmark-empty with a sufficiently
+                     // large font size gives it too much vertical padding
+        }
+      }
+
+      .btn .ion-android-open {
+        padding-left: 5px;
+      }
+
+      .copiedIndicator {
+        position: absolute;
+        bottom: 3px;
+        left: 5px;
+      }
+    }
+
+    .fetchErrorWrap {
+      text-align: center;
+    }
+
+    .popInMessageHolder {
+      transform: translateX(4px);
+      top: 100px;
+
+      &.notFixed {
+        position: absolute;
+        top: -65px;
+        transform: translateX(-50%);
+      }
+    }
+
+    .retryConfirm {
+      right: 0;
+      top: 58px;
+      min-height: 146px;
+
+      .bodyText {
+        margin-bottom: 3px;
+      }
+
+      &::before {
+        left: 79%;
+      }
+
+      .buttonBar {
+        height: auto;
+      }
+    }
+
+    .transactionFetchState {
+      margin-top: 25px;
+    }
+  }
+
+  .reloadTransactions {
+    position: absolute;
+    top: 20px;
+    right: $padLg;
+    max-width: 200px;
+  }
+}
+
+.spendConfirmBox {
+  .sendConfirm {
+    position: relative;
+    z-index: 2; // Position above the popInMessageHolder
+
+    .spinner {
+      position: relative;
+      top: -10px;
+    }
+  }
+
+  &.centeredBelow {
+    // The container that you want the spendConfirmBox to be
+    // centered below must be non-statically positioned.
+    .sendConfirm {
+      margin-top: 10px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+}

@@ -1,0 +1,67 @@
+.moderatorCard {
+  .moderatorCardInner .moderatorCardContent {
+    padding: $padMd;
+    cursor: pointer;
+
+    .moderatorCardMiddle {
+      flex-grow: 1;
+      font-size: $tx5b;
+
+      .moreLink {
+        float: right;
+      }
+
+      .detailsRow {
+        align-items: center;
+      }
+
+      .note {
+        font-size: 1.1rem;
+      }
+
+      .modFee {
+        max-width: 100px;
+      }
+    }
+
+    .selectBtn {
+      width: 100%;
+
+      .showIfSelected {
+        display: none;
+      }
+
+      &[data-state='selected'] .showIfSelected {
+        display: inline;
+      }
+
+      .showIfDeselected {
+        display: none;
+      }
+
+      &[data-state='deselected'] .showIfDeselected {
+        display: inline;
+      }
+
+      .showIfUnselected {
+        display: none;
+      }
+
+      &[data-state='unselected'] .showIfUnselected {
+        display: inline;
+      }
+    }
+
+    .btnRadio {
+      padding: 0;
+
+      .fauxRadioBtn {
+        margin: 0;
+      }
+    }
+
+    .verifiedWrapper {
+      overflow: visible;
+    }
+  }
+}

@@ -1,0 +1,31 @@
+---
+description: when create or update frontend files
+alwaysApply: false
+---
+You are an expert in javascript, Node.js, Vite, Vue.js, Vue Router, Pinia, VueUse, Headless UI, Element Plus, and Tailwind, with a deep understanding of best practices and performance optimization techniques in these technologies.
+  
+    Code Style and Structure
+    - Write concise, maintainable, and technically accurate javascript code with relevant examples.
+    - Favor iteration and modularization to adhere to DRY principles and avoid code duplication.
+    - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+    - Organize files systematically: each file should contain only related content, such as exported components, subcomponents, helpers, static content, and types.
+    - 尽量保持原有结构，最小化修改，除非提示可以做大改
+    - 当前的各个页面的主要样式在frontend/styles/modules 里，对于新建页面，样式按照vue的规范放在vue文件里
+    - 对多语言文件的修改，可以新加，但不要修改现有的多语言json键值对
+  
+    Naming Conventions
+    - Use lowercase with dashes for directories (e.g., components/auth-wizard).
+    - Favor named exports for functions.
+
+    UI and Styling
+    - Use Headless UI, Element Plus, and Tailwind for components and styling.
+    - Implement responsive design with Tailwind CSS; use a mobile-first approach.
+  
+    Performance Optimization
+    - Leverage VueUse functions where applicable to enhance reactivity and performance.
+    - Wrap asynchronous components in Suspense with a fallback UI.
+    - Use dynamic loading for non-critical components.
+    - Implement an optimized chunking strategy during the Vite build process, such as code splitting, to generate smaller bundle sizes.
+  
+    Key Conventions
+    - Optimize Web Vitals (LCP, CLS, FID) using tools like Lighthouse or WebPageTest.

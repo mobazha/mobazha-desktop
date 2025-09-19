@@ -1,0 +1,9 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="10" stroke="#4CAF50" stroke-width="2" fill="none"/>
+  <path d="M8 12L11 15L16 9" stroke="#4CAF50" stroke-width="2"/>
+  <path d="M12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6Z" stroke="#4CAF50" stroke-width="2" fill="none"/>
+  <circle cx="12" cy="10" r="2" fill="#4CAF50"/>
+  <!-- 添加森林元素 -->
+  <path d="M6 18L8 16L10 18L12 16L14 18L16 16L18 18" stroke="#2E7D32" stroke-width="1"/>
+  <text x="12" y="22" text-anchor="middle" font-size="6" fill="#4CAF50" font-family="Arial, sans-serif">FCC</text>
+</svg> 

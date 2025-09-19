@@ -1,0 +1,91 @@
+@use "sass:color";
+
+// colors - Web3电商平台现代配色
+$primary: hsl(220, 15%, 97%);  // 现代科技感的淡蓝灰色
+$secondary: color.adjust($primary, $lightness: -12%);  // 更深的层次感
+
+$text: hsl(0, 0%, 12%);  // 更深的黑色，增强对比度
+$text2: color.adjust($text, $lightness: +25%);
+$text3: color.adjust($text, $lightness: +50%);
+$text4: color.adjust($text, $lightness: +60%);
+$textOnEmph: rgb(255, 255, 255);
+$textOnSelection: rgb(255, 255, 255);
+
+$border: hsl(220, 10%, 85%);  // 统一的边框色调
+$border2: color.adjust($primary, $lightness: 100%);
+$border3: color.adjust($text, $lightness: 35%);
+$border4: color.adjust($text, $lightness: 70%);
+$border5: color.adjust($text, $lightness: 90%);
+$focusedBorder: hsl(230, 70%, 50%);  // Web3风格的蓝色焦点
+$emphasis1: hsl(230, 70%, 50%);  // 现代蓝色强调色
+$emphasis1Disabled: color.adjust($emphasis1, $saturation: -50%, $lightness: +40%);
+$emphasis2: color.adjust($emphasis1, $lightness: +15%);
+$emphasisGradient: linear-gradient(135deg, $emphasis2, $emphasis1);  // 斜角渐变更现代
+$selection: hsl(230, 70%, 55%);
+$error: hsl(0, 70%, 55%);  // 现代化的错误色
+$alert: hsl(45, 85%, 55%);  // 现代警告色
+$alert2: hsl(25, 80%, 55%); // 现代橙色
+$alert2Background: hsl(25, 60%, 97%);
+$alert2Gradient: linear-gradient(135deg, hsl(25, 60%, 97%), hsl(25, 40%, 95%));
+
+$overlay: hsla(220, 15%, 20%, 0.15);  // 现代遮罩效果
+$overlayP: hsla(220, 15%, 100%, 0.9);
+
+// typography
+$baseFontSize: 10px;
+$txBg: 4.75rem;
+$tx1: 2.6rem;
+$tx2: 2.3rem;
+$tx2b: 2rem;
+$tx3: 1.7rem;
+$tx3b: 1.6rem;
+$tx4: 1.5rem;
+$tx5: 1.4rem;
+$tx5b: 1.3rem;
+$tx6: 1.2rem;
+$tx7: 0.9rem;
+
+$formElementHeight: 4rem;
+
+// layout
+$pad: 10px;
+$padTn: calc($pad / 4);
+$padSm: calc($pad / 2);
+$padMd: $pad * 1.5;
+$padMd2: $pad * 1.2;
+$padLg: $pad * 2;
+$padHg: $pad * 2.5;
+$padGi: $pad * 4;
+$marg: 10px;
+$chatClosed: 48px;
+$chatOpen: 225px;
+$pageWidth: 950px;
+$scrollbar: 10px;
+$modalContentInner: 957px;
+$modalContentInnerNarrow: 536px;
+$modalContentInnerMedium: 750px;
+$buttonHeight: 35px;
+$inputHeight: 40px;
+$chatConvoHeight: 360px;
+$confirmBoxWidth: 245px;
+
+$thumb: 42px;
+$thumbHg: 60px;
+$thumbLg: 50px;
+$thumbSm: 36px;
+$thumbTn: 24px;
+
+// controls
+$corner: 2px;
+$bar: 50px;
+$barSm: 40px;
+$barLg: 55px;
+$spinnerSm: 20px;
+$spinnerMd: 60px;
+$spinnerLg: 80px;
+
+//responsive
+$largeWidth: 1500px;
+$smallHeight: 700px;
+
+

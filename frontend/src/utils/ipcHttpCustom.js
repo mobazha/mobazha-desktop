@@ -1,0 +1,110 @@
+import $ from 'jquery';
+import _ from 'underscore';
+import { Events } from 'backbone';
+
+class IpcHttpCustom {
+  constructor() {
+    _.extend(this, Events);
+  }
+
+  send (channel, args) {
+    switch (channel) {
+      case 'controller.mainwindow.doMainWindowAction':
+      case 'controller.mainwindow.checkForUpdate':
+      case 'controller.mainwindow.installUpdate':
+      case 'controller.mainwindow.setBadgeCount':
+        break;
+      
+      case 'renderer-cleared-local-server-events':
+      case 'server-shutdown-fail':
+      case 'server-connect-log':
+      case 'server-connect-ready':
+      case 'controller.system.printLog':
+        break;
+
+      case 'controller.system.openExternal':
+        break;
+
+      case 'controller.mainwindow.setProxy': {
+        this.trigger('proxy-set', args, args?.id);
+        break;
+      }
+
+      case 'controller.mainwindow.setActiveServer':
+        const server = args;
+        if (server.authenticate) {
+          // $.ajaxSetup({
+          //   beforeSend: function(jqXHR, settings) {
+          //     if (settings.url.startsWith(server.httpUrl) || settings.url.startsWith(server.socketUrl)){
+          //       const un = server.username;
+          //       const pw = server.password;
+  
+          //       jqXHR.setRequestHeader('Authorization', `Basic ${btoa(`${un}:${pw}`)}}`); 
+          //     }
+          //   }
+          // });
+        };
+        
+        break;
+
+      case 'controller.system.writeToClipboard':
+        navigator.clipboard.writeText(args);
+        break;
+    
+      default:
+        break;
+    }
+  }
+
+  synchronousRequest(url) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.send(null);
+    if (xhr.status === 200) {
+       return xhr.responseText;
+    } else {
+       throw new Error('Request failed: ' + xhr.statusText);
+    }
+  }
+
+  sendSync (channel, args) {
+    switch (channel) {
+      case 'controller.system.getGlobal': {
+        switch (args) {
+          case 'externalRoute':
+            return undefined;
+          case 'isBundledApp':
+            return false;
+          case 'localServer':
+            return undefined;
+          default:
+            return undefined;
+        }
+      }
+      case 'controller.system.getPlatform':
+        return undefined;
+
+      // 'isRunning', 'isStopping', 'lastStartCommandLineArgs', 'start', 'stop', 'getServerStatus'
+      case 'controller.localServer.isRunning':
+      case 'controller.localServer.isStopping':
+      case 'controller.localServer.lastStartCommandLineArgs':
+      case 'controller.localServer.start':
+      case 'controller.localServer.stop':
+      case 'controller.localServer.getServerStatus':
+        return undefined;
+
+      case 'controller.system.readTemplateFileSync':
+        return this.synchronousRequest("/backbone/templates/"+args);
+      case 'controller.system.getlanguageFileContent':
+        return JSON.parse(this.synchronousRequest("/backbone/languages/"+args));
+      default:
+        return undefined;
+    }
+  }
+
+  removeListener (channel, listener) {
+    this.off(channel, listener);
+  }
+}
+
+export const ipcHttpCustom = new IpcHttpCustom();
